@@ -1,9 +1,9 @@
 {
   "name": "obs-js",
-  "private": true,
   "version": "0.0.1",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest"
   },
