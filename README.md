@@ -2,9 +2,16 @@
 
 ### _The easiest way to communicate with OBS_
 
+[![Downloads](https://img.shields.io/npm/dt/@brendonovich/obs-js.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@brendonovich/obs-js)
+[![Downloads](https://img.shields.io/npm/v/@brendonovich/obs-js.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@brendonovich/obs-js)
+[![Build Size](https://img.shields.io/bundlephobia/min/@brendonovich/obs-js?label=bundle%20size&style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/result?p=@brendonovich/obs-js)
+
 Controlling OBS with code is difficult. Simple manipulations of scenes and scene items can be manageable, but can easily spiral out of control having to keep track of scenes, sources, settings, filters and more.
 
 obs-js aims to fix this. By simply working with `Scene`, `Source`, and `SceneItem` objects, you can have unparalleled control over your OBS layout.
+
+# Beta Warning
+This library is not well tested and is still under heavy development. Feel free to use it, but make sure you make a backup of your scene collections before doing anything with obs-js.
 
 ## Features
 
