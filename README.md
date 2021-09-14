@@ -25,7 +25,7 @@ This library is not well tested and is still under heavy development. Feel free 
 
 1. Install the [fork of obs-websocket](https://github.com/MemedowsTeam/obs-websocket/releases)
   
-    `simple-obs` exposes some functionality (eg. `obs.clean()`, `Scene.remove()`) that requires installing a custom fork of `obs-websocket`. This fork simply adds support for removing scenes, retaining all other previous functionality. obs-js will support `obs-w`ebsocket` v5 when it is released, which has native support for removing scenes, and also v4 for backwards compatibility.
+    `simple-obs` exposes some functionality (eg. `obs.clean()`, `Scene.remove()`) that requires installing a custom fork of `obs-websocket`. This fork simply adds support for removing scenes, retaining all other previous functionality. obs-js will support `obs-websocket` v5 when it is released, which has native support for removing scenes, and also v4 for backwards compatibility.
 
 2. Install `simple-obs`
 
