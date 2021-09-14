@@ -12,9 +12,10 @@ import {
 // will cause the script to throw an error
 
 async function main() {
-  // obs-js must be connected to OBS to start commmunicating with it
+  // Connect to OBS before creating or linking any scenes
   await obs.connect({ address: "localhost:4444" });
 
+  // The underlying websocket is exposed through helper functions and the `obs.socket` object
   const { baseWidth: OBS_WIDTH, baseHeight: OBS_HEIGHT } =
     await obs.getVideoInfo();
 
