@@ -22,7 +22,7 @@ export const PROCESS_ID = nanoid();
 const emitter = new EventEmitter();
 
 class OBS {
-  #socket: WebSocket | null = null;
+  socket: WebSocket | null = null;
 
   LOGGING: boolean = true;
 
@@ -32,11 +32,11 @@ class OBS {
   connect(args: ConnectArgs) {
     this.sources.clear();
     try {
-      this.#socket?.close();
+      this.socket?.close();
     } catch {}
 
     const socket = new WebSocket(`ws://${args.address}`);
-    this.#socket = socket;
+    this.socket = socket;
 
     let settled = false;
 
@@ -137,7 +137,7 @@ class OBS {
   // }
 
   disconnect() {
-    this.#socket?.close();
+    this.socket?.close();
   }
 
   batchedSends: object[] = [];
@@ -155,7 +155,7 @@ class OBS {
     ) {
       console.info(this.batchedSends);
     }
-    this.#socket?.send(
+    this.socket?.send(
       JSON.stringify({
         "request-type": "ExecuteBatch",
         requests: this.batchedSends,

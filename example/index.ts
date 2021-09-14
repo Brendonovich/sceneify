@@ -6,7 +6,7 @@ import {
   Scene,
 } from "obs-js";
 
-// IMPORTANT
+// README
 // Running this code requies that you create a scene named "Linked Scene" with a single
 // color source inside it names "Linked Color Source", otherwise the linking example
 // will cause the script to throw an error
@@ -41,6 +41,14 @@ async function main() {
             color: 0xff0000ff,
             width: 200,
             height: 200,
+          },
+          filters: {
+            color: new ColorCorrectionFilter({
+              name: "Color",
+              settings: {
+                hue_shift: 0,
+              },
+            }),
           },
         }),
         position: {

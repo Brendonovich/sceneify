@@ -79,12 +79,20 @@ const DEFAULT_PROPERTIES: SceneItemProperties = {
   height: 0,
 };
 
+/**
+ * Represents an item of a source in OBS.
+ * Creation of a SceneItem assumes that the item already exists in OBS.
+ * It's the responsibility of the caller (probably a Source) to ensure that
+ * the item has been created. SceneItems are for accessing already existing items.
+ */
 export class SceneItem<TSource extends Source = Source> {
-  constructor(public source: TSource, public scene: Scene, public id: number) {}
+  constructor(public source: TSource, public scene: Scene, public id: number) {
+    // This could be done by the source but may as well do it here since
+    // if a SceneItem is being created there was success creating the source anyway
+    obs.sources.set(source.name, source);
+  }
 
   properties = DEFAULT_PROPERTIES;
-
-  setVisible(visible: boolean) {}
 
   async setProperties({
     position,
@@ -129,53 +137,6 @@ export class SceneItem<TSource extends Source = Source> {
       ...properties,
     });
   }
-
-  /**
-   * Creates an instance of SceneItem with the corresponding data.
-   * Does NOT create an instance of the item in OBS. That job is left to the caller (probably `Source`).
-   *
-   * @internal
-   */
-  static load<TSource extends Source>(
-    source: TSource,
-    scene: Scene,
-    id: number
-  ): SceneItem<TSource> {
-    const item = new this(source, scene, id);
-
-    obs.sources.set(source.name, source);
-
-    return item;
-  }
-
-  // static async create<TSource extends Source>(
-  //   ref: string,
-  //   source: TSource,
-  //   scene: Scene,
-  //   id?: number,
-  //   visible = true
-  // ) {
-  //   let itemId = id;
-
-  //   if (!itemId) {
-  //     const item = await obs.addSceneItem({
-  //       source: source.name,
-  //       scene: scene.name,
-  //       visible,
-  //     });
-  //     itemId = item.itemId;
-  //   }
-
-  //   const item = new this(source, scene, itemId);
-  //   item.properties = await obs.getSceneItemProperties({
-  //     id: itemId,
-  //     scene: scene.name,
-  //   });
-
-  //   source.refs.set(`${scene.name}:${ref}`, item.id);
-
-  //   return item;
-  // }
 
   delete() {
     return obs.deleteSceneItem({ scene: this.scene.name, id: this.id });

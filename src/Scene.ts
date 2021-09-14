@@ -164,10 +164,9 @@ export class Scene<
 
     let item: SceneItem<T>;
 
-    // If source does exist, just create another item of it.
-    if (source.exists) item = await source.createItem(ref, this);
-    // If source does not exist, create it and it's corresponding first item.
-    else item = await source.createInitialItem(ref, this);
+    // Source is initialized, try to create an item of it, letting the source be
+    // responsible for creating itself if required
+    item = await source.createItem(ref, this);
 
     const sourceUpdateRequests = sourceNeedsUpdating
       ? [

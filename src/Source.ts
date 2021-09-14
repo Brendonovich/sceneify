@@ -1,4 +1,11 @@
-import { FilterSchema, obs, Scene, SceneItem } from ".";
+import {
+  FilterInstance,
+  FilterSchema,
+  obs,
+  Scene,
+  SceneItem,
+  SceneItemProperties,
+} from ".";
 import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 
@@ -12,13 +19,16 @@ export type ItemID = number;
 
 export abstract class Source<
   Settings extends Record<string, any> = object,
-  Filters extends Record<string, FilterSchema> = Record<string, FilterSchema> 
+  Filters extends Record<string, FilterSchema> = Record<string, FilterSchema>
 > {
   abstract type: string;
 
   name: string;
   settings: DeepPartial<Settings>;
 
+  filters: {
+    [K in keyof Filters]: FilterInstance<Filters[K]>;
+  } = {} as any;
   private filtersSchema: Filters;
 
   /**
@@ -74,7 +84,81 @@ export abstract class Source<
    * @returns An instance of `SceneItem` or a class that derives it.
    */
   createItemInstance(scene: Scene, id: number): SceneItem<this> {
-    return SceneItem.load(this, scene, id);
+    return new SceneItem(this, scene, id);
+  }
+
+  /**
+   * Updates the source's filters in OBS so that they match the filters defined in `this.filters`.
+   * This is done by removing filters that are present on the source in OBS but not on `this`, and adding filters that are present on `this` but not on the source.
+   *
+   * This shouldn't be required very often, probably only on source initialization.
+   */
+  async refreshFilters() {
+    if (!this.exists) return;
+
+    const { filters: sourceFilters } = await obs.getSourceFilters({
+      source: this.name,
+    });
+
+    const filtersArray: FilterInstance[] = Object.values(this.filters);
+
+    const filtersToRemove = sourceFilters.filter((sourceFilter) =>
+      // Only include filters where every local filter does not match
+      filtersArray.every(
+        (filter) =>
+          filter.schema.name !== sourceFilter.name ||
+          (filter.schema.name === sourceFilter.name &&
+            filter.schema.type !== sourceFilter.type)
+      )
+    );
+    const filtersToAdd = filtersArray.filter((filter) =>
+      // Only include filters where every sourceFilter is not found
+      sourceFilters.every(
+        (sourceFilter) =>
+          filter.schema.name !== sourceFilter.name ||
+          (filter.schema.name === sourceFilter.name &&
+            filter.schema.type !== sourceFilter.type)
+      )
+    );
+    const filtersToUpdateSettings = filtersArray.filter((filter) =>
+      sourceFilters.some(
+        (sourceFilter) =>
+          filter.schema.name === sourceFilter.name &&
+          filter.schema.type === sourceFilter.type
+      )
+    );
+
+    await Promise.all([
+      ...filtersToRemove.map(
+        (f) =>
+          obs.removeFilterFromSource({
+            source: this.name,
+            filter: f.name,
+          }),
+        ...filtersToAdd.map((f) =>
+          obs.addFilterToSource({
+            source: this.name,
+            name: f.schema.name,
+            settings: f.settings,
+            type: f.schema.type,
+          })
+        ),
+        ...filtersToUpdateSettings.map((f) =>
+          obs.setSourceFilterSettings({
+            filter: f.schema.name,
+            source: this.name,
+            settings: f.settings,
+          })
+        ),
+        ...filtersArray.map((filter, index) =>
+          obs.reorderSourceFilter({
+            source: this.name,
+            filter: filter.schema.name,
+            newIndex: index,
+          })
+        )
+      ),
+    ]);
   }
 
   /**
@@ -120,54 +204,92 @@ export abstract class Source<
 
   /**
    * Creates a scene item of this source in the provided scene.
-   * Requires that this source has already been created by a scene with `Scene.create`.
+   * Requires that this source has been initialized.
+   * If the source already exists, a new scene item will be created.
+   * If not, the source will be created and added to the scene.
    *
    * @returns A SceneItem created by `Source.createSceneItem`
    * @internal
    */
   async createItem(ref: ItemRef, scene: Scene): Promise<SceneItem<this>> {
-    // Source must exist so that `refs` is populated
-    if (!this.exists)
+    if (!this.initalized)
       throw new Error(
-        `Source.createItem called on source ${this.name} that doesn't exist yet!`
+        `Cannot create item of source ${this.name} as it is not initialized`
       );
 
-    // First, attempt to connect to existing scene item with provided ref
-    const id = this.refs.get(`${scene.name}:${ref}`);
+    let itemId: number;
+    let properties: SceneItemProperties | null = null;
 
-    // If a ref exists, we can reference the existing scene item
-    if (id !== undefined) {
-      const properties = await obs.getSceneItemProperties({
-        id,
+    if (this.exists) {
+      // First, attempt to connect to existing scene item with provided ref
+      const id = this.refs.get(`${scene.name}:${ref}`);
+
+      // If a ref exists, get the properties of the referenced item
+      if (id !== undefined) {
+        properties = await obs.getSceneItemProperties({
+          id,
+          scene: scene.name,
+        });
+
+        itemId = id;
+      } else {
+        // If no ref exists, we could try and look for items that match the source,
+        // but that would defeat the point of `obs.clean`. Instead, we create a new item
+        // of the source, keeping in mind that multiple items of a source can exist at once.
+        // Thus, any old items of the source will exist alongisde the newly created item,
+        // ready to be removed with `obs.clean`.
+
+        // Also, not checking if a matching item already exists saves on OBS requests :)
+
+        const { itemId: id } = await obs.addSceneItem({
+          scene: scene.name,
+          source: this.name,
+        });
+
+        itemId = id;
+      }
+    } else {
+      const { itemId: newItemId } = await obs.createSource({
+        name: this.name,
+        type: this.type,
         scene: scene.name,
+        settings: this.settings,
       });
 
-      const item = this.createItemInstance(scene, id);
+      itemId = newItemId;
 
-      item.properties = properties;
-
-      return item;
+      this._exists = true;
     }
 
-    // If no ref exists, we could try and look for items that match the source,
-    // but that would defeat the point of `obs.clean`. Instead, we create a new item
-    // of the source, keeping in mind that multiple items of a source can exist at once.
-    // Thus, any old items of the source will exist alongisde the newly created item,
-    // ready to be removed with `obs.clean`.
-
-    // Also, not checking if a matching item already exists saves on OBS requests :)
-
-    const { itemId } = await obs.addSceneItem({
-      scene: scene.name,
-      source: this.name,
-    });
+    await this.initializeFilters();
 
     // As we have created a new scene item, set the corresponding ref.
     this.addRef(`${scene.name}:${ref}`, itemId);
 
-    // We don't fetch or assign scene item properties here since they're just going to be default
+    // Item for sure exists in OBS, so we create an instance to interact with it
+    const item = this.createItemInstance(scene, itemId);
 
-    return this.createItemInstance(scene, itemId);
+    // If we found an existing item and got its properties, assign them
+    if (properties !== null) item.properties = properties;
+
+    return item;
+  }
+
+  /**
+   * Uses the source's filterSchema to populate the filters property,
+   * creating/linking with filters in OBS in the process.
+   */
+  private async initializeFilters() {
+    // Create a FilterInstance for each schema item. This allows for a filter schema to be
+    // used multiple times, but exist in OBS as separate objects.
+    for (let ref in this.filtersSchema) {
+      let schema = this.filtersSchema[ref];
+
+      this.filters[ref] = new FilterInstance(schema);
+    }
+
+    // We have the FilterInstances created, so we can just refresh as normal
+    await this.refreshFilters();
   }
 
   /**
@@ -177,44 +299,12 @@ export abstract class Source<
    * TODO: Matching settings and filters?
    *
    * @internal
-   * @throws If 0 or more than 1 item of this source are found in the scene
    */
   linkItem(scene: Scene, id: ItemID) {
     this._exists = true;
     this._initialized = true;
 
     return this.createItemInstance(scene, id);
-  }
-
-  /**
-   * Creates the first item of this source, thereby creating both a source and a scene item in OBS.
-   * Requires that the source does not exist yet.
-   *
-   * Could probably be merged with `Source.createItem` with checks for initialization.
-   *
-   * @returns A SceneItem created by `Source.createSceneItem`
-   * @internal
-   */
-  async createInitialItem(
-    ref: ItemRef,
-    scene: Scene
-  ): Promise<SceneItem<this>> {
-    if (this.exists)
-      throw new Error(
-        `Source.createInitialItem called on source ${this.name} that already exists!`
-      );
-
-    const { itemId } = await obs.createSource({
-      name: this.name,
-      type: this.type,
-      scene: scene.name,
-      settings: this.settings,
-    });
-
-    // As we have created a new scene item, set the corresponding ref.
-    this.addRef(`${scene.name}:${ref}`, itemId);
-
-    return this.createItemInstance(scene, itemId);
   }
 
   /**

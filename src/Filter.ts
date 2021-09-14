@@ -1,5 +1,6 @@
 import { obs, Source } from ".";
 import { DeepPartial } from "./types";
+import { mergeDeep } from "./utils";
 
 type Enum = {
   [ks: string]: string | number;
@@ -81,21 +82,25 @@ export abstract class FilterSchema<
   }
 }
 
-export class FilterInstance<
-  S extends Record<string, AnyType>,
-  Settings = DeepPartial<ExtractTypes<S>>
-> {
-  constructor(public schema: FilterSchema<S>) {}
+export class FilterInstance<S extends FilterSchema = FilterSchema> {
+  constructor(public schema: S) {
+    this.settings = schema.initialSettings as any;
+  }
 
   source?: Source;
 
-  setSettings(settings: Settings) {
+  settings: DeepPartial<ExtractTypes<S["settingsSchema"]>> = {} as any;
+  visible = true;
+
+  setSettings(settings: ExtractTypes<S["settingsSchema"]>) {
     if (!this.source) {
       console.warn(
         `Attempted to set settings on sourceless filter ${this.schema.name}`
       );
       return;
     }
+
+    mergeDeep(this.settings, settings);
 
     return obs.setSourceFilterSettings({
       source: this.source.name,
@@ -111,6 +116,8 @@ export class FilterInstance<
       );
       return;
     }
+
+    this.visible = visible;
 
     return obs.setSourceFilterVisibility({
       source: this.source.name,
