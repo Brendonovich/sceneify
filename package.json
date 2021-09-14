@@ -1,6 +1,6 @@
 {
-  "name": "@brendonovich/obs-js",
-  "version": "0.0.3",
+  "name": "simple-obs",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

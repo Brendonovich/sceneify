@@ -4,7 +4,7 @@ import {
   ColorSource,
   obs,
   Scene,
-} from "obs-js";
+} from "simple-obs";
 
 // README
 // Running this code requies that you create a scene named "Linked Scene" with a single
