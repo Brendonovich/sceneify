@@ -2,9 +2,9 @@
 
 ### _The simplest way to control OBS from JS 🎥_
 
-[![Downloads](https://img.shields.io/npm/dt/@brendonovich/simple-obs-js.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@brendonovich/simple-obs-js)
-[![Downloads](https://img.shields.io/npm/v/@brendonovich/simple-obs-js.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@brendonovich/simple-obs-js)
-[![Build Size](https://img.shields.io/bundlephobia/min/@brendonovich/simple-obs-js?label=bundle%20size&style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/result?p=@brendonovich/simple-obs-js)
+[![Downloads](https://img.shields.io/npm/dt/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
+[![Downloads](https://img.shields.io/npm/v/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
+[![Build Size](https://img.shields.io/bundlephobia/min/simple-obs?label=bundle%20size&style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/result?p=simple-obs)
 
 Using `obs-websocket` can be difficult. Small manipulations of scenes and scene items are manageable, but keeping track of scenes, sources, settings, filters and more can quickly become a daunting task.
 
