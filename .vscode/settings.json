@@ -1,5 +1,6 @@
 {
     "conventionalCommits.scopes": [
-        "README"
+        "README",
+        "Version"
     ]
 }
