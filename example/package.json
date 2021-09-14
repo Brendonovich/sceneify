@@ -12,6 +12,6 @@
     "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "obs-js": "link:../"
+    "simple-obs": "link:../"
   }
 }
