@@ -11,6 +11,7 @@ Controlling OBS with code is difficult. Simple manipulations of scenes and scene
 obs-js aims to fix this. By simply working with `Scene`, `Source`, and `SceneItem` objects, you can have unparalleled control over your OBS layout.
 
 # Beta Warning
+
 This library is not well tested and is still under heavy development. Feel free to use it, but make sure you make a backup of your scene collections before doing anything with obs-js.
 
 ## Features
@@ -22,35 +23,40 @@ This library is not well tested and is still under heavy development. Feel free 
 
 ## Installation
 
-1. Install obs-js
+1. Install the [fork of obs-websocket](https://github.com/Palakis/obs-websocket/releases)
+  
+    obs-js exposes some functionality (eg. `obs.clean()`, `Scene.remove()`) that requires installing a custom fork of obs-websocket. This fork simply adds support for removing scenes, retaining all other previous functionality. obs-js will support obs-websocket v5 when it is released, which has native support for removing scenes, and also v4 for backwards compatibility.
 
-```
-yarn add @brendonovich/obs-js
-```
+2. Install obs-js
 
-or NPM
+    ```
+    yarn add @brendonovich/obs-js
+    ```
 
-```
-npm install @brendonovich/obs-js
-```
+    or NPM
 
-2. Connect to OBS.
+    ```
+    npm install @brendonovich/obs-js
+    ```
 
-Where you first use OBS in your code, import `obs`:
+3. Connect to OBS.
 
-```ts
-import { obs } from "@brendonovich/obs-js";
-```
+    Where you first use OBS in your code, import `obs`:
 
-Then simply connect:
+    ```ts
+    import { obs } from "@brendonovich/obs-js";
+    ```
 
-```ts
-await obs.connect({ address: "localhost:4444" });
-```
+    Then simply connect:
 
-3. Create and link with scenes and sources. See the example folder for a tutorial.
+    ```ts
+    await obs.connect({ address: "localhost:4444" });
+    ```
+
+4. Create and link with scenes and sources. See the example folder for a tutorial.
 
 ## To Do
-- [ ] Filters
+
+- [x] Filters
 - [ ] Clean
 - [ ] Ignored symbol
