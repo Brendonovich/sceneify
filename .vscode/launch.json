@@ -8,10 +8,8 @@
       "name": "Run Example",
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
-
-      "args": ["index.ts"],
+      "runtimeExecutable": "yarn",
+      "args": ["dev"],
 
       "cwd": "${workspaceRoot}/example",
       "skipFiles": ["<node_internals>/**", "node_modules/**"]
