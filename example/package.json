@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts",
+    "dev": "cd .. && yarn build && cd example && yarn start"
   },
   "author": "Brendan Allan",
   "license": "ISC",

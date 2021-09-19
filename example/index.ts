@@ -24,6 +24,8 @@ async function main() {
     name: "Blue Color Source",
     settings: {
       color: 0xffff0000,
+      width: 400,
+      height: 400,
     },
   });
 
@@ -72,7 +74,14 @@ async function main() {
     color: 0xff00ff00,
   });
 
-  await wait(5000);
+  await wait(1000);
+
+  // Color should change from green to pink
+  await mainScene.items.red.source.filters.color.setSettings({
+    hue_shift: 180,
+  });
+
+  await wait(3000);
 
   const linkedScene = new Scene({
     name: "Linked Scene",
@@ -112,6 +121,37 @@ async function main() {
       x: OBS_WIDTH,
       y: OBS_HEIGHT,
     },
+  });
+
+  await wait(3000);
+
+  // Scenes are sources, and can be used as such!
+  const finalSceen = new Scene({
+    name: "Final Scene",
+    items: {
+      main: {
+        source: mainScene,
+        position: {
+          x: OBS_WIDTH / 2,
+          y: OBS_HEIGHT / 2,
+          alignment: Alignment.Center,
+        },
+        scale: { x: 1, y: 1 },
+      },
+      linked: {
+        source: linkedScene,
+      },
+    },
+  });
+
+  await finalSceen.create();
+  await finalSceen.makeCurrentScene();
+
+  await wait(1000);
+
+  // Operation performed on the 'main' item of 'Final Scene', not the main scene itself
+  await finalSceen.items.main.setProperties({
+    scale: { x: 0.5, y: 0.5 },
   });
 }
 
