@@ -50,8 +50,6 @@ export class Scene<
     });
 
     this.itemsSchema = itemsSchema;
-
-    obs.scenes.set(name, this);
   }
 
   /**
@@ -60,6 +58,11 @@ export class Scene<
    * Can be called normally, and is also called by `Scene.addItem` through the `Scene.createItem` override.
    */
   async create(): Promise<true> {
+    if (this.initalized)
+      throw new Error(
+        `Cannot create scene ${this.name} that has already been initialized`
+      );
+
     if (this.exists) return true;
 
     // Try to create the scene in OBS, and just continue if it already exists
@@ -70,6 +73,11 @@ export class Scene<
         this.addItem(ref, schema)
       )
     );
+
+    await this.setSettings({
+      SIMPLE_OBS_LINKED: false,
+    });
+
 
     // TODO: Reordering
 
@@ -83,6 +91,11 @@ export class Scene<
    * Will mark itself as existing if a matching scene is found, but will still throw if the items schema is not matched.
    */
   async link(options?: Partial<LinkOptions>) {
+    if (this.initalized)
+      throw new Error(
+        `Cannot link scene ${this.name} that has already been initialized`
+      );
+
     // First, check if the scene exists by fetching its scene item list. Fail if scene isn't found
     const { sceneItems } = await obs.getSceneItemList(this.name);
 
@@ -112,13 +125,13 @@ export class Scene<
           multipleItemSources.length !== 0
             ? ` Scene contians multiple items of source${
                 multipleItemSources.length > 1 ? "s" : ""
-              }: ${multipleItemSources.map((s) => s.name).join(", ")}.`
+              } ${multipleItemSources.map((s) => `'${s.name}'`).join(", ")}.`
             : ``
         }${
           noItemSources.length !== 0
             ? ` Scene contians no items of source${
                 noItemSources.length > 1 ? "s" : ""
-              }: ${noItemSources.map((s) => s.name).join(", ")}.`
+              } ${noItemSources.map((s) => `'${s.name}'`).join(", ")}.`
             : ``
         }`
       );
@@ -132,7 +145,7 @@ export class Scene<
           )!;
 
           // Create a SceneItem for the source, marking the source as inialized and such in the process
-          const item = source.linkItem(this, schemaItem.itemId);
+          const item = source.linkItem(this, schemaItem.itemId, ref);
 
           this.items[ref as keyof Items] = item;
 
@@ -146,6 +159,10 @@ export class Scene<
         }
       )
     );
+
+    await this.setSettings({
+      SIMPLE_OBS_LINKED: true,
+    });
 
     // TODO: Ordering options
   }
@@ -191,7 +208,10 @@ export class Scene<
   private async _create() {
     await super.initialize();
 
-    if (!this.exists) await obs.createScene(this.name);
+    if (!this.exists) {
+      await obs.createScene(this.name);
+      await this.saveRefs();
+    }
 
     this._exists = true;
     obs.scenes.set(this.name, this);

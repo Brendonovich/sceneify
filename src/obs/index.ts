@@ -1,12 +1,12 @@
-import WebSocket from "isomorphic-ws";
-import EventEmitter from "eventemitter3";
-import { nanoid } from "nanoid";
+import ObsWebSocket from "obs-websocket-js";
 
 import { RequestArgsMap, RequestResponseMap, EventsDataMap } from "./socket";
 import { Scene } from "../Scene";
 import { Source } from "../Source";
 import { SceneItemProperties } from "../SceneItem";
 import { DeepPartial } from "../types";
+import { ItemID, ItemRef, SceneName } from "..";
+import { wait } from "../utils";
 
 let requestCounter = 0;
 function generateMessageId() {
@@ -15,165 +15,124 @@ function generateMessageId() {
 
 interface ConnectArgs {
   address?: string;
+  password?: string;
+  secure?: boolean;
 }
 
-export const PROCESS_ID = nanoid();
-
-const emitter = new EventEmitter();
-
-class OBS {
-  socket: WebSocket | null = null;
-
+class OBS extends ObsWebSocket {
   LOGGING: boolean = true;
 
   sources = new Map<string, Source>();
   scenes = new Map<string, Scene>();
 
-  connect(args: ConnectArgs) {
+  async connect(args: ConnectArgs) {
+    await super.connect(args);
+
     this.sources.clear();
-    try {
-      this.socket?.close();
-    } catch {}
+    this.scenes.clear();
 
-    const socket = new WebSocket(`ws://${args.address}`);
-    this.socket = socket;
-
-    let settled = false;
-
-    return new Promise<void>((resolve) => {
-      socket.onopen = async () => {
-        if (settled) return;
-
-        settled = true;
-
-        emitter.emit("ConnectionOpened");
-
-        emitter.on("SceneItemTransformChanged", (data) => {
-          emitter.emit(
-            `SceneItemTransformChanged:${data["scene-name"]}:${data["item-id"]}`,
-            data.transform
-          );
-        });
-
-        resolve();
-      };
-      socket.onmessage = (msg) => {
-        const message = JSON.parse(msg.data.toString());
-
-        let err, data;
-
-        if (message.status === "error") err = message;
-        else data = message;
-
-        if (message["message-id"]) {
-          emitter.emit(
-            `obs:internal:message:id-${message["message-id"]}`,
-            err,
-            data
-          );
-        } else if (message["update-type"]) {
-          emitter.emit(message["update-type"], data);
-        } else {
-          emitter.emit("message", message);
-        }
-      };
+    this.on("SceneItemTransformChanged", (data) => {
+      this.emit(
+        `SceneItemTransformChanged:${data["scene-name"]}:${data["item-id"]}`,
+        data.transform
+      );
     });
   }
 
-  // async clean() {
-  //   const { scenes: obsScenes } = await this.getSceneList();
+  /**
+   * Goes though each source in OBS and removes it if 1. simple-obs owns it and 2. there are no references
+   * to the source in code.
+   */
+  async clean() {
+    const { scenes: obsScenes } = await this.getSceneList();
+    const { sources: obsSources } = await this.getSourcesList();
 
-  //   const spareCodeSources = [...this.sources.entries()].filter(
-  //     ([, source]) =>
-  //       !(source instanceof Scene) &&
-  //       obsScenes
-  //         .find((s) => s.name === source.item?.scene.name)
-  //         ?.sources.find(
-  //           (i) => i.name === source.name && i.type === source.type
-  //         )
-  //   );
-
-  //   const spareObsSources = obsScenes.reduce<
-  //     { scene: string; source: { type: string; name: string; id: number } }[]
-  //   >(
-  //     (acc, scene) => [
-  //       ...acc,
-  //       ...scene.sources
-  //         .filter(
-  //           (source) =>
-  //             this.sources.get(source.name) === undefined &&
-  //             source.name[0] !== "#"
-  //         )
-  //         .map((source) => ({
-  //           scene: scene.name,
-  //           source,
-  //         })),
-  //     ],
-  //     []
-  //   );
-
-  //   const spareObsScenes = obsScenes.filter(
-  //     (scene) =>
-  //       this.sources.get(scene.name) === undefined && scene.name[0] !== "#"
-  //   );
-
-  //   await Promise.all([
-  //     ...spareObsSources.map(async ({ scene, source }) => {
-  //       if (source.type === "scene") await this.removeScene(source.name);
-  //       else
-  //         await this.deleteSceneItem({
-  //           scene: scene,
-  //           id: source.id,
-  //         });
-  //     }),
-  //     ...spareObsScenes.map(async (scene) => {
-  //       await this.removeScene(scene.name);
-  //     }),
-  //   ]);
-
-  //   await Promise.all(
-  //     [...this.sources.values()].map((source) => source.refreshFilters())
-  //   );
-  // }
-
-  disconnect() {
-    this.socket?.close();
-  }
-
-  batchedSends: object[] = [];
-
-  async sendBatch() {
-    const id = generateMessageId();
-
-    if (
-      this.batchedSends.filter((a) => {
-        const data = JSON.stringify(a);
-        return (
-          data.includes("AddSceneItem") || data.includes("DeleteSceneItem")
-        );
-      }).length > 0
-    ) {
-      console.info(this.batchedSends);
-    }
-    this.socket?.send(
-      JSON.stringify({
-        "request-type": "ExecuteBatch",
-        requests: this.batchedSends,
-        "message-id": id,
-      })
+    const obsSourcesRefs = (
+      await Promise.all(
+        obsSources
+          .map((source) =>
+            this.getSourceSettings({ name: source.name, type: source.typeId })
+          )
+          .concat(
+            obsScenes.map((source) =>
+              this.getSourceSettings({ name: source.name, type: "scene" })
+            )
+          )
+      )
+    ).reduce(
+      (acc, data) => ({
+        ...acc,
+        [data.sourceName]: data.sourceSettings.SIMPLE_OBS_LINKED
+          ? undefined
+          : data.sourceSettings.SIMPLE_OBS_REFS,
+      }),
+      {} as Record<string, Record<SceneName, Record<ItemRef, ItemID>>>
     );
 
-    emitter.once(`obs:internal:message:id-${id}`, (err, data) => {
-      if (err) console.warn(err);
-      else {
-        data.results.forEach((res: any) => {
-          emitter.emit(
-            `obs:internal:message:id-${res["message-id"]}`,
-            res.status === "error" ? res : undefined,
-            res.status !== "error" ? res : undefined
-          );
-        });
+    // Delete refs that are actually in use
+    for (let scene of this.scenes.values()) {
+      for (let [ref, item] of Object.entries(scene.items)) {
+        delete obsSourcesRefs[item.source.name]?.[scene.name]?.[ref];
       }
+    }
+
+    let promises: Promise<any>[] = [];
+
+    // Delete scene items of sources that are not present in code
+    for (let [sourceName, sourceRefs] of Object.entries(obsSourcesRefs).filter(
+      ([, v]) => v !== undefined
+    )) {
+      for (let [scene, refs] of Object.entries(sourceRefs)) {
+        for (let id of Object.values(refs)) {
+          if (obsSourcesRefs[scene] !== undefined)
+            promises.push(
+              obs.deleteSceneItem({
+                scene,
+                id,
+                name: sourceName,
+              })
+            );
+        }
+      }
+    }
+
+    // Filter out scenes for deletion that are not in use and we own
+    const spareObsScenes = obsScenes.filter(
+      (scene) =>
+        !this.scenes.has(scene.name) && obsSourcesRefs[scene.name] !== undefined
+    );
+
+    await Promise.all(promises);
+
+    await wait(50);
+
+    await Promise.all(
+      spareObsScenes.map((scene) => this.removeScene(scene.name))
+    );
+
+    await Promise.all([
+      ...[...this.sources.values()].map((source) => source.pushRefs()),
+      ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
+    ]);
+  }
+
+  batchedSends: {
+    "request-type": string;
+    "message-id": string;
+    [key: string]: any;
+  }[] = [];
+
+  async sendBatch() {
+    const data = await super.send("ExecuteBatch", {
+      requests: this.batchedSends,
+    });
+
+    data.results.forEach((res: any) => {
+      this.emit(
+        `simple-obs:internal:message:id-${res["message-id"]}`,
+        res.status === "error" ? res : undefined,
+        res.status !== "error" ? res : undefined
+      );
     });
 
     this.batchedSends = [];
@@ -183,15 +142,17 @@ class OBS {
   queued = false;
   queueSendBatch() {
     if (this.queued) return;
+
     process.nextTick(() => this.sendBatch());
     this.queued = true;
   }
 
   batchSend(data: object) {
-    this.batchedSends.push(data);
+    this.batchedSends.push(data as any);
     this.queueSendBatch();
   }
 
+  // @ts-expect-error Overriding base types
   send<T extends keyof RequestArgsMap>(
     type: T,
     ...[args]: RequestArgsMap[T] extends object
@@ -200,7 +161,8 @@ class OBS {
   ): Promise<RequestResponseMap[T]> {
     return new Promise((resolve, reject) => {
       const id = generateMessageId();
-      emitter.once(`obs:internal:message:id-${id}`, (err, data) => {
+
+      this.once(`simple-obs:internal:message:id-${id}`, (err, data) => {
         if (err) reject({ ...err, type, args });
         else resolve(data);
       });
@@ -213,18 +175,20 @@ class OBS {
     });
   }
 
+  // @ts-expect-error Overriding base types
   on<T extends keyof EventsDataMap>(
     type: T,
     listener: (data: EventsDataMap[T]) => void
   ) {
-    return emitter.on(type, listener);
+    // @ts-expect-error Overriding base types
+    return super.on(type, listener);
   }
 
   off<T extends keyof EventsDataMap>(
     type: T,
     listener: (data: EventsDataMap[T]) => void
   ) {
-    return emitter.off(type, listener);
+    return super.off(type, listener);
   }
 
   setSourceSettings(args: { name: string; type: string; settings: object }) {
@@ -486,9 +450,9 @@ class OBS {
   getSourceTypesList() {
     return this.send("GetSourceTypesList", {});
   }
-  
+
   getVideoInfo() {
-    return this.send("GetVideoInfo", {})
+    return this.send("GetVideoInfo", {});
   }
 
   log(...messages: any[]) {

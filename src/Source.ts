@@ -9,13 +9,11 @@ import {
 import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 
-export type BaseSettings = {
-  refs: Record<string, number>;
-};
-
 export type SceneName = string;
 export type ItemRef = string;
 export type ItemID = number;
+
+export type SourceRefs = Record<SceneName, Record<ItemRef, ItemID>>;
 
 export abstract class Source<
   Settings extends Record<string, any> = object,
@@ -25,6 +23,7 @@ export abstract class Source<
 
   name: string;
   settings: DeepPartial<Settings>;
+  itemRefs = new Set<SceneItem>();
 
   filters: {
     [K in keyof Filters]: FilterInstance<Filters[K]>;
@@ -83,8 +82,8 @@ export abstract class Source<
    *
    * @returns An instance of `SceneItem` or a class that derives it.
    */
-  createItemInstance(scene: Scene, id: number): SceneItem<this> {
-    return new SceneItem(this, scene, id);
+  createItemInstance(scene: Scene, id: number, ref: string): SceneItem<this> {
+    return new SceneItem(this, scene, id, ref);
   }
 
   /**
@@ -181,15 +180,19 @@ export abstract class Source<
       .getSourceSettings({
         name: this.name,
       })
-      .then(({ sourceSettings, sourceType }) => {
+      .then(async ({ sourceSettings, sourceType }) => {
         // Exit if source exists but type doesn't match
         if (sourceType !== this.type) throw ["WRONG_TYPES", sourceType];
 
         // Assign refs from previous runs of code
-        if (sourceSettings.refs)
-          this.refs = new Map(Object.entries(sourceSettings.refs) as any);
+        if (sourceSettings.SIMPLE_OBS_REFS)
+          this.refs = sourceSettings.SIMPLE_OBS_REFS;
 
-        this._exists = true;
+        await this.saveRefs();
+
+        obs.sources.set(this.name, this);
+
+        return (this._exists = true);
       })
       .catch((e) => {
         if (Array.isArray(e) && e[0] === "WRONG_TYPES")
@@ -222,7 +225,7 @@ export abstract class Source<
 
     if (this.exists) {
       // First, attempt to connect to existing scene item with provided ref
-      const id = this.refs.get(`${scene.name}:${ref}`);
+      const id = this.getRef(scene.name, ref);
 
       // If a ref exists, get the properties of the referenced item
       if (id !== undefined) {
@@ -256,6 +259,8 @@ export abstract class Source<
         settings: this.settings,
       });
 
+      obs.sources.set(this.name, this);
+
       itemId = newItemId;
 
       this._exists = true;
@@ -264,10 +269,10 @@ export abstract class Source<
     await this.initializeFilters();
 
     // As we have created a new scene item, set the corresponding ref.
-    this.addRef(`${scene.name}:${ref}`, itemId);
+    this.addRef(scene.name, ref, itemId);
 
     // Item for sure exists in OBS, so we create an instance to interact with it
-    const item = this.createItemInstance(scene, itemId);
+    const item = this.createItemInstance(scene, itemId, ref);
 
     // If we found an existing item and got its properties, assign them
     if (properties !== null) item.properties = properties;
@@ -285,7 +290,7 @@ export abstract class Source<
     for (let ref in this.filtersSchema) {
       let schema = this.filtersSchema[ref];
 
-      this.filters[ref] = new FilterInstance(schema);
+      this.filters[ref] = new FilterInstance(schema, this);
     }
 
     // We have the FilterInstances created, so we can just refresh as normal
@@ -300,11 +305,11 @@ export abstract class Source<
    *
    * @internal
    */
-  linkItem(scene: Scene, id: ItemID) {
+  linkItem(scene: Scene, id: ItemID, ref: string) {
     this._exists = true;
     this._initialized = true;
 
-    return this.createItemInstance(scene, id);
+    return this.createItemInstance(scene, id, ref);
   }
 
   /**
@@ -321,7 +326,7 @@ export abstract class Source<
    * Source's refs.
    * Populated from OBS once on source creation but controlled by the source from then on.
    */
-  private refs = new Map<`${SceneName}:${ItemRef}`, ItemID>();
+  private refs: Record<SceneName, Record<ItemRef, ItemID>> = {};
 
   /**
    * Sends this source's refs to OBS to be saved onto the source
@@ -335,27 +340,50 @@ export abstract class Source<
       name: this.name,
       type: this.type,
       settings: {
-        refs: [...this.refs.entries()].reduce(
-          (acc, [k, v]) => ({ ...acc, [k]: v }),
-          {}
-        ),
+        SIMPLE_OBS_REFS: this.refs,
       },
     });
   }
 
-  protected addRef(ref: `${SceneName}:${ItemRef}`, id: ItemID) {
-    this.refs.set(ref, id);
+  protected getRef(scene: SceneName, ref: ItemRef): ItemID | undefined {
+    if (this.refs[scene]) return this.refs[scene][ref];
+
+    return undefined;
+  }
+
+  protected addRef(scene: SceneName, ref: ItemRef, id: ItemID) {
+    (this.refs[scene] ||= {})[ref] = id;
 
     this.saveRefs().catch((e) =>
       console.warn(`Failed to add ref ${ref} -> ${id}`, e)
     );
   }
 
-  protected removeRef(ref: `${SceneName}:${ItemRef}`) {
-    this.refs.delete(ref);
+  protected removeRef(scene: SceneName, ref: ItemRef) {
+    if (!this.refs[scene]) return;
+
+    delete this.refs[scene][ref];
 
     this.saveRefs().catch((e) =>
       console.warn(`Failed to remove ref ${ref}`, e)
     );
+  }
+
+  /**
+   * Gathers this source's itemRefs, calculates the refs value accordingly, and forcefully
+   * pushes it to the source in OBS. This method is destructive, and shoudl only be used sparingly.
+   *
+   * @internal
+   */
+  pushRefs() {
+    let refs: SourceRefs = {};
+
+    this.itemRefs.forEach((item) => {
+      (refs[item.scene.name] ||= {})[item.ref] = item.id;
+    });
+
+    this.refs = refs;
+
+    return this.saveRefs();
   }
 }

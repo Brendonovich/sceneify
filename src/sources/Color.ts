@@ -7,5 +7,5 @@ interface Settings {
 }
 
 export class ColorSource extends Source<Settings> {
-  type = "color_source";
+  type = "color_source_v3";
 }

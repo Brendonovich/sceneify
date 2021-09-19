@@ -34,6 +34,12 @@ export interface RequestArgsMap {
           id: number;
         };
   };
+  
+  ExecuteBatch: {
+    requests: {
+      
+    }[];
+  }
 
   GetSceneItemList: {
     sceneName: string;
@@ -164,6 +170,10 @@ export interface RequestResponseMap {
   CreateScene: {};
 
   DeleteSceneItem: {};
+  
+  ExecuteBatch: {
+    results: {}[]
+  };
 
   GetSceneItemList: {
     sceneName: string;

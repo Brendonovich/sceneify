@@ -1,6 +1,6 @@
 import { obs } from "./obs";
 import { Scene } from "./Scene";
-import { BaseSettings, Source } from "./Source";
+import { Source } from "./Source";
 import { DeepPartial } from "./types";
 
 export enum Alignment {
@@ -86,10 +86,8 @@ const DEFAULT_PROPERTIES: SceneItemProperties = {
  * the item has been created. SceneItems are for accessing already existing items.
  */
 export class SceneItem<TSource extends Source = Source> {
-  constructor(public source: TSource, public scene: Scene, public id: number) {
-    // This could be done by the source but may as well do it here since
-    // if a SceneItem is being created there was success creating the source anyway
-    obs.sources.set(source.name, source);
+  constructor(public source: TSource, public scene: Scene, public id: number, public ref: string) {
+    source.itemRefs.add(this);
   }
 
   properties = DEFAULT_PROPERTIES;
@@ -119,7 +117,9 @@ export class SceneItem<TSource extends Source = Source> {
         ...this.properties.bounds,
         ...bounds,
       },
-      ...properties,
+      ...Object.entries(properties)
+        .filter(([, p]) => p !== null && p !== undefined)
+        .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {}),
     };
 
     this.properties.width =
@@ -139,6 +139,7 @@ export class SceneItem<TSource extends Source = Source> {
   }
 
   delete() {
+    this.source.itemRefs.delete(this);
     return obs.deleteSceneItem({ scene: this.scene.name, id: this.id });
   }
 }

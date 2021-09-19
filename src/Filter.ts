@@ -83,11 +83,9 @@ export abstract class FilterSchema<
 }
 
 export class FilterInstance<S extends FilterSchema = FilterSchema> {
-  constructor(public schema: S) {
+  constructor(public schema: S, public source: Source) {
     this.settings = schema.initialSettings as any;
   }
-
-  source?: Source;
 
   settings: DeepPartial<ExtractTypes<S["settingsSchema"]>> = {} as any;
   visible = true;

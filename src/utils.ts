@@ -29,3 +29,5 @@ export function mergeDeep(
 
   return mergeDeep(target, ...sources);
 }
+
+export const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
