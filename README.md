@@ -33,12 +33,14 @@ This library is not well tested and is still under heavy development. Feel free 
     yarn add simple-obs
     ```
 
-    or NPM
+    or npm
 
     ```
     npm install simple-obs
     ```
     
+    If using typescript, install `typescript@beta`,  `simple-obs` uses some beta features of `typescript` to provide more accurate types for requests and events.  
+
 3. Connect to OBS. See the example folder for more info.
 
 ## Acknowledgements
