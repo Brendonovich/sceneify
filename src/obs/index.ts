@@ -19,20 +19,22 @@ interface ConnectArgs {
   secure?: boolean;
 }
 
-class OBS extends ObsWebSocket {
+class OBS {
+  socket = new ObsWebSocket();
+
   LOGGING: boolean = true;
 
   sources = new Map<string, Source>();
   scenes = new Map<string, Scene>();
 
   async connect(args: ConnectArgs) {
-    await super.connect(args);
+    await this.socket.connect(args);
 
     this.sources.clear();
     this.scenes.clear();
 
-    this.on("SceneItemTransformChanged", (data) => {
-      this.emit(
+    this.socket.on("SceneItemTransformChanged", (data) => {
+      this.socket.emit(
         `SceneItemTransformChanged:${data["scene-name"]}:${data["item-id"]}`,
         data.transform
       );
@@ -123,12 +125,12 @@ class OBS extends ObsWebSocket {
   }[] = [];
 
   async sendBatch() {
-    const data = await super.send("ExecuteBatch", {
+    const data = await this.socket.send("ExecuteBatch", {
       requests: this.batchedSends,
     });
 
     data.results.forEach((res: any) => {
-      this.emit(
+      this.socket.emit(
         `simple-obs:internal:message:id-${res["message-id"]}`,
         res.status === "error" ? res : undefined,
         res.status !== "error" ? res : undefined
@@ -152,7 +154,6 @@ class OBS extends ObsWebSocket {
     this.queueSendBatch();
   }
 
-  // @ts-expect-error Overriding base types
   send<T extends keyof RequestArgsMap>(
     type: T,
     ...[args]: RequestArgsMap[T] extends object
@@ -162,7 +163,7 @@ class OBS extends ObsWebSocket {
     return new Promise((resolve, reject) => {
       const id = generateMessageId();
 
-      this.once(`simple-obs:internal:message:id-${id}`, (err, data) => {
+      this.socket.once(`simple-obs:internal:message:id-${id}`, (err, data) => {
         if (err) reject({ ...err, type, args });
         else resolve(data);
       });
@@ -175,20 +176,19 @@ class OBS extends ObsWebSocket {
     });
   }
 
-  // @ts-expect-error Overriding base types
   on<T extends keyof EventsDataMap>(
     type: T,
     listener: (data: EventsDataMap[T]) => void
   ) {
     // @ts-expect-error Overriding base types
-    return super.on(type, listener);
+    return this.socket.on(type, listener);
   }
 
   off<T extends keyof EventsDataMap>(
     type: T,
     listener: (data: EventsDataMap[T]) => void
   ) {
-    return super.off(type, listener);
+    return this.socket.off(type, listener);
   }
 
   setSourceSettings(args: { name: string; type: string; settings: object }) {
