@@ -1,4 +1,6 @@
+import { SceneItemTransform } from "obs-websocket-js";
 import { SceneItemProperties } from "../SceneItem";
+import { FieldPartial } from "../types";
 
 export interface RequestArgsMap {
   AddFilterToSource: {
@@ -311,7 +313,7 @@ export interface EventsDataMap {
 
   [
     key: `SceneItemTransformChanged:${string}:${number}`
-  ]: SceneSceneItemTransform;
+  ]: SceneItemTransform;
 
   MediaStarted: {
     sourceName: string;
