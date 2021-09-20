@@ -24,6 +24,7 @@ export abstract class Source<
   name: string;
   settings: DeepPartial<Settings>;
   itemRefs = new Set<SceneItem>();
+  linked = false;
 
   filters: {
     [K in keyof Filters]: FilterInstance<Filters[K]>;
@@ -306,6 +307,7 @@ export abstract class Source<
    * @internal
    */
   linkItem(scene: Scene, id: ItemID, ref: string) {
+    this.linked = true;
     this._exists = true;
     this._initialized = true;
 

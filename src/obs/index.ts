@@ -112,8 +112,11 @@ class OBS {
       spareObsScenes.map((scene) => this.removeScene(scene.name))
     );
 
-    await Promise.all([
-      ...[...this.sources.values()].map((source) => source.pushRefs()),
+    await Promise.all<any>([
+      ...[...this.sources.values()].map(async (source) => {
+        await source.pushRefs();
+        if (!source.linked) await source.refreshFilters();
+      }),
       ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
     ]);
   }
