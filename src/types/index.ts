@@ -1,10 +1,10 @@
-export declare type DeepPartial<T> = T extends Function
+export type DeepPartial<T> = T extends Function
   ? T
   : T extends object
   ? { [P in keyof T]?: DeepPartial<T[P]> }
   : T;
 
-export declare type FieldPartial<T extends object> =
+export type FieldPartial<T extends object> =
   | {
       [K in keyof FilterType<T, object>]: FieldPartial<T[K]>;
     }
@@ -12,7 +12,7 @@ export declare type FieldPartial<T extends object> =
       [P in keyof Omit<T, keyof FilterType<T, object>>]?: T[P];
     };
 
-export declare type FilterType<Base, Condition> = Pick<
+export type FilterType<Base, Condition> = Pick<
   Base,
   {
     [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
