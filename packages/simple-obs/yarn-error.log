@@ -1,0 +1,53 @@
+Arguments: 
+  /Users/brendanallan/.fnm/node-versions/v15.14.0/installation/bin/node /var/folders/5y/px7kgpls6z5dhk241r8ds2tm0000gn/T/fnm_multishells/53757_1632236378178/bin/yarn
+
+PATH: 
+  /var/folders/5y/px7kgpls6z5dhk241r8ds2tm0000gn/T/fnm_multishells/53757_1632236378178/bin:/Users/brendanallan/.fnm:/Users/brendanallan/google-cloud-sdk/bin:/usr/local/opt/ruby/bin:/usr/local/lib/ruby/gems/2.7.0/bin:/Users/brendanallan/.cargo/bin:/Library/Frameworks/Python.framework/Versions/3.8/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/usr/local/share/dotnet:/opt/X11/bin:~/.dotnet/tools:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/var/folders/5y/px7kgpls6z5dhk241r8ds2tm0000gn/T/fnm_multishells/53489_1632236368351/bin:/Users/brendanallan/.fnm:/Users/brendanallan/google-cloud-sdk/bin:/usr/local/opt/ruby/bin:/usr/local/lib/ruby/gems/2.7.0/bin:/Users/brendanallan/.cargo/bin:/Library/Frameworks/Python.framework/Versions/3.8/bin:/Users/brendanallan/Library/Android/sdk/emulator:/Users/brendanallan/Library/Android/sdk/tools:/Users/brendanallan/Library/Android/sdk/tools/bin:/Users/brendanallan/Library/Android/sdk/platform-tools:/Users/brendanallan/Library/Android/sdk/emulator:/Users/brendanallan/Library/Android/sdk/tools:/Users/brendanallan/Library/Android/sdk/tools/bin:/Users/brendanallan/Library/Android/sdk/platform-tools
+
+Yarn version: 
+  1.22.11
+
+Node version: 
+  15.14.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/brendanallan/Documents/Programming/simple-obs/packages/animation/package.json: Unexpected token } in JSON at position 295
+      at JSON.parse (<anonymous>)
+      at /Users/brendanallan/.fnm/node-versions/v15.14.0/installation/lib/node_modules/yarn/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/Users/brendanallan/.fnm/node-versions/v15.14.0/installation/lib/node_modules/yarn/lib/cli.js:310:30)
+      at /Users/brendanallan/.fnm/node-versions/v15.14.0/installation/lib/node_modules/yarn/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "simple-obs",
+    "version": "0.2.4",
+    "description": "",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "test": "jest",
+      "build": "tsc"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "obs-websocket-js": "^4.0.3"
+    },
+    "devDependencies": {
+      "@types/jest": "^27.0.1",
+      "@types/node": "^16.9.3",
+      "@types/ws": "^7.4.6",
+      "ts-node": "^10.2.1",
+      "typescript": "^4.4.0"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

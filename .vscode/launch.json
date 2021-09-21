@@ -5,13 +5,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Example",
+      "name": "simple-obs: Example",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "yarn",
-      "args": ["dev"],
+      "args": ["start"],
 
-      "cwd": "${workspaceRoot}/example",
+      "cwd": "${workspaceRoot}/packages/simple-obs/example",
+      "skipFiles": ["<node_internals>/**", "node_modules/**"]
+    },
+    {
+      "name": "animation: Example",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
+      "args": ["start"],
+
+      "cwd": "${workspaceRoot}/packages/animation/example",
       "skipFiles": ["<node_internals>/**", "node_modules/**"]
     }
   ]

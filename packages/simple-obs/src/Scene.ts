@@ -1,20 +1,25 @@
-import { FilterSchema, obs, SceneItem } from ".";
+import { obs, SceneItem, SourceFilters } from ".";
 import { SceneItemProperties } from "./SceneItem";
-import { ItemRef, Source } from "./Source";
+import { ItemRef, Source, SourceSettings } from "./Source";
 import { DeepPartial } from "./types";
 
-export type SceneItemsSchema = Record<string, ItemSchema>;
-
-type ItemSchema<T extends Source = Source> = {
+type ItemSchemaInput<T extends Source = Source> = {
   source: T;
 } & DeepPartial<SceneItemProperties>;
 
-type FiltersSchema = Record<string, FilterSchema>;
+type ItemsSchemaInput<Items extends Record<string, Source>> = {
+  [K in keyof Items]: ItemSchemaInput<Items[K]>;
+};
 
-interface Args<Items extends SceneItemsSchema, Filters extends FiltersSchema> {
+interface Args<
+  Items extends Record<string, Source>,
+  Settings extends SourceSettings,
+  Filters extends SourceFilters
+> {
   name: string;
-  items: Items;
+  items: ItemsSchemaInput<Items>;
   filters?: Filters;
+  settings?: DeepPartial<Settings>;
 }
 
 interface LinkOptions {
@@ -25,15 +30,18 @@ interface LinkOptions {
 }
 
 export class Scene<
-  Items extends SceneItemsSchema = SceneItemsSchema,
-  Filters extends FiltersSchema = {}
-> extends Source<{}, Filters> {
+  Items extends Record<string, Source> = {},
+  Settings extends SourceSettings = {},
+  Filters extends SourceFilters = SourceFilters
+> extends Source<Settings, Filters> {
   type = "scene";
 
   // Default initialized to {} as items is populated later by initialize addItem
-  items: { [K in keyof Items]: SceneItem<Items[K]["source"]> } = {} as any;
+  items: {
+    [K in keyof Items]: SceneItem<Items[K]>;
+  } & Record<string, SceneItem> = {} as any;
 
-  private itemsSchema: Items;
+  private itemsSchema: ItemsSchemaInput<Items>;
 
   /**
    * PUBLIC METHODS
@@ -42,10 +50,15 @@ export class Scene<
    */
 
   /**  */
-  constructor({ name, items: itemsSchema, filters }: Args<Items, Filters>) {
+  constructor({
+    name,
+    items: itemsSchema,
+    filters,
+    settings,
+  }: Args<Items, Settings, Filters>) {
     super({
       name,
-      settings: {},
+      settings,
       filters,
     });
 
@@ -57,13 +70,13 @@ export class Scene<
    *
    * Can be called normally, and is also called by `Scene.addItem` through the `Scene.createItem` override.
    */
-  async create(): Promise<true> {
+  async create(): Promise<this> {
     if (this.initalized)
       throw new Error(
         `Cannot create scene ${this.name} that has already been initialized`
       );
 
-    if (this.exists) return true;
+    if (this.exists) return this;
 
     // Try to create the scene in OBS, and just continue if it already exists
     await this._create().catch(() => {});
@@ -76,14 +89,13 @@ export class Scene<
 
     await this.setSettings({
       SIMPLE_OBS_LINKED: false,
-    });
-
+    } as any);
 
     // TODO: Reordering
 
     this._initialized = true;
 
-    return true;
+    return this;
   }
 
   /**
@@ -147,7 +159,7 @@ export class Scene<
           // Create a SceneItem for the source, marking the source as inialized and such in the process
           const item = source.linkItem(this, schemaItem.itemId, ref);
 
-          this.items[ref as keyof Items] = item;
+          Object.assign(this.items, { [ref]: item });
 
           let optionRequests: Promise<any>[] = [];
           if (options?.setProperties)
@@ -162,14 +174,14 @@ export class Scene<
 
     await this.setSettings({
       SIMPLE_OBS_LINKED: true,
-    });
+    } as any);
 
     // TODO: Ordering options
   }
 
   async addItem<T extends Source>(
     ref: string,
-    { source, ...properties }: ItemSchema<T>
+    { source, ...properties }: ItemSchemaInput<T>
   ) {
     // We only need to update the source after the first time the source is initialized
     const sourceNeedsUpdating = !source.initalized;
@@ -179,7 +191,7 @@ export class Scene<
 
     if (initialized !== true) await initialized;
 
-    let item: SceneItem<T>;
+    let item: SceneItem;
 
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required
@@ -199,7 +211,7 @@ export class Scene<
       ...sourceUpdateRequests,
     ]);
 
-    this.items[ref as keyof Items] = item;
+    Object.assign(this.items, { [ref]: item });
   }
 
   /**

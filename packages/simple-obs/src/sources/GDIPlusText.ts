@@ -1,4 +1,4 @@
-import { Source } from "../Source";
+import { Source, SourceFilters } from "../Source";
 
 interface Settings {
   text: string;
@@ -14,6 +14,6 @@ interface Settings {
   file: string;
 }
 
-export class GDIPlusTextSource extends Source<Settings> {
+export class GDIPlusTextSource<F extends SourceFilters = SourceFilters> extends Source<Settings, F> {
   type = "text_gdiplus_v2";
 }

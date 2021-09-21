@@ -36,12 +36,10 @@ export interface RequestArgsMap {
           id: number;
         };
   };
-  
+
   ExecuteBatch: {
-    requests: {
-      
-    }[];
-  }
+    requests: {}[];
+  };
 
   GetSceneItemList: {
     sceneName: string;
@@ -156,6 +154,10 @@ export interface RequestArgsMap {
     volume: number;
     useDecibel?: boolean;
   };
+
+  ToggleMute: {
+    source: string;
+  };
 }
 
 export interface RequestResponseMap {
@@ -172,9 +174,9 @@ export interface RequestResponseMap {
   CreateScene: {};
 
   DeleteSceneItem: {};
-  
+
   ExecuteBatch: {
-    results: {}[]
+    results: {}[];
   };
 
   GetSceneItemList: {
@@ -295,6 +297,8 @@ export interface RequestResponseMap {
   };
 
   SetVolume: {};
+  
+  ToggleMute: { };
 }
 
 export interface EventsDataMap {
@@ -311,9 +315,7 @@ export interface EventsDataMap {
     transform: SceneItemTransform;
   };
 
-  [
-    key: `SceneItemTransformChanged:${string}:${number}`
-  ]: SceneItemTransform;
+  [key: `SceneItemTransformChanged:${string}:${number}`]: SceneItemTransform;
 
   MediaStarted: {
     sourceName: string;

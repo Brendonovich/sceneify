@@ -1,11 +1,4 @@
-import {
-  FilterInstance,
-  FilterSchema,
-  obs,
-  Scene,
-  SceneItem,
-  SceneItemProperties,
-} from ".";
+import { Filter, obs, Scene, SceneItem, SceneItemProperties } from ".";
 import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 
@@ -15,21 +8,33 @@ export type ItemID = number;
 
 export type SourceRefs = Record<SceneName, Record<ItemRef, ItemID>>;
 
+export type SourceFilters = Record<string, Filter>;
+export type SourceSettings = Record<string, any>;
+
+export interface Args<
+  Settings extends SourceSettings = SourceSettings,
+  Filters extends SourceFilters = SourceFilters
+> {
+  name: string;
+  settings?: DeepPartial<Settings>;
+  filters?: Filters;
+}
+
 export abstract class Source<
-  Settings extends Record<string, any> = object,
-  Filters extends Record<string, FilterSchema> = Record<string, FilterSchema>
+  Settings extends SourceSettings = SourceSettings,
+  Filters extends SourceFilters = SourceFilters
 > {
   abstract type: string;
 
   name: string;
   settings: DeepPartial<Settings>;
-  itemRefs = new Set<SceneItem>();
+  filters: Filters = {} as any;
   linked = false;
-
-  filters: {
-    [K in keyof Filters]: FilterInstance<Filters[K]>;
-  } = {} as any;
-  private filtersSchema: Filters;
+  
+  /**
+   * @internal
+   */
+  itemRefs = new Set<SceneItem>();
 
   /**
    * Whether this source has at least one scene item in OBS
@@ -50,15 +55,11 @@ export abstract class Source<
   constructor({
     name,
     settings: initialSettings,
-    filters: filtersSchema,
-  }: {
-    name: string;
-    settings?: DeepPartial<Settings>;
-    filters?: Filters;
-  }) {
+    filters,
+  }: Args<Settings, Filters>) {
     this.name = name;
     this.settings = initialSettings ?? ({} as DeepPartial<Settings>);
-    this.filtersSchema = filtersSchema ?? ({} as Filters);
+    this.filters = filters ?? ({} as Filters);
   }
 
   /**
@@ -100,31 +101,30 @@ export abstract class Source<
       source: this.name,
     });
 
-    const filtersArray: FilterInstance[] = Object.values(this.filters);
+    const filtersArray: Filter[] = Object.values(this.filters);
 
     const filtersToRemove = sourceFilters.filter((sourceFilter) =>
       // Only include filters where every local filter does not match
       filtersArray.every(
         (filter) =>
-          filter.schema.name !== sourceFilter.name ||
-          (filter.schema.name === sourceFilter.name &&
-            filter.schema.type !== sourceFilter.type)
+          filter.name !== sourceFilter.name ||
+          (filter.name === sourceFilter.name &&
+            filter.type !== sourceFilter.type)
       )
     );
     const filtersToAdd = filtersArray.filter((filter) =>
       // Only include filters where every sourceFilter is not found
       sourceFilters.every(
         (sourceFilter) =>
-          filter.schema.name !== sourceFilter.name ||
-          (filter.schema.name === sourceFilter.name &&
-            filter.schema.type !== sourceFilter.type)
+          filter.name !== sourceFilter.name ||
+          (filter.name === sourceFilter.name &&
+            filter.type !== sourceFilter.type)
       )
     );
     const filtersToUpdateSettings = filtersArray.filter((filter) =>
       sourceFilters.some(
         (sourceFilter) =>
-          filter.schema.name === sourceFilter.name &&
-          filter.schema.type === sourceFilter.type
+          filter.name === sourceFilter.name && filter.type === sourceFilter.type
       )
     );
 
@@ -138,14 +138,14 @@ export abstract class Source<
         ...filtersToAdd.map((f) =>
           obs.addFilterToSource({
             source: this.name,
-            name: f.schema.name,
+            name: f.name,
             settings: f.settings,
-            type: f.schema.type,
+            type: f.type,
           })
         ),
         ...filtersToUpdateSettings.map((f) =>
           obs.setSourceFilterSettings({
-            filter: f.schema.name,
+            filter: f.name,
             source: this.name,
             settings: f.settings,
           })
@@ -153,7 +153,7 @@ export abstract class Source<
         ...filtersArray.map((filter, index) =>
           obs.reorderSourceFilter({
             source: this.name,
-            filter: filter.schema.name,
+            filter: filter.name,
             newIndex: index,
           })
         )
@@ -288,10 +288,10 @@ export abstract class Source<
   private async initializeFilters() {
     // Create a FilterInstance for each schema item. This allows for a filter schema to be
     // used multiple times, but exist in OBS as separate objects.
-    for (let ref in this.filtersSchema) {
-      let schema = this.filtersSchema[ref];
+    for (let ref in this.filters) {
+      let filter = this.filters[ref];
 
-      this.filters[ref] = new FilterInstance(schema, this);
+      filter.source = this;
     }
 
     // We have the FilterInstances created, so we can just refresh as normal

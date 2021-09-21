@@ -10,6 +10,8 @@ Using `obs-websocket` can be difficult. Small manipulations of scenes and scene 
 
 `simple-obs` aims to fix this. By working with `Scene`, `Source`, and `SceneItem` objects, you can have unparalleled control over your OBS layouts.
 
+If you're familiar with databases, it's like an ORM for OBS!
+
 # Beta Warning
 
 This library is not well tested and is still under heavy development. Feel free to use it, but make sure you make a backup of your scene collections before doing anything with `simple-obs`.
