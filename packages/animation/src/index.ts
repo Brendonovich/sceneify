@@ -54,9 +54,9 @@ export type KeyframeValues<Subject extends SceneItem | Source | Filter> =
     ? KeyframeInputFromPrivitives<Subject["_settingsType"]>
     : never;
 
-type AnimationSubject = SceneItem | Source | Filter;
+export type AnimationSubject = SceneItem | Source | Filter;
 
-interface Keyframes<Subject extends AnimationSubject> {
+export interface Keyframes<Subject extends AnimationSubject> {
   subject: Subject;
   values: KeyframeValues<Subject>;
 }

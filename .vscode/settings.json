@@ -2,6 +2,8 @@
     "conventionalCommits.scopes": [
         "README",
         "Version",
-        "Example"
+        "Example",
+        "simple-obs",
+        "animation"
     ]
 }
