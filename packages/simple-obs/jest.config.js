@@ -1,5 +1,5 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-};
+const buildConfig = require("../../jest.base.config");
+
+module.exports = buildConfig(__dirname, {
+  testRegex: "tests\\/.*\\.ts$",
+});

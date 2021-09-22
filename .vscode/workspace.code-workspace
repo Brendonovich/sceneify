@@ -1,0 +1,26 @@
+{
+  "folders": [
+    {
+      "name": "root",
+      "path": ".."
+    },
+    {
+      "name": "simple-obs",
+      "path": "../packages/simple-obs/"
+    },
+    {
+      "name": "animation",
+      "path": "../packages/animation/"
+    }
+  ],
+  "settings": {
+    "conventionalCommits.scopes": [
+      "README",
+      "Version",
+      "Example",
+      "simple-obs",
+      "animation"
+    ],
+    "jest.disabledWorkspaceFolders": ["root"]
+  }
+}
