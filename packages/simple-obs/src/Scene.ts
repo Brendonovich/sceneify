@@ -68,12 +68,12 @@ export class Scene<
         this.addItem(ref, schema)
       )
     );
-    
+
     // await obs.reorderSceneItems({
     //   scene: this.name,
     //   items: Object.keys(this.itemsSchema).map((ref) => this.items[ref].id)
     // })
-    
+
     await this.setSettings({
       SIMPLE_OBS_LINKED: false,
     } as any);
@@ -197,16 +197,16 @@ export class Scene<
       item.setProperties(properties),
       ...sourceUpdateRequests,
     ]);
-      
+
     // Get the item's properties and assign them in case some properties are dependent
     // on things like source settings (eg. Image source, where width and height is dependent
     // on the size of the image)
     const data = await item.getProperties();
-    mergeDeep(item.properties, data)
+    mergeDeep(item.properties, data);
 
     Object.assign(this.items, { [ref]: item });
-    
-    return item
+
+    return item;
   }
 
   /**

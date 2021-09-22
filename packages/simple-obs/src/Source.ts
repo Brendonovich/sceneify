@@ -101,8 +101,8 @@ export abstract class Source<
             await obs.addFilterToSource({
               ...filter,
               source: this.name,
-            })
-            await filter.setSettings(filter.initialSettings)
+            });
+            await filter.setSettings(filter.initialSettings);
           })()
         : filter.setSettings({
             filter: filter.name,
@@ -271,12 +271,24 @@ export abstract class Source<
 
       // If a ref exists, get the properties of the referenced item
       if (id !== undefined) {
-        properties = await obs.getSceneItemProperties({
-          id,
-          scene: scene.name,
-        });
+        try {
+          properties = await obs.getSceneItemProperties({
+            id,
+            scene: scene.name,
+          });
 
-        itemId = id;
+          itemId = id;
+        } catch {
+          // If the item doesn't actually exist, remove the existing ref and create a new instance of the source
+          this.removeRef(scene.name, ref);
+
+          const { itemId: id } = await obs.addSceneItem({
+            scene: scene.name,
+            source: this.name,
+          });
+
+          itemId = id;
+        }
       } else {
         // If no ref exists, we could try and look for items that match the source,
         // but that would defeat the point of `obs.clean`. Instead, we create a new item
