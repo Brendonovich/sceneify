@@ -56,6 +56,7 @@ export class Scene<
    * Can be called normally, and is also called by `Scene.addItem` through the `Scene.createItem` override.
    */
   async create(): Promise<this> {
+    // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
     if (this.exists) return this;
 
     // Try to create the scene in OBS, and just continue if it already exists
