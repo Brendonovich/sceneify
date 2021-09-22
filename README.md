@@ -25,27 +25,28 @@ This library is not well tested and is still under heavy development. Feel free 
 
 ## Installation
 
-1. Install the [fork of obs-websocket](https://github.com/MemedowsTeam/obs-websocket/releases)
-  
-    `simple-obs` exposes some functionality (eg. `obs.clean()`, `Scene.remove()`) that requires installing a custom fork of `obs-websocket`. This fork simply adds support for removing scenes, retaining all other previous functionality. `simple-obs` will support `obs-websocket` v5 when it is released, which has native support for removing scenes, and also v4 for backwards compatibility.
+1. Install the [fork of `obs-websocket`](https://github.com/MemedowsTeam/obs-websocket/releases)
+
+   `simple-obs` exposes some functionality (eg. `obs.clean()`, `Scene.remove()`) that requires installing a custom fork of `obs-websocket`. This fork simply adds support for removing scenes, retaining all other previous functionality. `simple-obs` will support `obs-websocket` v5 when it is released, which has native support for removing scenes, and also v4 for backwards compatibility.
 
 2. Install `simple-obs`
 
-    ```
-    yarn add simple-obs
-    ```
+   ```
+   yarn add simple-obs
+   ```
 
-    or npm
+   or npm
 
-    ```
-    npm install simple-obs
-    ```
-    
-    If using typescript, install `typescript@beta`,  `simple-obs` uses some beta features of `typescript` to provide more accurate types for requests and events.  
+   ```
+   npm install simple-obs
+   ```
+
+   If using typescript, make sure you are at least using `typescript@4.4.0`, as `simple-obs` uses some features of it to provide more accurate types for requests and events.
 
 3. Connect to OBS. See the example folder for more info.
 
 ## Acknowledgements
+
 - [JDudeTV](https://twitch.tv/jdudetv) for being the catalyst for this project, helping with development and using in production on his stream.
-- [HannahGBS](https://twitter.com/hannah_gbs) for adding RemoveScene support to the obs-websocket fork and helping with development and documenting source and filter types.
+- [HannahGBS](https://twitter.com/hannah_gbs) for adding RemoveScene support to the `obs-websocket` fork and helping with development and documenting source and filter types.
 - [lclc98](https://github.com/lclc98) for helping document source and filter types.

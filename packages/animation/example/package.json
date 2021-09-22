@@ -1,0 +1,18 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "dev": "cd .. && yarn build && cd example && yarn start"
+  },
+  "author": "Brendan Allan",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node": "^10.2.1"
+  },
+  "dependencies": {
+    "simple-obs-animation": "../index.ts"
+  }
+}

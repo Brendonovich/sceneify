@@ -11,23 +11,22 @@ export function isObject(item?: Record<string, any>) {
 
 export function mergeDeep(
   target: Record<string, any>,
-  ...sources: Record<string, any>[]
+  data: Record<string, any>,
+  ignoreMissing: boolean = true
 ): any {
-  if (!sources.length) return target;
-  const source = sources.shift();
-
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
+  if (isObject(target) && isObject(data)) {
+    for (const key in data) {
+      if (isObject(data[key])) {
         if (!target[key]) Object.assign(target, { [key]: {} });
-        mergeDeep(target[key], source[key]);
+        mergeDeep(target[key], data[key], ignoreMissing);
       } else {
-        Object.assign(target, { [key]: source[key] });
+        if (!ignoreMissing || data[key] !== undefined)
+          Object.assign(target, { [key]: data[key] });
       }
     }
   }
 
-  return mergeDeep(target, ...sources);
+  return target;
 }
 
-export const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+export const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));

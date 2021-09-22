@@ -1,11 +1,12 @@
 import { Source, SourceFilters } from "../Source";
 
-interface Settings {
-  file: string;
-}
-
 export class ImageSource<
   F extends SourceFilters = SourceFilters
-> extends Source<Settings, F> {
+> extends Source<
+  {
+    file: string;
+  },
+  F
+> {
   type = "image_source";
 }

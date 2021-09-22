@@ -1,14 +1,14 @@
 import { Source, SourceFilters } from "../Source";
 
-interface Settings {
-  url: string;
-  width: number;
-  height: number;
-  reroute_audio: boolean;
-}
-
-export class BrowserSource<F extends SourceFilters = SourceFilters> extends Source<
-  Settings,
+export class BrowserSource<
+  F extends SourceFilters = SourceFilters
+> extends Source<
+  {
+    url: string;
+    width: number;
+    height: number;
+    reroute_audio: boolean;
+  },
   F
 > {
   type = "browser_source";

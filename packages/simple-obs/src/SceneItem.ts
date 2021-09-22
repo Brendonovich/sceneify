@@ -2,6 +2,7 @@ import { obs } from "./obs";
 import { Scene } from "./Scene";
 import { Source } from "./Source";
 import { DeepPartial } from "./types";
+import { mergeDeep } from "./utils";
 
 export enum Alignment {
   CenterLeft = 1,
@@ -15,7 +16,7 @@ export enum Alignment {
   BottomRight = 10,
 }
 
-export interface SceneItemProperties {
+export type SceneItemProperties = {
   position: {
     x: number;
     y: number;
@@ -45,9 +46,9 @@ export interface SceneItemProperties {
   sourceHeight: number;
   width: number;
   height: number;
-}
+};
 
-const DEFAULT_PROPERTIES: SceneItemProperties = {
+export const DEFAULT_SCENE_ITEM_PROPERTIES: SceneItemProperties = {
   position: {
     x: 0,
     y: 0,
@@ -85,42 +86,23 @@ const DEFAULT_PROPERTIES: SceneItemProperties = {
  * It's the responsibility of the caller (probably a Source) to ensure that
  * the item has been created. SceneItems are for accessing already existing items.
  */
-export class SceneItem<TSource extends Source = Source> {
-  constructor(public source: TSource, public scene: Scene, public id: number, public ref: string) {
-    source.itemRefs.add(this);
+export class SceneItem<
+  TSource extends Source = Source,
+  Properties extends SceneItemProperties = SceneItemProperties
+> {
+  constructor(
+    public source: TSource,
+    public scene: Scene,
+    public id: number,
+    public ref: string
+  ) {
+    source.itemInstances.add(this);
   }
 
-  properties = DEFAULT_PROPERTIES;
+  properties: Properties = DEFAULT_SCENE_ITEM_PROPERTIES as Properties;
 
-  async setProperties({
-    position,
-    scale,
-    crop,
-    bounds,
-    ...properties
-  }: DeepPartial<SceneItemProperties>) {
-    this.properties = {
-      ...this.properties,
-      position: {
-        ...this.properties.position,
-        ...position,
-      },
-      scale: {
-        ...this.properties.scale,
-        ...scale,
-      },
-      crop: {
-        ...this.properties.crop,
-        ...crop,
-      },
-      bounds: {
-        ...this.properties.bounds,
-        ...bounds,
-      },
-      ...Object.entries(properties)
-        .filter(([, p]) => p !== null && p !== undefined)
-        .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {}),
-    };
+  async setProperties(properties: DeepPartial<Properties>) {
+    mergeDeep(this.properties, properties);
 
     this.properties.width =
       this.properties.scale.x * this.properties.sourceWidth;
@@ -130,16 +112,12 @@ export class SceneItem<TSource extends Source = Source> {
     await obs.setSceneItemProperties({
       scene: this.scene.name,
       id: this.id,
-      position,
-      scale,
-      crop,
-      bounds,
       ...properties,
     });
   }
 
   delete() {
-    this.source.itemRefs.delete(this);
+    this.source.itemInstances.delete(this);
     return obs.deleteSceneItem({ scene: this.scene.name, id: this.id });
   }
 }

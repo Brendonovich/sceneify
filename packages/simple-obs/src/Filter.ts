@@ -30,6 +30,8 @@ export abstract class Filter<
   settings: DeepPartial<Settings> = {} as any;
   visible = true;
 
+  _settingsType!: Settings;
+
   setSettings(settings: DeepPartial<Settings>) {
     if (!this.source) {
       console.warn(

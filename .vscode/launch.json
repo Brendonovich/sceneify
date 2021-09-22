@@ -9,7 +9,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "yarn",
-      "args": ["start"],
+      "args": ["dev"],
 
       "cwd": "${workspaceRoot}/packages/simple-obs/example",
       "skipFiles": ["<node_internals>/**", "node_modules/**"]
@@ -19,7 +19,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "yarn",
-      "args": ["start"],
+      "args": ["dev"],
 
       "cwd": "${workspaceRoot}/packages/animation/example",
       "skipFiles": ["<node_internals>/**", "node_modules/**"]

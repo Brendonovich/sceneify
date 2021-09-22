@@ -29,31 +29,12 @@ async function main() {
     },
   });
 
-  // Scenes are also just classes, only functioning  as a schema at first
+  // Scenes are just classes, only functioning  as a schema at first
   const mainScene = new Scene({
     name: "Main",
     items: {
       blue: {
         source: blueColorSource,
-      },
-      red: {
-        // As mentioned above, sources can be declared anywhere, whether inside or outside a scene schema
-        source: new ColorSource({
-          name: "Main Scene Background",
-          settings: {
-            color: 0xff0000ff,
-            width: 200,
-            height: 200,
-          },
-          filters: {
-            color: new ColorCorrectionFilter({
-              name: "Color",
-              settings: {
-                hue_shift: 0,
-              },
-            }),
-          },
-        }),
         position: {
           alignment: Alignment.Center,
           x: OBS_WIDTH / 2,
@@ -65,7 +46,20 @@ async function main() {
 
   // Once Scene.create() is called, mainScene and its items can be used however you like.
   await mainScene.create();
-  await mainScene.makeCurrentScene();
+  await mainScene.makeCurrentScene()
+
+  await mainScene.addFilter(
+    "color",
+    new ColorCorrectionFilter({
+      name: "Color Corrector",
+      settings: {
+        brightness: 10,
+        hue_shift: 30,
+      },
+    })
+  );
+  
+  await mainScene.filters.color.setVisible(false)
 
   await wait(1000);
 

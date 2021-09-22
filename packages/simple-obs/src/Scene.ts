@@ -11,17 +11,6 @@ type ItemsSchemaInput<Items extends Record<string, Source>> = {
   [K in keyof Items]: ItemSchemaInput<Items[K]>;
 };
 
-interface Args<
-  Items extends Record<string, Source>,
-  Settings extends SourceSettings,
-  Filters extends SourceFilters
-> {
-  name: string;
-  items: ItemsSchemaInput<Items>;
-  filters?: Filters;
-  settings?: DeepPartial<Settings>;
-}
-
 interface LinkOptions {
   // requireItemOrder: boolean;
   // requireFilterOrder: boolean;
@@ -50,19 +39,15 @@ export class Scene<
    */
 
   /**  */
-  constructor({
-    name,
-    items: itemsSchema,
-    filters,
-    settings,
-  }: Args<Items, Settings, Filters>) {
-    super({
-      name,
-      settings,
-      filters,
-    });
+  constructor(args: {
+    name: string;
+    items: ItemsSchemaInput<Items>;
+    filters?: Filters;
+    settings?: DeepPartial<Settings>;
+  }) {
+    super(args);
 
-    this.itemsSchema = itemsSchema;
+    this.itemsSchema = args.items;
   }
 
   /**

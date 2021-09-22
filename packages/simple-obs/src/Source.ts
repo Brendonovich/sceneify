@@ -11,30 +11,20 @@ export type SourceRefs = Record<SceneName, Record<ItemRef, ItemID>>;
 export type SourceFilters = Record<string, Filter>;
 export type SourceSettings = Record<string, any>;
 
-export interface Args<
-  Settings extends SourceSettings = SourceSettings,
-  Filters extends SourceFilters = SourceFilters
-> {
-  name: string;
-  settings?: DeepPartial<Settings>;
-  filters?: Filters;
-}
-
 export abstract class Source<
   Settings extends SourceSettings = SourceSettings,
   Filters extends SourceFilters = SourceFilters
 > {
   abstract type: string;
+  
+  _settingsType!: Settings;
 
   name: string;
   settings: DeepPartial<Settings>;
-  filters: Filters = {} as any;
+  filters: Filters & Record<string, Filter> = {} as any;
   linked = false;
-  
-  /**
-   * @internal
-   */
-  itemRefs = new Set<SceneItem>();
+
+  itemInstances = new Set<SceneItem>();
 
   /**
    * Whether this source has at least one scene item in OBS
@@ -52,14 +42,14 @@ export abstract class Source<
   }
   protected _initialized = false;
 
-  constructor({
-    name,
-    settings: initialSettings,
-    filters,
-  }: Args<Settings, Filters>) {
-    this.name = name;
-    this.settings = initialSettings ?? ({} as DeepPartial<Settings>);
-    this.filters = filters ?? ({} as Filters);
+  constructor(args: {
+    name: string;
+    settings?: DeepPartial<Settings>;
+    filters?: Filters;
+  }) {
+    this.name = args.name;
+    this.settings = args.settings ?? ({} as DeepPartial<Settings>);
+    this.filters = args.filters ?? ({} as Filters);
   }
 
   /**
@@ -75,6 +65,50 @@ export abstract class Source<
       type: this.type,
       settings,
     });
+  }
+
+  /**
+   * Adds a filter to this source, provided that 1. The filter has not already been applied
+   * to another source, and 2. The source in OBS does not have a filter with a different type
+   * but the same name as the filter being added. Does not support inserting at a particular order as of yet.
+   */
+  async addFilter(ref: string, filter: Filter) {
+    if (filter.source) {
+      throw new Error(
+        `Filter ${this.name} has already been applied to source ${filter.source.name}`
+      );
+    }
+
+    const exists = await obs
+      .getSourceFilterInfo({
+        source: this.name,
+        filter: filter.name,
+      })
+      .then((i) => {
+        if (i.type !== filter.type)
+          throw new Error(
+            `Filter ${this.name} already exists but has different type. Expected ${filter.type}, found ${i.type}`
+          );
+        return true;
+      })
+      .catch(() => false);
+
+    await Promise.all([
+      !exists
+        ? obs.addFilterToSource({
+            ...filter,
+            source: this.name,
+          })
+        : obs.setSourceFilterSettings({
+            filter: filter.name,
+            settings: filter.settings,
+            source: this.name,
+          }),
+    ]);
+
+    filter.source = this;
+
+    Object.assign(this.filters, { [ref]: filter });
   }
 
   /**
@@ -193,6 +227,8 @@ export abstract class Source<
 
         obs.sources.set(this.name, this);
 
+        await this.initializeFilters();
+
         return (this._exists = true);
       })
       .catch((e) => {
@@ -262,12 +298,12 @@ export abstract class Source<
 
       obs.sources.set(this.name, this);
 
+      await this.initializeFilters();
+
       itemId = newItemId;
 
       this._exists = true;
     }
-
-    await this.initializeFilters();
 
     // As we have created a new scene item, set the corresponding ref.
     this.addRef(scene.name, ref, itemId);
@@ -292,6 +328,7 @@ export abstract class Source<
       let filter = this.filters[ref];
 
       filter.source = this;
+      filter.setSettings(filter.initialSettings);
     }
 
     // We have the FilterInstances created, so we can just refresh as normal
@@ -373,14 +410,14 @@ export abstract class Source<
 
   /**
    * Gathers this source's itemRefs, calculates the refs value accordingly, and forcefully
-   * pushes it to the source in OBS. This method is destructive, and shoudl only be used sparingly.
+   * pushes it to the source in OBS. This method is destructive, and should only be used sparingly.
    *
    * @internal
    */
   pushRefs() {
     let refs: SourceRefs = {};
 
-    this.itemRefs.forEach((item) => {
+    this.itemInstances.forEach((item) => {
       (refs[item.scene.name] ||= {})[item.ref] = item.id;
     });
 
