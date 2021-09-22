@@ -6,6 +6,8 @@
 [![Downloads](https://img.shields.io/npm/v/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
 [![Build Size](https://img.shields.io/bundlephobia/min/simple-obs?label=bundle%20size&style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/result?p=simple-obs)
 
+Translations: [Spanish](translations/README_es.md) | {Add your language translation} 
+
 Using `obs-websocket` can be difficult. Small manipulations of scenes and scene items are manageable, but keeping track of scenes, sources, settings, filters and more can quickly become a daunting task.
 
 `simple-obs` aims to fix this. By working with `Scene`, `Source`, and `SceneItem` objects, you can have unparalleled control over your OBS layouts.
