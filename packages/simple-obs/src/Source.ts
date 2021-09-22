@@ -93,20 +93,23 @@ export abstract class Source<
       })
       .catch(() => false);
 
-    await Promise.all([
+    filter.source = this;
+
+    await Promise.all<any>([
       !exists
-        ? obs.addFilterToSource({
-            ...filter,
-            source: this.name,
-          })
-        : obs.setSourceFilterSettings({
+        ? (async () => {
+            await obs.addFilterToSource({
+              ...filter,
+              source: this.name,
+            })
+            await filter.setSettings(filter.initialSettings)
+          })()
+        : filter.setSettings({
             filter: filter.name,
             settings: filter.settings,
             source: this.name,
           }),
     ]);
-
-    filter.source = this;
 
     Object.assign(this.filters, { [ref]: filter });
   }
@@ -231,7 +234,7 @@ export abstract class Source<
 
         await this.initializeFilters();
 
-        return this.exists
+        return this.exists;
       })
       .catch((e) => {
         if (Array.isArray(e) && e[0] === "WRONG_TYPES")

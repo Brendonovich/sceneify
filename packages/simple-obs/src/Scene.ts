@@ -68,7 +68,12 @@ export class Scene<
         this.addItem(ref, schema)
       )
     );
-
+    
+    // await obs.reorderSceneItems({
+    //   scene: this.name,
+    //   items: Object.keys(this.itemsSchema).map((ref) => this.items[ref].id)
+    // })
+    
     await this.setSettings({
       SIMPLE_OBS_LINKED: false,
     } as any);
