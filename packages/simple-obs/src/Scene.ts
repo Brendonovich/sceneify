@@ -2,6 +2,7 @@ import { obs, SceneItem, SourceFilters } from ".";
 import { SceneItemProperties } from "./SceneItem";
 import { ItemRef, Source, SourceSettings } from "./Source";
 import { DeepPartial } from "./types";
+import { mergeDeep } from "./utils";
 
 type ItemSchemaInput<T extends Source = Source> = {
   source: T;
@@ -191,6 +192,12 @@ export class Scene<
       item.setProperties(properties),
       ...sourceUpdateRequests,
     ]);
+      
+    // Get the item's properties and assign them in case some properties are dependent
+    // on things like source settings (eg. Image source, where width and height is dependent
+    // on the size of the image)
+    const data = await item.getProperties();
+    mergeDeep(item.properties, data)
 
     Object.assign(this.items, { [ref]: item });
     

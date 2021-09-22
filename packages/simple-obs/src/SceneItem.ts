@@ -99,7 +99,7 @@ export class SceneItem<
     source.itemInstances.add(this);
   }
 
-  properties: Properties = DEFAULT_SCENE_ITEM_PROPERTIES as Properties;
+  properties: Properties = Object.assign({}, DEFAULT_SCENE_ITEM_PROPERTIES) as Properties;
 
   async setProperties(properties: DeepPartial<Properties>) {
     mergeDeep(this.properties, properties);
@@ -113,6 +113,13 @@ export class SceneItem<
       scene: this.scene.name,
       id: this.id,
       ...properties,
+    });
+  }
+
+  getProperties() {
+    return obs.getSceneItemProperties({
+      id: this.id,
+      scene: this.scene.name,
     });
   }
 
