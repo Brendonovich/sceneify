@@ -197,6 +197,8 @@ export class Scene<
     ]);
 
     Object.assign(this.items, { [ref]: item });
+    
+    return item
   }
 
   /**
