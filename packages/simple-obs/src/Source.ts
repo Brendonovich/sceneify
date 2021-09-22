@@ -16,7 +16,7 @@ export abstract class Source<
   Filters extends SourceFilters = SourceFilters
 > {
   abstract type: string;
-  
+
   _settingsType!: Settings;
 
   name: string;
@@ -227,9 +227,11 @@ export abstract class Source<
 
         obs.sources.set(this.name, this);
 
+        this._exists = true;
+
         await this.initializeFilters();
 
-        return (this._exists = true);
+        return this.exists
       })
       .catch((e) => {
         if (Array.isArray(e) && e[0] === "WRONG_TYPES")
