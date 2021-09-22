@@ -78,9 +78,11 @@ class KeyframeInput<T extends string | number | boolean = any> {
 
 type KeyframeInputValue = string | number | boolean | KeyframeInput;
 
-function getDeep(obj: any, path: string[]) {
+export type Timeline = Record<number, Keyframes<AnimationSubject>[]>;
+
+function getDeep(obj: any, path: string[]): any | undefined {
   for (let i = 0, len = path.length; i < len; i++) {
-    obj = obj[path[i]];
+    obj = obj?.[path[i]];
   }
   return obj;
 }
@@ -97,8 +99,8 @@ type KeyframesInput =
 export function recurseKeyframes(
   subjectData: SubjectKeyframes,
   keyframesToProcess: Record<string, KeyframesInput>,
-  beginTimestamp: number,
-  endTimestamp: number,
+  startTime: number,
+  timestamp: number,
   subject: AnimationSubject,
   parentPath: string[] = []
 ) {
@@ -110,8 +112,8 @@ export function recurseKeyframes(
       recurseKeyframes(
         ((subjectData as any)[pathName] ||= {}),
         value,
-        beginTimestamp,
-        endTimestamp,
+        startTime,
+        timestamp,
         subject,
         currentPath
       );
@@ -137,8 +139,8 @@ export function recurseKeyframes(
         from,
         to: valueClass.value,
         easing: valueClass.easing,
-        beginTimestamp,
-        endTimestamp,
+        beginTimestamp: back ? back.endTimestamp : startTime,
+        endTimestamp: startTime + timestamp,
       };
 
       queue.enqueue(kf);
@@ -146,20 +148,16 @@ export function recurseKeyframes(
   }
 }
 
-export function playTimeline(
-  timeline: Record<number, Keyframes<AnimationSubject>[]>
+export function processTimeline(
+  timeline: Timeline,
+  startTime = performance.now()
 ) {
-  let startTime = performance.now();
-  let beginTime = startTime;
-
   Object.values(timeline).forEach((keyframes) =>
     keyframes.forEach(({ subject }) => subjectKeyframes.delete(subject))
   );
 
   for (let timeStr in timeline) {
     let timestamp = parseInt(timeStr);
-
-    let endTime = startTime + timestamp;
 
     for (let keyframes of timeline[timestamp]) {
       if (!subjectKeyframes.has(keyframes.subject))
@@ -169,20 +167,22 @@ export function playTimeline(
 
       recurseKeyframes(
         currentSubjectData,
-        keyframes.values as any,
-        beginTime,
-        endTime,
+        keyframes.values,
+        startTime,
+        timestamp,
         keyframes.subject
       );
     }
-
-    beginTime += timestamp;
   }
+}
+
+export function playTimeline(timeline: Timeline) {
+  processTimeline(timeline);
 
   play();
 }
 
-let playing = false;
+export let playing = false;
 function play() {
   if (playing) return;
 
@@ -194,8 +194,8 @@ async function animateTick(): Promise<any> {
   const time = performance.now();
 
   for (let [subject, keyframes] of subjectKeyframes) {
-    let interpolatedData = recursiveInterpolateKeyframes(keyframes, time)
-    
+    let interpolatedData = recursiveInterpolateKeyframes(keyframes, time);
+
     if (Object.keys(interpolatedData).length === 0) {
       subjectKeyframes.delete(subject);
       continue;
