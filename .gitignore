@@ -5,3 +5,6 @@ dist
 .idea/
 
 tsconfig.tsbuildinfo
+
+lib
+dist

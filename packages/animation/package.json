@@ -2,11 +2,13 @@
   "name": "simple-obs-animation",
   "version": "0.1.2",
   "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "module": "dist/index.mjs",
+  "browser": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "rollup -c && tsc"
   },
   "author": "",
   "license": "ISC",
@@ -16,9 +18,17 @@
   "devDependencies": {
     "@types/jest": "^27.0.2",
     "@types/node": "^16.9.3",
+    "esbuild": "^0.13.2",
     "jest": "^27.2.1",
+    "rollup": "^2.57.0",
+    "rollup-plugin-dts": "^4.0.0",
+    "rollup-plugin-esbuild": "^4.5.0",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.0"
-  }
+  },
+  "files": [
+    "dist",
+    "lib"
+  ]
 }
