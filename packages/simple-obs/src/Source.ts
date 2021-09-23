@@ -345,8 +345,9 @@ export abstract class Source<
       let filter = this.filters[ref];
 
       filter.source = this;
-      // filter.setSettings is not necessary here since refreshFilters will either create the filter
-      // with its settings or update the existing source's settings
+      // Necessary since this is usually done in this.addFilter(), and this.refreshFilters() operates on filter.settings
+      // Could probably just do addFilter in a loop instead of all this
+      filter.settings = filter.initialSettings;
     }
 
     // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
