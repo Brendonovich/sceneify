@@ -6,7 +6,6 @@
     "lib": ["es6"],
     "declaration": true,
     "sourceMap": true,
-    "outDir": "./dist",
     "downlevelIteration": true,
     "strict": true,
     "moduleResolution": "node",
