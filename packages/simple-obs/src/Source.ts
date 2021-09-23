@@ -318,11 +318,11 @@ export abstract class Source<
 
       obs.sources.set(this.name, this);
 
+      this._exists = true;
+
       await this.initializeFilters();
 
       itemId = newItemId;
-
-      this._exists = true;
     }
 
     // As we have created a new scene item, set the corresponding ref.
