@@ -1,5 +1,5 @@
 import { Queue } from "@datastructures-js/queue";
-import { ColorSource } from "simple-obs";
+import { ColorSource, Source } from "simple-obs";
 import {
   keyframes,
   Keyframe,
@@ -13,29 +13,27 @@ describe("Timeline processing", () => {
   beforeEach(() => {
     subjectKeyframes.clear();
   });
-  
+
   test("Simple", () => {
     let source = new ColorSource({
       name: "Test Source",
     });
 
-    processTimeline(
-      {
-        0: [
-          keyframes(source, {
-            width: 0,
-          }),
-        ],
-        1000: [
-          keyframes(source, {
-            width: 10,
-          }),
-        ],
+    const result = processTimeline({
+      subjects: {
+        source,
       },
-      0
-    );
+      keyframes: {
+        source: {
+          width: {
+            0: 0,
+            1000: 10,
+          },
+        },
+      },
+    });
 
-    expect(subjectKeyframes.get(source)).toStrictEqual({
+    expect(result.source).toStrictEqual({
       width: new Queue<Keyframe>([
         {
           beginTimestamp: 0,
@@ -56,35 +54,37 @@ describe("Timeline processing", () => {
   });
 
   test("Nested", () => {
-    let source = new ColorSource({
+    class NestedSettingsSource extends Source<{
+      property: {
+        nested: {
+          value: number;
+        };
+      };
+    }> {
+      type = "TEST";
+    }
+
+    let source = new NestedSettingsSource({
       name: "Test Source",
     });
 
-    processTimeline(
-      {
-        0: [
-          keyframes(source as any, {
-            property: {
-              nested: {
-                value: keyframe(0, Easing.Linear),
+    const result = processTimeline({
+      subjects: { source },
+      keyframes: {
+        source: {
+          property: {
+            nested: {
+              value: {
+                0: 0,
+                1000: 10,
               },
             },
-          }),
-        ],
-        1000: [
-          keyframes(source as any, {
-            property: {
-              nested: {
-                value: keyframe(10, Easing.Linear),
-              },
-            },
-          }),
-        ],
+          },
+        },
       },
-      0
-    );
+    });
 
-    expect(subjectKeyframes.get(source)).toStrictEqual({
+    expect(result.source).toStrictEqual({
       property: {
         nested: {
           value: new Queue<Keyframe>([
@@ -117,34 +117,29 @@ describe("Timeline processing", () => {
       name: "Source 2",
     });
 
-    processTimeline(
-      {
-        0: [
-          keyframes(source1, {
-            width: 0,
-          }),
-          keyframes(source2, {
-            height: 0,
-          }),
-        ],
-        500: [
-          keyframes(source1, {
-            width: 20,
-          }),
-        ],
-        1000: [
-          keyframes(source1, {
-            width: 10,
-          }),
-          keyframes(source2, {
-            height: 10,
-          }),
-        ],
+    const result = processTimeline({
+      subjects: {
+        source1,
+        source2,
       },
-      0
-    );
+      keyframes: {
+        source1: {
+          width: {
+            0: 0,
+            500: 20,
+            1000: 10,
+          },
+        },
+        source2: {
+          height: {
+            0: 0,
+            1000: 10,
+          },
+        },
+      },
+    });
 
-    expect(subjectKeyframes.get(source1)).toStrictEqual({
+    expect(result.source1).toStrictEqual({
       width: new Queue<Keyframe>([
         {
           beginTimestamp: 0,
@@ -170,7 +165,7 @@ describe("Timeline processing", () => {
       ]),
     });
 
-    expect(subjectKeyframes.get(source2)).toStrictEqual({
+    expect(result.source2).toStrictEqual({
       height: new Queue<Keyframe>([
         {
           beginTimestamp: 0,
@@ -195,30 +190,26 @@ describe("Timeline processing", () => {
       name: "Test Source",
     });
 
-    processTimeline(
-      {
-        0: [
-          keyframes(source, {
-            width: 0,
-            height: 0,
-          }),
-        ],
-        500: [
-          keyframes(source, {
-            height: 20,
-          }),
-        ],
-        1000: [
-          keyframes(source, {
-            width: 10,
-            height: 10,
-          }),
-        ],
+    const result = processTimeline({
+      subjects: {
+        source,
       },
-      0
-    );
+      keyframes: {
+        source: {
+          width: {
+            0: 0,
+            1000: 10,
+          },
+          height: {
+            0: 0,
+            500: 20,
+            1000: 10,
+          },
+        },
+      },
+    });
 
-    expect(subjectKeyframes.get(source)).toStrictEqual({
+    expect(result.source).toStrictEqual({
       width: new Queue<Keyframe>([
         {
           beginTimestamp: 0,
@@ -270,55 +261,42 @@ describe("Timeline processing", () => {
       name: "Source 2",
     });
 
-    processTimeline(
-      {
-        0: [
-          keyframes(source1, {
-            width: 0,
-            height: 0,
-          }),
-          keyframes(source2, {
-            width: 0,
-            height: 0,
-          }),
-        ],
-        300: [
-          keyframes(source2, {
-            width: 50,
-          }),
-        ],
-        500: [
-          keyframes(source1, {
-            width: 10,
-            height: 20,
-          }),
-          keyframes(source2, {
-            height: 35,
-          }),
-        ],
-        800: [
-          keyframes(source1, {
-            width: 40,
-          }),
-          keyframes(source2, {
-            width: 30,
-          }),
-        ],
-        1000: [
-          keyframes(source1, {
-            width: 10,
-            height: 10,
-          }),
-          keyframes(source2, {
-            width: 20,
-            height: 20,
-          }),
-        ],
+    const result = processTimeline({
+      subjects: {
+        source1,
+        source2,
       },
-      0
-    );
+      keyframes: {
+        source1: {
+          width: {
+            0: 0,
+            500: 10,
+            800: 40,
+            1000: 10,
+          },
+          height: {
+            0: 0,
+            500: 20,
+            1000: 10,
+          },
+        },
+        source2: {
+          width: {
+            0: 0,
+            300: 50,
+            800: 30,
+            1000: 20,
+          },
+          height: {
+            0: 0,
+            500: 35,
+            1000: 20,
+          },
+        },
+      },
+    });
 
-    expect(subjectKeyframes.get(source1)).toStrictEqual({
+    expect(result.source1).toStrictEqual({
       width: new Queue<Keyframe>([
         {
           beginTimestamp: 0,
@@ -374,7 +352,7 @@ describe("Timeline processing", () => {
       ]),
     });
 
-    expect(subjectKeyframes.get(source2)).toStrictEqual({
+    expect(result.source2).toStrictEqual({
       width: new Queue<Keyframe>([
         {
           beginTimestamp: 0,
