@@ -1,6 +1,6 @@
-import { obs, SceneItem, SourceFilters } from ".";
-import { SceneItemProperties } from "./SceneItem";
-import { ItemRef, Source, SourceSettings } from "./Source";
+import { obs } from "./obs";
+import { SceneItem, SceneItemProperties } from "./SceneItem";
+import { ItemRef, Source, SourceSettings, SourceFilters } from "./Source";
 import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 

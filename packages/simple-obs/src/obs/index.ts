@@ -1,11 +1,10 @@
 import ObsWebSocket from "obs-websocket-js";
 
+import type { Scene } from "../Scene";
 import { RequestArgsMap, RequestResponseMap, EventsDataMap } from "./socket";
-import { Scene } from "../Scene";
-import { Source } from "../Source";
+import { Source, ItemID, ItemRef, SceneName } from "../Source";
 import { SceneItemProperties } from "../SceneItem";
 import { DeepPartial } from "../types";
-import { ItemID, ItemRef, SceneName } from "..";
 import { wait } from "../utils";
 
 let requestCounter = 0;

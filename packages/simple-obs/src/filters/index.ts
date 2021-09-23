@@ -1,4 +1,4 @@
-import { Filter } from "..";
+import { Filter } from "../Filter";
 
 export class CropPadFilter extends Filter<{
   bottom: number;

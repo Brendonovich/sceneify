@@ -1,4 +1,7 @@
-import { Filter, obs, Scene, SceneItem, SceneItemProperties } from ".";
+import { Scene } from "./Scene";
+import { obs } from "./obs";
+import { Filter } from "./Filter";
+import { SceneItem, SceneItemProperties } from "./SceneItem";
 import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 

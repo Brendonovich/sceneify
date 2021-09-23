@@ -1,10 +1,3 @@
-import { Scene } from "./Scene";
-import { Source } from "./Source";
-
-export function isRawScene(source: Source): source is Scene {
-  return source.constructor.prototype === Scene;
-}
-
 export function isObject(item?: Record<string, any>) {
   return item && typeof item === "object" && !Array.isArray(item);
 }

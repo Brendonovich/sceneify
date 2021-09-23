@@ -1,4 +1,5 @@
-import { obs, Source } from ".";
+import { Source } from "./Source";
+import { obs } from "./obs";
 import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 
