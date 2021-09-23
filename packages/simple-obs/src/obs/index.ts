@@ -1,4 +1,5 @@
 import ObsWebSocket from "obs-websocket-js";
+import nextTick from "next-tick";
 
 import type { Scene } from "../Scene";
 import { RequestArgsMap, RequestResponseMap, EventsDataMap } from "./socket";
@@ -147,7 +148,7 @@ class OBS {
   queueSendBatch() {
     if (this.queued) return;
 
-    process.nextTick(() => this.sendBatch());
+    nextTick(() => this.sendBatch());
     this.queued = true;
   }
 

@@ -13,10 +13,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "next-tick": "^1.1.0",
     "obs-websocket-js": "^4.0.3"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/next-tick": "^1.0.0",
     "@types/node": "^16.9.3",
     "@types/ws": "^7.4.6",
     "esbuild": "^0.13.2",
