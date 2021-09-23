@@ -2,19 +2,22 @@ export * from "./easing";
 
 import { Filter, SceneItem, SceneItemProperties, Source } from "simple-obs";
 import { Queue } from "@datastructures-js/queue";
-import { performance } from "./performance";
 
+import { performance } from "./performance";
 import { DEFAULT_EASING, Easing, easingFuncs } from "./easing";
 import { DeepSearch } from "./types";
+import { getDeep } from "./utils";
 
 export const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type AnimatableProperties<T extends SceneItemProperties = SceneItemProperties> =
-  DeepSearch<
-    Omit<T, "width" | "height" | "sourceWidth" | "sourceHeight">,
-    number | boolean | string
-  >;
+export type AnimatableProperties<
+  T extends SceneItemProperties = SceneItemProperties
+> = DeepSearch<
+  Omit<T, "width" | "height" | "sourceWidth" | "sourceHeight">,
+  KeyframeProperty
+>;
 
+export type AnimationSubject = SceneItem | Source | Filter;
 export interface Keyframe<
   T extends number | string | boolean = number | string | boolean
 > {
@@ -32,152 +35,146 @@ export function keyframe<T extends number | string | boolean>(
   return new KeyframeInput(value, easing);
 }
 
-export type KeyframeInputFromPrivitives<
-  P extends Record<
-    string,
-    number | string | boolean | Record<string, number | string | boolean>
-  >
-> = {
-  [K in keyof P]?: P[K] extends number | string | boolean
-    ? P[K] | KeyframeInput<P[K]>
-    : P[K] extends Record<string, number | string | boolean>
-    ? KeyframeInputFromPrivitives<P[K]>
+export type KeyframeProperty = number | string | boolean;
+
+export type KeyframeInputsMap = {
+  [key: string]: KeyframeProperty | KeyframeInputsMap;
+};
+
+export type KeyframesFromSchema<P extends KeyframeInputsMap> = {
+  [K in keyof P]?: P[K] extends KeyframeInputsMap
+    ? KeyframesFromSchema<P[K]>
+    : P[K] extends KeyframeProperty
+    ? Record<number, P[K] | KeyframeInput<P[K]>>
     : never;
 };
 
-export type KeyframeValues<Subject extends SceneItem | Source | Filter> =
+export type SubjectKeyframeValues<Subject extends SceneItem | Source | Filter> =
   Subject extends SceneItem
-    ? KeyframeInputFromPrivitives<SceneItemProperties>
+    ? KeyframesFromSchema<AnimatableProperties>
     : Subject extends Source
-    ? KeyframeInputFromPrivitives<Subject["_settingsType"]>
+    ? KeyframesFromSchema<Subject["_settingsType"]>
     : Subject extends Filter
-    ? KeyframeInputFromPrivitives<Subject["_settingsType"]>
+    ? KeyframesFromSchema<Subject["_settingsType"]>
     : never;
-
-export type AnimationSubject = SceneItem | Source | Filter;
 
 export interface Keyframes<Subject extends AnimationSubject> {
   subject: Subject;
-  values: KeyframeValues<Subject>;
+  values: SubjectKeyframeValues<Subject>;
 }
 
 export const keyframes = <Subject extends AnimationSubject>(
   subject: Subject,
-  values: KeyframeValues<Subject>
+  values: SubjectKeyframeValues<Subject>
 ): Keyframes<Subject> => ({ subject, values });
 
 interface SubjectKeyframes {
   [key: string]: SubjectKeyframes | Queue<Keyframe>;
 }
 
-export const subjectKeyframes = new Map<AnimationSubject, SubjectKeyframes>();
-
 class KeyframeInput<T extends string | number | boolean = any> {
   constructor(public value: T, public easing: Easing = DEFAULT_EASING) {}
 }
 
-type KeyframeInputValue = string | number | boolean | KeyframeInput;
+export type Timeline<Subjects extends Record<string, AnimationSubject>> = {
+  subjects: Subjects;
+  keyframes: {
+    [S in keyof Subjects]: SubjectKeyframeValues<Subjects[S]>;
+  };
+};
 
-export type Timeline = Record<number, Keyframes<AnimationSubject>[]>;
+export type ProcessedTimeline<
+  Subjects extends Record<string, AnimationSubject>
+> = {
+  [K in keyof Subjects]: SubjectKeyframes;
+};
 
-function getDeep(obj: any, path: string[]): any | undefined {
-  for (let i = 0, len = path.length; i < len; i++) {
-    obj = obj?.[path[i]];
-  }
-  return obj;
-}
+export const subjectKeyframes = new Map<AnimationSubject, SubjectKeyframes>();
 
-type KeyframesInput =
-  | KeyframeInputValue
-  | {
-      [key: string]: KeyframeInputValue | KeyframesInput;
-    };
-
-/**
- * @internal
- */
-export function recurseKeyframes(
-  subjectData: SubjectKeyframes,
-  keyframesToProcess: Record<string, KeyframesInput>,
+export function processSubjectKeyframes<Subject extends AnimationSubject>(
+  keyframesToProcess: SubjectKeyframeValues<Subject>,
   startTime: number,
-  timestamp: number,
-  subject: AnimationSubject,
+  subject: Subject,
   parentPath: string[] = []
 ) {
-  for (let pathName in keyframesToProcess) {
-    let value = keyframesToProcess[pathName];
-    let currentPath = [...parentPath, pathName];
+  let ret: SubjectKeyframes = {};
 
-    if (typeof value === "object" && !(value instanceof KeyframeInput)) {
-      recurseKeyframes(
-        ((subjectData as any)[pathName] ||= {}),
-        value,
+  for (let property in keyframesToProcess) {
+    const propertyValues = keyframesToProcess[property];
+    const firstValue = Object.values(propertyValues)[0];
+
+    const currentPath = [...parentPath, property];
+
+    // propertyValues contains nested keyframes values
+    if (
+      typeof firstValue === "object" &&
+      !(firstValue instanceof KeyframeInput)
+    )
+      ret[property] = processSubjectKeyframes(
+        // Any since generics can be annoying
+        propertyValues as any,
         startTime,
-        timestamp,
         subject,
         currentPath
       );
-    } else {
-      let valueClass =
-        value instanceof KeyframeInput ? value : new KeyframeInput(value);
+    // propertyValues contains keyframes
+    else {
+      const queue = (ret[property] = new Queue<Keyframe>());
 
-      let queue: Queue<Keyframe> = ((subjectData[
-        pathName
-      ] as Queue<Keyframe>) ||= new Queue());
+      for (const [timeStr, value] of Object.entries(propertyValues)) {
+        const time = parseInt(timeStr);
 
-      let from;
+        const valueClass =
+          value instanceof KeyframeInput
+            ? value
+            : new KeyframeInput(value as KeyframeProperty);
 
-      let back = queue.back();
-      if (back) from = back.to;
-      else {
-        if (subject instanceof SceneItem)
+        let from;
+
+        const back = queue.back();
+        if (back) from = back.to;
+        else if (subject instanceof SceneItem)
           from = getDeep(subject.properties, currentPath);
         else from = getDeep(subject.settings, currentPath);
+
+        queue.enqueue({
+          from,
+          to: valueClass.value,
+          easing: valueClass.easing,
+          beginTimestamp: back ? back.endTimestamp : startTime,
+          endTimestamp: startTime + time,
+        });
       }
-
-      let kf: Keyframe = {
-        from,
-        to: valueClass.value,
-        easing: valueClass.easing,
-        beginTimestamp: back ? back.endTimestamp : startTime,
-        endTimestamp: startTime + timestamp,
-      };
-
-      queue.enqueue(kf);
     }
   }
+
+  return ret;
 }
 
-export function processTimeline(
-  timeline: Timeline,
-  startTime = performance.now()
-) {
-  Object.values(timeline).forEach((keyframes) =>
-    keyframes.forEach(({ subject }) => subjectKeyframes.delete(subject))
-  );
+export function processTimeline<
+  Subjects extends Record<string, AnimationSubject>
+>(timeline: Timeline<Subjects>, startTime = 0): ProcessedTimeline<Subjects> {
+  const ret = {} as ProcessedTimeline<Subjects>;
 
-  for (let timeStr in timeline) {
-    let timestamp = parseInt(timeStr);
+  for (let subjectRef in timeline.keyframes) {
+    let subject = timeline.subjects[subjectRef];
 
-    for (let keyframes of timeline[timestamp]) {
-      if (!subjectKeyframes.has(keyframes.subject))
-        subjectKeyframes.set(keyframes.subject, {});
-
-      const currentSubjectData = subjectKeyframes.get(keyframes.subject)!;
-
-      recurseKeyframes(
-        currentSubjectData,
-        keyframes.values,
-        startTime,
-        timestamp,
-        keyframes.subject
-      );
-    }
+    ret[subjectRef] = processSubjectKeyframes(
+      timeline.keyframes[subjectRef],
+      startTime,
+      subject
+    );
   }
+
+  return ret;
 }
 
-export function playTimeline(timeline: Timeline) {
-  processTimeline(timeline);
+export function playTimeline(timeline: Timeline<any>) {
+  const results = processTimeline(timeline, performance.now());
+
+  for (let subjectRef in timeline.subjects) {
+    subjectKeyframes.set(timeline.subjects[subjectRef], results[subjectRef]);
+  }
 
   play();
 }
