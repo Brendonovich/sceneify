@@ -169,7 +169,9 @@ export function processTimeline<
   return ret;
 }
 
-export function playTimeline(timeline: Timeline<any>) {
+export function playTimeline<
+  Subjects extends Record<string, AnimationSubject>
+>(timeline: Timeline<Subjects>) {
   const results = processTimeline(timeline, performance.now());
 
   for (let subjectRef in timeline.subjects) {
