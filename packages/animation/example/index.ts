@@ -29,7 +29,7 @@ async function main() {
         }),
         position: {
           alignment: Alignment.Center,
-          y:400
+          y: 400,
         },
       },
       red: {
@@ -50,55 +50,48 @@ async function main() {
           },
         }),
         position: {
-          y: 800
-        }
+          y: 800,
+        },
       },
     },
   });
-  
+
   await mainScene.create();
   await mainScene.makeCurrentScene();
 
   playTimeline({
-    0: [
-      keyframes(mainScene.items.blue, {
+    subjects: {
+      blueItem: mainScene.items.blue,
+      redColorFilter: mainScene.items.red.source.filters.color,
+      redSource: mainScene.items.red.source,
+    },
+    keyframes: {
+      blueItem: {
         position: {
-          x: 0,
+          x: {
+            // Keyframe values can be passed as simple values and use default easing
+            0: 0,
+            // Or can be passed with custom easing values (+ more data in the future)
+            1000: keyframe(1920, Easing.InOut),
+            2000: keyframe(0, Easing.InOut),
+          },
         },
-      }),
-      keyframes(mainScene.items.red.source.filters.color, {
-        hue_shift: 0,
-      }),
-      keyframes(mainScene.items.red.source, {
-        width: keyframe(200, Easing.InOut),
-      }),
-    ],
-    1000: [
-      keyframes(mainScene.items.blue, {
-        position: {
-          x: keyframe(1920, Easing.InOut),
+      },
+      redColorFilter: {
+        hue_shift: {
+          0: 0,
+          1000: 180,
+          2000: 0,
         },
-      }),
-      keyframes(mainScene.items.red.source.filters.color, {
-        hue_shift: 180,
-      }),
-      keyframes(mainScene.items.red.source, {
-        width: keyframe(600, Easing.InOut),
-      }),
-    ],
-    2000: [
-      keyframes(mainScene.items.blue, {
-        position: {
-          x: keyframe(0, Easing.InOut),
+      },
+      redSource: {
+        width: {
+          0: keyframe(200, Easing.InOut),
+          1000: keyframe(600, Easing.InOut),
+          2000: keyframe(200, Easing.InOut),
         },
-      }),
-      keyframes(mainScene.items.red.source.filters.color, {
-        hue_shift: 0,
-      }),
-      keyframes(mainScene.items.red.source, {
-        width: keyframe(200, Easing.InOut),
-      }),
-    ],
+      },
+    },
   });
 
   await wait(3000);
