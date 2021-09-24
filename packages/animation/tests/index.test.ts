@@ -1,15 +1,8 @@
 import { Queue } from "@datastructures-js/queue";
 import { ColorSource, Source } from "simple-obs";
-import {
-  keyframes,
-  Keyframe,
-  processTimeline,
-  subjectKeyframes,
-  Easing,
-  keyframe,
-} from "../src";
+import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 
-describe("Timeline processing", () => {
+describe("processTimeline()", () => {
   beforeEach(() => {
     subjectKeyframes.clear();
   });

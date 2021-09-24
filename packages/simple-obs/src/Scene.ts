@@ -239,6 +239,8 @@ export class Scene<
     await obs.removeScene(this.name);
     obs.scenes.delete(this.name);
     obs.sources.delete(this.name);
+
+    this._exists = false;
   }
 
   /**

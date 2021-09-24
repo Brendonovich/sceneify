@@ -41,6 +41,16 @@ class OBS {
     });
   }
 
+  clear() {
+    this.sources.clear();
+    this.scenes.clear();
+  }
+
+  disconnect() {
+    this.socket.removeAllListeners();
+    this.socket.disconnect();
+  }
+
   /**
    * Goes though each source in OBS and removes it if 1. simple-obs owns it and 2. there are no references
    * to the source in code.
