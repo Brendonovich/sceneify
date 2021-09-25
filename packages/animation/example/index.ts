@@ -8,8 +8,7 @@ import {
 import {
   Easing,
   keyframe,
-  keyframes,
-  playTimeline,
+  animate,
 } from "simple-obs-animation";
 
 async function main() {
@@ -59,7 +58,7 @@ async function main() {
   await mainScene.create();
   await mainScene.makeCurrentScene();
 
-  playTimeline({
+  animate({
     subjects: {
       blueItem: mainScene.items.blue,
       redColorFilter: mainScene.items.red.source.filters.color,

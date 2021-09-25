@@ -169,7 +169,7 @@ export function processTimeline<
   return ret;
 }
 
-export function playTimeline<
+export function animate<
   Subjects extends Record<string, AnimationSubject>
 >(timeline: Timeline<Subjects>) {
   const results = processTimeline(timeline, performance.now());
