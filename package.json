@@ -9,6 +9,6 @@
     "url": "https://github.com/Brendonovich/simple-obs"
   },
   "scripts": {
-    "test": "yarn jest"
+    "test": "yarn jest --runInBand"
   }
 }

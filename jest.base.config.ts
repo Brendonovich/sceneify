@@ -1,9 +1,13 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import type { Config } from "@jest/types";
 
 const tsConfig = "tsconfig.test.json";
 
-module.exports = function buildConfig(packageDirectory, pkgConfig) {
+export default function buildConfig(
+  packageDirectory: string,
+  pkgConfig: Config.InitialOptions
+): Config.InitialOptions {
   const packageName = require(`${packageDirectory}/package.json`).name;
   const packageTsconfig = path.resolve(packageDirectory, tsConfig);
   return {
@@ -16,11 +20,11 @@ module.exports = function buildConfig(packageDirectory, pkgConfig) {
           : path.resolve(__dirname, tsConfig),
       },
     },
-    testRegex: "tests/.*\\.ts$",
+    testRegex: "tests\\/.*\\.test\\.ts$",
     coverageDirectory: "<rootDir>/coverage/",
     coverageReporters: ["lcov", "text"],
     collectCoverageFrom: ["<rootDir>/src/**/*.{ts,tsx}", "!**/node_modules/**"],
     displayName: packageName,
     ...pkgConfig,
   };
-};
+}
