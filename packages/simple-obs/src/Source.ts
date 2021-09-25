@@ -58,16 +58,15 @@ export abstract class Source<
   /**
    * Sets this source's settings, both on this instance and the OBS source.
    *
-   * @returns OBS Websocket response for `SetSourceSettings` request
    */
-  setSettings(settings: DeepPartial<Settings>) {
-    mergeDeep(this.settings, settings);
-
-    return obs.setSourceSettings({
+  async setSettings(settings: DeepPartial<Settings>) {
+    await obs.setSourceSettings({
       name: this.name,
       type: this.type,
       settings,
     });
+
+    mergeDeep(this.settings, settings);
   }
 
   /**

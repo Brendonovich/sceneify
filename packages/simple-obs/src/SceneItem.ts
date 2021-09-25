@@ -110,8 +110,21 @@ export class SceneItem<
       id: this.id,
       ...properties,
     });
-    
+
     mergeDeep(this.properties, properties);
+
+    this.updateSourceSize();
+  }
+
+  /**
+   * Some sources have custom settings for width and height. Thus, sourceWidth and
+   * sourceHeight for their scene items can change. This method reassigns these values and
+   * calculates properties.width and properties.height as a product of the source dimensions
+   * and item scale.
+   */
+  updateSourceSize(sourceWidth?: number, sourceHeight?: number) {
+    this.properties.sourceWidth = sourceWidth ?? this.properties.sourceWidth;
+    this.properties.sourceHeight = sourceHeight ?? this.properties.sourceHeight;
 
     this.properties.width =
       this.properties.scale.x * this.properties.sourceWidth;
