@@ -122,6 +122,16 @@ class OBS {
       spareObsScenes.map((scene) => this.removeScene(scene.name))
     );
 
+    for (let codeScene of [...this.scenes.keys()]) {
+      if (obsScenes.find((s) => s.name === codeScene) === undefined)
+        this.scenes.delete(codeScene);
+    }
+
+    for (let codeSource of [...this.sources.keys()]) {
+      if (obsSources.find((s) => s.name === codeSource) === undefined)
+        this.sources.delete(codeSource);
+    }
+
     await Promise.all<any>([
       ...[...this.sources.values()].map(async (source) => {
         await source.pushRefs();
