@@ -1,5 +1,4 @@
 import { BrowserSource, Scene } from "../../src";
-import { wait } from "../../src/utils";
 
 describe("setSettings()", () => {
   it("updates width and height of item instances", async () => {
@@ -13,20 +12,17 @@ describe("setSettings()", () => {
     });
 
     const scene = new Scene({
-      name: "Test", 
+      name: "Test",
       items: {
         browser: {
           source,
         },
       },
     });
-
+    
     await scene.create();
     const item = scene.items.browser;
-
-    await wait(10);
-    await scene.items.browser.getProperties();
-
+    
     expect(item.properties.width).toBe(200);
     expect(item.properties.sourceWidth).toBe(200);
     expect(item.properties.height).toBe(300);

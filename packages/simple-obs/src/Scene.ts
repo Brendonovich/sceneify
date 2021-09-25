@@ -2,7 +2,7 @@ import { obs } from "./obs";
 import { SceneItem, SceneItemProperties } from "./SceneItem";
 import { ItemRef, Source, SourceSettings, SourceFilters } from "./Source";
 import { DeepPartial } from "./types";
-import { mergeDeep } from "./utils";
+import { mergeDeep, wait } from "./utils";
 
 type ItemSchemaInput<T extends Source = Source> = {
   source: T;
@@ -60,14 +60,21 @@ export class Scene<
     // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
     if (this.exists) return this;
 
-    // Try to create the scene in OBS, and just continue if it already exists
-    await this._create().catch(() => {});
+    await super.initialize();
 
-    await Promise.all(
-      Object.entries(this.itemsSchema).map(([ref, schema]) =>
-        this.addItem(ref, schema)
-      )
-    );
+    if (!this.exists) {
+      await obs.createScene(this.name);
+      await this.saveRefs();
+    }
+    
+    await wait(50);
+
+    this._exists = true;
+    obs.scenes.set(this.name, this);
+    
+    for(let [ref, schema] of Object.entries(this.itemsSchema)){
+      await this.addItem(ref, schema)
+    }
 
     // await obs.reorderSceneItems({
     //   scene: this.name,
@@ -79,8 +86,6 @@ export class Scene<
     } as any);
 
     // TODO: Reordering
-
-    this._initialized = true;
 
     return this;
   }
@@ -212,17 +217,7 @@ export class Scene<
   /**
    * Just wraps `obs.createScene` and sets `this._exists`
    */
-  private async _create() {
-    await super.initialize();
-
-    if (!this.exists) {
-      await obs.createScene(this.name);
-      await this.saveRefs();
-    }
-
-    this._exists = true;
-    obs.scenes.set(this.name, this);
-  }
+  private async _create() {}
 
   /**
    * UTILITIES

@@ -46,7 +46,7 @@ describe("setProperties()", () => {
       items: {
         item: {
           source: new ColorSource({
-            name: "Source",
+            name: "Source", 
             settings: {},
           }),
         },

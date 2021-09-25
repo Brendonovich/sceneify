@@ -16,7 +16,7 @@ export class ColorSource<
     await super.setSettings(settings);
 
     this.itemInstances.forEach((item) =>
-      item.updateSourceSize(this.settings.width, this.settings.height)
+      item.updateSizeFromSource(this.settings.width, this.settings.height)
     );
   }
 }

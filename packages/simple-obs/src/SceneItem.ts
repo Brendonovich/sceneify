@@ -97,12 +97,11 @@ export class SceneItem<
     public ref: string
   ) {
     source.itemInstances.add(this);
+
+    mergeDeep(this.properties, DEFAULT_SCENE_ITEM_PROPERTIES);
   }
 
-  properties: Properties = Object.assign(
-    {},
-    DEFAULT_SCENE_ITEM_PROPERTIES
-  ) as Properties;
+  properties = {} as Properties;
 
   async setProperties(properties: DeepPartial<Properties>) {
     await obs.setSceneItemProperties({
@@ -113,7 +112,7 @@ export class SceneItem<
 
     mergeDeep(this.properties, properties);
 
-    this.updateSourceSize();
+    this.updateSizeFromSource();
   }
 
   /**
@@ -122,7 +121,7 @@ export class SceneItem<
    * calculates properties.width and properties.height as a product of the source dimensions
    * and item scale.
    */
-  updateSourceSize(sourceWidth?: number, sourceHeight?: number) {
+  updateSizeFromSource(sourceWidth?: number, sourceHeight?: number) {
     this.properties.sourceWidth = sourceWidth ?? this.properties.sourceWidth;
     this.properties.sourceHeight = sourceHeight ?? this.properties.sourceHeight;
 

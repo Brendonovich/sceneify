@@ -139,6 +139,9 @@ class OBS {
       }),
       ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
     ]);
+    
+    // Let obs catch up - #21
+    await wait(100);
   }
 
   batchedSends: {
