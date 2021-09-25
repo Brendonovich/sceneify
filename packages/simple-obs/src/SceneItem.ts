@@ -132,11 +132,15 @@ export class SceneItem<
       this.properties.scale.y * this.properties.sourceHeight;
   }
 
-  getProperties() {
-    return obs.getSceneItemProperties({
+  async getProperties() {
+    const newProperties = await obs.getSceneItemProperties({
       id: this.id,
       scene: this.scene.name,
     });
+
+    mergeDeep(this.properties, newProperties);
+
+    return this.properties;
   }
 
   delete() {
