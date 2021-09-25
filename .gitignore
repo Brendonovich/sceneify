@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 
 lib
 dist
+coverage

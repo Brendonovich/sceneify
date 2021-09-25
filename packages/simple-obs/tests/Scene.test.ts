@@ -1,5 +1,5 @@
 import { Scene, obs, ColorSource } from "../src";
-
+ 
 describe("create()", () => {
   it("creates new scenes", async () => {
     const scene = new Scene({
@@ -8,7 +8,7 @@ describe("create()", () => {
     });
 
     await scene.create();
-
+ 
     expect(scene.initalized).toBe(true);
     expect(scene.exists).toBe(true);
 
@@ -28,7 +28,7 @@ describe("create()", () => {
 
     await scene.create();
 
-    expect(scene.initalized).toBe(true);
+    expect(scene.initalized).toBe(true); 
     expect(scene.exists).toBe(true);
   });
 

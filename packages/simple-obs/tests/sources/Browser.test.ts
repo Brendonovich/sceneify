@@ -1,26 +1,31 @@
-import { ColorSource, Scene } from "../../src";
+import { BrowserSource, Scene } from "../../src";
+import { wait } from "../../src/utils";
 
 describe("setSettings()", () => {
   it("updates width and height of item instances", async () => {
-    const source = new ColorSource({
+    const source = new BrowserSource({
       name: "Test Source",
       settings: {
         width: 200,
         height: 300,
+        url: "https://obsproject.com/",
       },
     });
 
     const scene = new Scene({
-      name: "Test Scene",
+      name: "Test", 
       items: {
-        color: {
+        browser: {
           source,
         },
       },
     });
 
     await scene.create();
-    const item = scene.items.color;
+    const item = scene.items.browser;
+
+    await wait(10);
+    await scene.items.browser.getProperties();
 
     expect(item.properties.width).toBe(200);
     expect(item.properties.sourceWidth).toBe(200);

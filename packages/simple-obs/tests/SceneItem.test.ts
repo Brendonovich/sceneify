@@ -42,7 +42,7 @@ describe("setProperties()", () => {
 
   it("ignores undefined values", async () => {
     const scene = new Scene({
-      name: "Test1",
+      name: "Test",
       items: {
         item: {
           source: new ColorSource({
