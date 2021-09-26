@@ -66,15 +66,17 @@ export class Scene<
       await obs.createScene(this.name);
       await this.saveRefs();
     }
-    
+
     await wait(50);
 
     this._exists = true;
     obs.scenes.set(this.name, this);
-    
-    for(let [ref, schema] of Object.entries(this.itemsSchema)){
-      await this.addItem(ref, schema)
-    }
+
+    await Promise.all(
+      Object.entries(this.itemsSchema).map(([ref, schema]) =>
+        this.addItem(ref, schema)
+      )
+    );
 
     // await obs.reorderSceneItems({
     //   scene: this.name,
