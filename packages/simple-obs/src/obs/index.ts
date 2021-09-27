@@ -27,6 +27,8 @@ class OBS {
   sources = new Map<string, Source>();
   scenes = new Map<string, Scene>();
 
+  useBatching = true;
+
   async connect(args: ConnectArgs) {
     await this.socket.connect(args);
 
@@ -139,7 +141,7 @@ class OBS {
       }),
       ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
     ]);
-    
+
     // Let obs catch up - #21
     await wait(100);
   }
@@ -186,20 +188,25 @@ class OBS {
       ? [RequestArgsMap[T]]
       : [undefined?]
   ): Promise<RequestResponseMap[T]> {
-    return new Promise((resolve, reject) => {
-      const id = generateMessageId();
+    if (this.useBatching)
+      return new Promise((resolve, reject) => {
+        const id = generateMessageId();
 
-      this.socket.once(`simple-obs:internal:message:id-${id}`, (err, data) => {
-        if (err) reject({ ...err, type, args });
-        else resolve(data);
-      });
+        this.socket.once(
+          `simple-obs:internal:message:id-${id}`,
+          (err, data) => {
+            if (err) reject({ ...err, type, args });
+            else resolve(data);
+          }
+        );
 
-      this.batchSend({
-        ...args,
-        "request-type": type,
-        "message-id": id,
+        this.batchSend({
+          ...args,
+          "request-type": type,
+          "message-id": id,
+        });
       });
-    });
+    else return this.socket.send(type as any, args);
   }
 
   on<T extends keyof EventsDataMap>(
