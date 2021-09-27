@@ -26,8 +26,12 @@ class OBS {
 
   sources = new Map<string, Source>();
   scenes = new Map<string, Scene>();
-
-  useBatching = true;
+  
+  /**
+   * Set this to true at your own peril. While batching should work, it is untested and
+   * sometimes results in requests never being returned as complete.
+   */
+  useBatching = false;
 
   async connect(args: ConnectArgs) {
     await this.socket.connect(args);
