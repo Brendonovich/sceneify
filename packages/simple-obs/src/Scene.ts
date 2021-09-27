@@ -145,15 +145,17 @@ export class Scene<
     // Iterate through a second time to actually link the scene items.
     await Promise.all(
       Object.entries(this.itemsSchema).map(
-        ([ref, { source, ...properties }]) => {
+        async ([ref, { source, ...properties }]) => {
           const schemaItem = sceneItems.find(
             (i) => i.sourceName === source.name
           )!;
 
           // Create a SceneItem for the source, marking the source as inialized and such in the process
-          const item = source.linkItem(this, schemaItem.itemId, ref);
+          const item: SceneItem<any> = source.linkItem(this, schemaItem.itemId, ref);
 
           Object.assign(this.items, { [ref]: item });
+          
+          await item.getProperties();
 
           let optionRequests: Promise<any>[] = [];
           if (options?.setProperties)
