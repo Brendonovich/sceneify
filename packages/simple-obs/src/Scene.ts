@@ -78,11 +78,23 @@ export class Scene<
       )
     );
 
-    // await obs.reorderSceneItems({
-    //   scene: this.name,
-    //   items: Object.keys(this.itemsSchema).map((ref) => this.items[ref].id)
-    // })
+    const itemList = await obs.getSceneItemList(this.name);
 
+    let ownedItemIds = Object.keys(this.itemsSchema)
+      .reverse()
+      .map((ref) => this.items[ref].id);
+
+    await obs.reorderSceneItems({
+      scene: this.name,
+      items: [
+        ...itemList.sceneItems
+          .filter(({ itemId }) => !ownedItemIds.includes(itemId))
+          .map(({ itemId }) => itemId)
+          .reverse(),
+        ...ownedItemIds,
+      ],
+    });
+    
     await this.setSettings({
       SIMPLE_OBS_LINKED: false,
     } as any);
