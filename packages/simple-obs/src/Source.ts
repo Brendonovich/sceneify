@@ -97,21 +97,13 @@ export abstract class Source<
 
     filter.source = this;
 
-    await Promise.all<any>([
-      !exists
-        ? (async () => {
-            await obs.addFilterToSource({
-              ...filter,
-              source: this.name,
-            });
-            await filter.setSettings(filter.initialSettings);
-          })()
-        : filter.setSettings({
-            filter: filter.name,
-            settings: filter.settings,
-            source: this.name,
-          }),
-    ]);
+    if (!exists)
+      await obs.addFilterToSource({
+        ...filter,
+        source: this.name,
+      });
+
+    await filter.setSettings(filter.initialSettings);
 
     Object.assign(this.filters, { [ref]: filter });
   }
