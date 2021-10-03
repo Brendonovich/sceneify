@@ -84,22 +84,23 @@ export class Scene<
       .reverse()
       .map((ref) => this.items[ref].id);
 
-    await obs.reorderSceneItems({
-      scene: this.name,
-      items: [
-        ...itemList.sceneItems
-          .filter(({ itemId }) => !ownedItemIds.includes(itemId))
-          .map(({ itemId }) => itemId)
-          .reverse(),
-        ...ownedItemIds,
-      ],
-    });
-    
+    const allItemsOrdered = [
+      ...itemList.sceneItems
+        .filter(({ itemId }) => !ownedItemIds.includes(itemId))
+        .map(({ itemId }) => itemId)
+        .reverse(),
+      ...ownedItemIds,
+    ];
+
+    if (allItemsOrdered.length > 0)
+      await obs.reorderSceneItems({
+        scene: this.name,
+        items: allItemsOrdered,
+      });
+
     await this.setSettings({
       SIMPLE_OBS_LINKED: false,
     } as any);
-
-    // TODO: Reordering
 
     return this;
   }
@@ -163,10 +164,14 @@ export class Scene<
           )!;
 
           // Create a SceneItem for the source, marking the source as inialized and such in the process
-          const item: SceneItem<any> = source.linkItem(this, schemaItem.itemId, ref);
+          const item: SceneItem<any> = source.linkItem(
+            this,
+            schemaItem.itemId,
+            ref
+          );
 
           Object.assign(this.items, { [ref]: item });
-          
+
           await item.getProperties();
 
           let optionRequests: Promise<any>[] = [];
