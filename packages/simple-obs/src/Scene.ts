@@ -72,11 +72,9 @@ export class Scene<
     this._exists = true;
     obs.scenes.set(this.name, this);
 
-    await Promise.all(
-      Object.entries(this.itemsSchema).map(([ref, schema]) =>
-        this.addItem(ref, schema)
-      )
-    );
+    for (const ref in this.itemsSchema) {
+      await this.addItem(ref, this.itemsSchema[ref]);
+    }
 
     const itemList = await obs.getSceneItemList(this.name);
 
