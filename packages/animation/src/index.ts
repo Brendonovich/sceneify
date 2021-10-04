@@ -26,6 +26,8 @@ export interface Keyframe<
   from?: T;
   to: T;
   easing: Easing;
+  promise: Promise<any>;
+  callback: () => void;
 }
 
 export function keyframe<T extends number | string | boolean>(
@@ -55,7 +57,7 @@ export type SubjectKeyframeValues<Subject extends SceneItem | Source | Filter> =
     : Subject extends Source
     ? KeyframesFromSchema<Subject["_settingsType"]>
     : Subject extends Filter
-    ? KeyframesFromSchema<Subject["_settingsType"]>
+    ? KeyframesFromSchema<Subject["_settingsType"] & { visible?: boolean }>
     : never;
 
 export interface Keyframes<Subject extends AnimationSubject> {
@@ -137,12 +139,19 @@ export function processSubjectKeyframes<Subject extends AnimationSubject>(
           from = getDeep(subject.properties, currentPath);
         else from = getDeep(subject.settings, currentPath);
 
+        let callback = () => {};
+        const promise = new Promise((res) => {
+          callback = res as any;
+        });
+
         queue.enqueue({
           from,
           to: valueClass.value,
           easing: valueClass.easing,
           beginTimestamp: back ? back.endTimestamp : startTime,
           endTimestamp: startTime + time,
+          promise,
+          callback,
         });
       }
     }
@@ -169,16 +178,49 @@ export function processTimeline<
   return ret;
 }
 
-export function animate<
+export function getSubjectKeyframesPromises(keyframes: SubjectKeyframes) {
+  let ret = [] as Promise<any>[];
+
+  for (let key in keyframes) {
+    const value = keyframes[key];
+    if (value instanceof Queue) ret.push(value.back().promise);
+    else ret = ret.concat(getSubjectKeyframesPromises(value));
+  }
+
+  return ret;
+}
+
+export function unregisterSubjectKeyframes(keyframes: SubjectKeyframes) {
+  for (let key in keyframes) {
+    const value = keyframes[key];
+
+    if (value instanceof Queue) value.back().callback?.();
+    else unregisterSubjectKeyframes(value);
+  }
+}
+
+export async function animate<
   Subjects extends Record<string, AnimationSubject>
 >(timeline: Timeline<Subjects>) {
   const results = processTimeline(timeline, performance.now());
 
   for (let subjectRef in timeline.subjects) {
-    subjectKeyframes.set(timeline.subjects[subjectRef], results[subjectRef]);
+    const subject = timeline.subjects[subjectRef];
+
+    if (subjectKeyframes.has(subject))
+      unregisterSubjectKeyframes(subjectKeyframes.get(subject)!);
+
+    subjectKeyframes.set(subject, results[subjectRef]);
   }
 
   play();
+
+  await Promise.all(
+    Object.values(results).reduce(
+      (acc, results) => [...acc, ...getSubjectKeyframesPromises(results)],
+      [] as Promise<any>[]
+    )
+  );
 }
 
 export let playing = false;
@@ -201,7 +243,11 @@ async function animateTick(): Promise<any> {
     }
 
     if (subject instanceof SceneItem) subject.setProperties(interpolatedData);
-    else subject.setSettings(interpolatedData);
+    else {
+      subject.setSettings(interpolatedData);
+      if (interpolatedData.visible !== undefined && subject instanceof Filter)
+        subject.setVisible(interpolatedData.visible);
+    }
   }
 
   const drift = performance.now() - time;
@@ -248,7 +294,10 @@ export function recursiveInterpolateKeyframes(
 
       ret[property] = lerpedValue;
 
-      if (time > value.front().endTimestamp) value.dequeue();
+      if (time > value.front().endTimestamp) {
+        value.front().callback?.();
+        value.dequeue();
+      }
       if (value.isEmpty()) delete keyframes[property];
     } else {
       if (Object.keys(value).length === 0) delete keyframes[property];

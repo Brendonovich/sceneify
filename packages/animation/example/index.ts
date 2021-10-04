@@ -5,11 +5,7 @@ import {
   obs,
   Scene,
 } from "simple-obs";
-import {
-  Easing,
-  keyframe,
-  animate,
-} from "simple-obs-animation";
+import { Easing, keyframe, animate } from "simple-obs-animation";
 
 async function main() {
   await obs.connect({ address: "localhost:4444" });
@@ -58,7 +54,7 @@ async function main() {
   await mainScene.create();
   await mainScene.makeCurrentScene();
 
-  animate({
+  await animate({
     subjects: {
       blueItem: mainScene.items.blue,
       redColorFilter: mainScene.items.red.source.filters.color,
@@ -92,8 +88,6 @@ async function main() {
       },
     },
   });
-
-  await wait(3000);
 }
 
 main();
