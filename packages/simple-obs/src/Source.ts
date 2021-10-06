@@ -180,16 +180,19 @@ export abstract class Source<
             source: this.name,
             settings: f.settings,
           })
-        ),
-        ...filtersArray.map((filter, index) =>
-          obs.reorderSourceFilter({
-            source: this.name,
-            filter: filter.name,
-            newIndex: index,
-          })
         )
       ),
     ]);
+
+    await Promise.all(
+      filtersArray.map((filter, index) =>
+        obs.reorderSourceFilter({
+          source: this.name,
+          filter: filter.name,
+          newIndex: index,
+        })
+      )
+    );
   }
 
   /**
