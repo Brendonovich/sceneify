@@ -16,15 +16,11 @@ export class BrowserSourceItem<
   constructor(source: Source, scene: Scene, id: number, ref: string) {
     super(source, scene, id, ref);
     
-    // Tests fail if this console.log isn't here
-    console.log()
-    
     this.updateSizeFromSource(source.settings.width, source.settings.height);
   }
 }
 
 /**
- * 
  * **Warning**: BrowserSource items will not have correct properties when they are
  * initialized, as browser sources are always created with a width and height of 0.
  * If width and height are not provided in the source's intial settings, it's intial

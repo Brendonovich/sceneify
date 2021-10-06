@@ -1,6 +1,6 @@
 {
   "name": "simple-obs",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "description": "",
   "main": "lib/index.js",
   "module": "dist/index.mjs",
