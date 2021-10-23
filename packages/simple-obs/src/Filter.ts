@@ -1,7 +1,6 @@
 import { Source } from "./Source";
 import { obs } from "./obs";
 import { DeepPartial } from "./types";
-import { mergeDeep } from "./utils";
 
 export interface FilterArgs<Settings> {
   name: string;
@@ -33,7 +32,7 @@ export abstract class Filter<
 
   _settingsType!: Settings;
 
-  setSettings(settings: DeepPartial<Settings>) {
+  async setSettings(settings: DeepPartial<Settings>) {
     if (!this.source) {
       console.warn(
         `Attempted to set settings on sourceless filter ${this.name}`
@@ -41,13 +40,15 @@ export abstract class Filter<
       return;
     }
 
-    mergeDeep(this.settings, settings);
-
-    return obs.setSourceFilterSettings({
+    await obs.setSourceFilterSettings({
       source: this.source.name,
       filter: this.name,
       settings: settings as any,
     });
+
+    for (let setting in settings) {
+      this.settings[setting] = settings[setting];
+    }
   }
 
   setVisible(visible: boolean) {

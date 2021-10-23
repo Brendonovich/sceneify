@@ -66,7 +66,9 @@ export abstract class Source<
       settings,
     });
 
-    mergeDeep(this.settings, settings);
+    for (let setting in settings) {
+      this.settings[setting] = settings[setting];
+    }
   }
 
   /**
