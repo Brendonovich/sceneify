@@ -1,15 +1,21 @@
-<center>
+<p align="center">
+<img src="website/static/img/logo.png" alt="simple-obs logo" height="150"/>
+</p>
 
-<img src="website/static/img/logo.png" alt="simple-obs logo" height="150" align="center"/>
+<h1 align="center"><code>simple-obs</code></h1>
+<p align="center">The simplest way to control OBS from JS</p>
 
-<h1 align="center"><code>simple-obs</code>
-<h2 align="center">The simplest way to control OBS from JS</h2>
-
-[![Downloads](https://img.shields.io/npm/dt/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
-[![Downloads](https://img.shields.io/npm/v/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
-[![Build Size](https://img.shields.io/bundlephobia/min/simple-obs?label=bundle%20size&style=flat&colorA=000000&colorB=000000)](https://bundlephobia.com/result?p=simple-obs)
-
-</center>
+<p align="center">
+<a href="https://www.npmjs.com/package/simple-obs">
+   <img src="https://img.shields.io/npm/dt/simple-obs.svg?style=flat&colorA=000000&colorB=000000" alt="Downloads">
+</a>
+<a href="https://www.npmjs.com/package/simple-obs">
+   <img src="https://img.shields.io/npm/v/simple-obs.svg?style=flat&colorA=000000&colorB=000000" alt="Version">
+</a>
+<a href="https://bundlephobia.com/result?p=simple-obs">
+   <img src="https://img.shields.io/bundlephobia/min/simple-obs?label=bundle%20size&style=flat&colorA=000000&colorB=000000" alt="Build Size">
+</a>
+</p>
 
 Translations: [Spanish](translations/README_es.md) | {Add your language translation}
 
