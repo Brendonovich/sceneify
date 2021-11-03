@@ -1,16 +1,20 @@
 {
   "folders": [
     {
-      "name": "root",
-      "path": ".."
-    },
-    {
       "name": "simple-obs",
       "path": "../packages/simple-obs/"
     },
     {
       "name": "animation",
       "path": "../packages/animation/"
+    },
+    {
+      "name": "website",
+      "path": "../website"
+    },
+    {
+      "name": "root",
+      "path": ".."
     }
   ],
   "settings": {

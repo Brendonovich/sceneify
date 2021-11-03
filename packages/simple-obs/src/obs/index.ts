@@ -4,9 +4,9 @@ import nextTick from "next-tick";
 import type { Scene } from "../Scene";
 import { RequestArgsMap, RequestResponseMap, EventsDataMap } from "./socket";
 import { Source, ItemID, ItemRef, SceneName } from "../Source";
-import { SceneItemProperties } from "../SceneItem";
 import { DeepPartial } from "../types";
 import { wait } from "../utils";
+import { SceneItemProperties } from "../SceneItem";
 
 let requestCounter = 0;
 function generateMessageId() {
@@ -26,7 +26,7 @@ class OBS {
 
   sources = new Map<string, Source>();
   scenes = new Map<string, Scene>();
-  
+
   /**
    * Set this to true at your own peril. While batching should work, it is untested and
    * sometimes results in requests never being returned as complete.
@@ -55,6 +55,8 @@ class OBS {
   disconnect() {
     this.socket.removeAllListeners();
     this.socket.disconnect();
+    
+    this.clear();
   }
 
   /**
