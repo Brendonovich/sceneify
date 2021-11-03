@@ -1,10 +1,9 @@
 <center>
 
-<img src="website/static/img/logo.png" alt="simple-obs logo" height="150"/>
-<h1>
-<code>simple-obs</code></h1>
-<h2>The simplest way to control OBS from JS</h2>
+<img src="website/static/img/logo.png" alt="simple-obs logo" height="150" align="center"/>
 
+<h1 align="center"><code>simple-obs</code>
+<h2 align="center">The simplest way to control OBS from JS</h2>
 
 [![Downloads](https://img.shields.io/npm/dt/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
 [![Downloads](https://img.shields.io/npm/v/simple-obs.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/simple-obs)
