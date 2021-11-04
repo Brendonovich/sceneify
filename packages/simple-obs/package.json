@@ -2,10 +2,10 @@
   "name": "simple-obs",
   "version": "0.3.19",
   "description": "",
-  "main": "lib/index.js",
-  "module": "dist/index.mjs",
-  "browser": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "./lib/node/index.js",
+  "types": "./dts/index.d.ts",
+  "module": "./esm/index.js",
+  "browser": "./lib/browser/index.js",
   "scripts": {
     "test": "jest -i",
     "build": "rollup -c && tsc",
@@ -33,6 +33,23 @@
   },
   "files": [
     "dist",
-    "lib"
-  ]
+    "esm/**/*.{js,map}",
+    "lib",
+    "lib/**/*.{js,map}",
+    "src/**/*.{ts,tsx,json}"
+  ],
+  "packemon": {
+    "format": [
+      "lib",
+      "esm"
+    ],
+    "platform": [
+      "browser",
+      "node"
+    ]
+  },
+  "engines": {
+    "node": ">=12.17.0",
+    "npm": ">=6.13.0"
+  }
 }

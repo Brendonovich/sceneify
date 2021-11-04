@@ -15,7 +15,7 @@ export class BrowserSourceItem<
 > extends SceneItem<Source> {
   constructor(source: Source, scene: Scene, id: number, ref: string) {
     super(source, scene, id, ref);
-    
+
     this.updateSizeFromSource(source.settings.width, source.settings.height);
   }
 }
@@ -32,7 +32,7 @@ export class BrowserSource<
 > extends Source<Settings, F> {
   type = "browser_source";
 
-  createItemInstance(
+  override createItemInstance(
     scene: Scene,
     id: number,
     ref: string
@@ -40,7 +40,7 @@ export class BrowserSource<
     return new BrowserSourceItem(this, scene, id, ref);
   }
 
-  async setSettings(settings: DeepPartial<Settings>) {
+  override async setSettings(settings: DeepPartial<Settings>) {
     await super.setSettings(settings);
 
     this.itemInstances.forEach((item) =>

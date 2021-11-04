@@ -9,3 +9,5 @@ tsconfig.tsbuildinfo
 lib
 dist
 coverage
+esm
+dts

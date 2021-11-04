@@ -269,7 +269,10 @@ export class Scene<
    * @internal
    * @override
    */
-  async createItem(ref: ItemRef, scene: Scene): Promise<SceneItem<this>> {
+  override async createItem(
+    ref: ItemRef,
+    scene: Scene
+  ): Promise<SceneItem<this>> {
     if (!this.exists) await this.create();
 
     return await super.createItem(ref, scene);

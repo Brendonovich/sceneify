@@ -1,5 +1,5 @@
 // import { Queue } from "@datastructures-js/queue";
-// import { ColorSource, Source } from "simple-obs";
+import {} from "simple-obs";
 
 // import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 

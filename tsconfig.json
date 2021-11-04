@@ -1,14 +1,23 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "module": "CommonJS",
-    "lib": ["es6"],
-    "declaration": true,
-    "sourceMap": true,
-    "downlevelIteration": true,
-    "strict": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true
-  },
-  "exclude": ["tests"]
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Beemo",
+  "extends": "./tsconfig.options.json",
+  "files": [],
+  "references": [
+    {
+      "path": "website"
+    },
+    {
+      "path": "packages/animation"
+    },
+    {
+      "path": "packages/animation/tests"
+    },
+    {
+      "path": "packages/simple-obs"
+    },
+    {
+      "path": "packages/simple-obs/tests"
+    }
+  ]
 }

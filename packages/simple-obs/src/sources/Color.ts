@@ -12,7 +12,7 @@ export class ColorSource<
 > extends Source<Settings, F> {
   type = "color_source_v3";
 
-  async setSettings(settings: DeepPartial<Settings>) {
+  override async setSettings(settings: DeepPartial<Settings>) {
     await super.setSettings(settings);
 
     this.itemInstances.forEach((item) =>

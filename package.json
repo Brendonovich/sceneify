@@ -11,6 +11,13 @@
   },
   "scripts": {
     "test": "yarn jest --runInBand",
-    "test:coverage": "yarn jest --runInBand --coverage"
+    "test:coverage": "yarn jest --runInBand --coverage",
+    "build": "packemon build --addEngines",
+    "type": "beemo typescript --build"
+  },
+  "devDependencies": {
+    "@beemo/cli": "^2.0.3",
+    "@beemo/core": "^2.1.1",
+    "@beemo/dev": "^1.6.4"
   }
 }
