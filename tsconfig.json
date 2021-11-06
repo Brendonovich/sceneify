@@ -11,13 +11,7 @@
       "path": "packages/animation"
     },
     {
-      "path": "packages/animation/tests"
-    },
-    {
-      "path": "packages/simple-obs"
-    },
-    {
-      "path": "packages/simple-obs/tests"
+      "path": "packages/core"
     }
   ]
 }

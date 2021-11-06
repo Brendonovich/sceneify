@@ -1,28 +1,33 @@
-/**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
- */
-
-/* You can override the default Infima variables here. */
+/* Credit to NextAuth.js for this css */
 :root {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: rgb(33, 175, 144);
-  --ifm-color-primary-darker: rgb(31, 165, 136);
-  --ifm-color-primary-darkest: rgb(26, 136, 112);
-  --ifm-color-primary-light: rgb(70, 203, 174);
-  --ifm-color-primary-lighter: rgb(102, 212, 189);
-  --ifm-color-primary-lightest: rgb(146, 224, 208);
+  --ifm-color-link: #289ef9;
+  --ifm-color-primary: rgb(133, 95, 239);
+  --ifm-color-primary-dark: #03a7fa;
+  --ifm-color-primary-darker: #039eed;
+  --ifm-color-primary-darkest: #0382c3;
+  --ifm-color-primary-light: #3abbfc;
+  --ifm-color-primary-lighter: #48bffd;
+  --ifm-color-primary-lightest: #03a7fa;
   --ifm-code-font-size: 95%;
+  --ifm-color-info: #1eb1fc;
+  --ifm-color-success: #1eb1fc;
+  --ifm-color-warning: #c94b4b;
+  --ifm-font-family-base: -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+    Noto Sans, sans-serif, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --ifm-background-color: #fff;
+  --ifm-footer-background-color: #f9f9f9;
+  --ifm-hero-background-color: #f5f5f5;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.95);
+  --ifm-h1-font-size: 3rem;
+  --ifm-h1-font-size: 2rem;
 }
 
-.docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.1);
-  display: block;
-  margin: 0 calc(-1 * var(--ifm-pre-padding));
-  padding: 0 var(--ifm-pre-padding);
-}
-
-html[data-theme='dark'] .docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.3);
+html[data-theme="dark"]:root {
+  --ifm-color-primary: #1eb1fc;
+  --ifm-footer-background-color: #000;
+  --ifm-html-background-color: #242526;
+  --ifm-background-color: #090909;
+  --ifm-hero-background-color: #111111;
+  --ifm-navbar-background-color: rgba(0, 0, 0, 0.95);
 }

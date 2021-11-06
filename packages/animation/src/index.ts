@@ -1,6 +1,6 @@
 export * from "./easing";
 
-import { Filter, SceneItem, SceneItemProperties, Source } from "simple-obs";
+import { Filter, SceneItem, SceneItemProperties, Source } from "@simple-obs/core";
 import { Queue } from "@datastructures-js/queue";
 
 import { performance } from "./performance";

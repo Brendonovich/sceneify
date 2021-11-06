@@ -36,8 +36,8 @@ function Feature({Svg, title, description}) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center padding-horiz--md">
-        <h3>{title}</h3>
-        <p>{description}</p>
+        <h3 className="card__header">{title}</h3>
+        <p className="">{description}</p>
       </div>
     </div>
   );

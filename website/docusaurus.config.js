@@ -1,6 +1,7 @@
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const path = require("path");
+
 // With JSDoc @type annotations, IDEs can provide config autocompletion
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
@@ -34,7 +35,7 @@ module.exports = {
       "docusaurus-plugin-typedoc-api",
       {
         projectRoot: path.join(__dirname, "../"),
-        packages: ["simple-obs", "animation"].map((pkg) => `packages/${pkg}`),
+        packages: ["core", "animation"].map((pkg) => `packages/${pkg}`),
         tsconfigName: "tsconfig.docs.json",
       },
     ],
@@ -50,12 +51,12 @@ module.exports = {
           src: "img/logo.png",
         },
         items: [
-          {
-            type: "doc",
-            docId: "overview",
-            position: "left",
-            label: "Docs",
-          },
+          // {
+          //   type: "doc",
+          //   docId: "overview",
+          //   position: "left",
+          //   label: "Docs",
+          // },
           {
             to: "api",
             label: "API",
@@ -69,23 +70,22 @@ module.exports = {
         ],
       },
       footer: {
-        style: "dark",
         links: [
-          {
-            title: "Docs",
-            items: [
-              {
-                label: "Overview",
-                to: "/docs/overview",
-              },
-            ],
-          },
+          // {
+          //   title: "Docs",
+          //   items: [
+          //     {
+          //       label: "Overview",
+          //       to: "/docs/overview",
+          //     },
+          //   ],
+          // },
           {
             title: "Links",
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/facebook/docusaurus",
+                href: "https://github.com/Brendonovich/simple-obs",
               },
               {
                 label: "Twitter",

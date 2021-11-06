@@ -1,8 +1,8 @@
 {
   "folders": [
     {
-      "name": "simple-obs",
-      "path": "../packages/simple-obs/"
+      "name": "core",
+      "path": "../packages/core/"
     },
     {
       "name": "animation",
@@ -22,8 +22,9 @@
       "README",
       "Version",
       "Example",
-      "simple-obs",
-      "animation"
+      "core",
+      "animation",
+      "filters"
     ],
     "jest.disabledWorkspaceFolders": ["root"],
     "jest.jestCommandLine": "npx jest -i",

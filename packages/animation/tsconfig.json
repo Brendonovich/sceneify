@@ -5,19 +5,12 @@
     "rootDir": "src",
     "emitDeclarationOnly": true
   },
-  "exclude": [
-    "dts",
-    "tests"
-  ],
+  "exclude": ["dts", "tests"],
   "extends": "../../tsconfig.options.json",
-  "include": [
-    "src/**/*",
-    "types/**/*",
-    "../../types/**/*"
-  ],
+  "include": ["src/**/*"],
   "references": [
     {
-      "path": "../simple-obs"
+      "path": "../core"
     }
   ]
 }

@@ -4,8 +4,8 @@ import {
   ColorSource,
   obs,
   Scene,
-} from "simple-obs";
-import { Easing, keyframe, animate } from "simple-obs-animation";
+} from "@simple-obs/core";
+import { Easing, keyframe, animate } from "@simple-obs/animation";
 
 async function main() {
   await obs.connect({ address: "localhost:4444" });

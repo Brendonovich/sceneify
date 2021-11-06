@@ -6,4 +6,4 @@ export * from "./Filter";
 export * from "./obs";
 
 export * from "./sources";
-export * from "./filters";
+export * from "./filters"

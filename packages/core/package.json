@@ -1,5 +1,5 @@
 {
-  "name": "simple-obs",
+  "name": "@simple-obs/core",
   "version": "0.3.19",
   "description": "",
   "main": "./lib/node/index.js",
