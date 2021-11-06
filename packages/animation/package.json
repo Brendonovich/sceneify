@@ -1,10 +1,10 @@
 {
   "name": "@simple-obs/animation",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "",
-  "main": "lib/index.js",
-  "module": "dist/index.mjs",
-  "browser": "dist/index.js",
+  "main": "./lib/node/index.js",
+  "module": "./esm/index.js",
+  "browser": "./lib/browser/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
     "test": "jest -i",
@@ -30,6 +30,24 @@
   },
   "files": [
     "dist",
-    "lib"
-  ]
+    "dts",
+    "esm/**/*.{js,map}",
+    "lib",
+    "lib/**/*.{js,map}",
+    "src/**/*.{ts,tsx,json}"
+  ],
+  "packemon": {
+    "format": [
+      "lib",
+      "esm"
+    ],
+    "platform": [
+      "browser",
+      "node"
+    ]
+  },
+  "engines": {
+    "node": ">=12.17.0",
+    "npm": ">=6.13.0"
+  }
 }

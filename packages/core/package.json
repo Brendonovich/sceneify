@@ -1,6 +1,6 @@
 {
   "name": "@simple-obs/core",
-  "version": "0.3.19",
+  "version": "0.3.20",
   "description": "",
   "main": "./lib/node/index.js",
   "types": "./dts/index.d.ts",
@@ -33,6 +33,7 @@
   },
   "files": [
     "dist",
+    "dts",
     "esm/**/*.{js,map}",
     "lib",
     "lib/**/*.{js,map}",
