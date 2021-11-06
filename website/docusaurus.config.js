@@ -44,6 +44,7 @@ module.exports = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      image: "img/logo.png",
       navbar: {
         title: "Simple OBS",
         logo: {
