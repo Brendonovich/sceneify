@@ -87,12 +87,6 @@ export class AspectRatioFilter extends Filter<{
   type = "scale_filter";
 }
 
-export class ApplyLutFilter extends Filter<{
-  image_path: string;
-}> {
-  type = "clut_filter";
-}
-
 export enum MaskBlendSelect {
   AlphaMaskAlphaChannel = "mask_alpha_filter.effect",
   AlphaMaskColourChannel = "mask_colour_filter.effect",
