@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Simple OBS</h1>
-<p align="center">The simplest way to control OBS from JS</p>
+<p align="center">The simplest way to control OBS from JavaScript</p>
 
 <p align="center">
 <a href="https://www.npmjs.com/package/simple-obs">
