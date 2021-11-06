@@ -45,6 +45,7 @@ module.exports = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       image: "img/logo.png",
+      metadatas: [{ name: "twitter:card", content: "summary" }],
       navbar: {
         title: "Simple OBS",
         logo: {
