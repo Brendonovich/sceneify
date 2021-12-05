@@ -3,9 +3,9 @@
   "version": "0.2.3",
   "description": "",
   "main": "./lib/node/index.js",
+  "types": "./dts/index.d.ts",
   "module": "./esm/index.js",
   "browser": "./lib/browser/index.js",
-  "typings": "dist/index.d.ts",
   "scripts": {
     "test": "jest -i",
     "build": "rollup -c && tsc"
@@ -49,8 +49,5 @@
   "engines": {
     "node": ">=12.17.0",
     "npm": ">=6.13.0"
-  },
-  "exports": {
-    ".": "./src"
   }
 }
