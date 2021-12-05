@@ -6,14 +6,14 @@
 <p align="center">The simplest way to control OBS from JavaScript</p>
 
 <p align="center">
-<a href="https://www.npmjs.com/package/simple-obs">
-   <img src="https://img.shields.io/npm/dt/simple-obs.svg?style=flat&colorA=000000&colorB=000000" alt="Downloads">
+<a href="https://www.npmjs.com/package/@simple-obs/core">
+   <img src="https://img.shields.io/npm/dt/simple-obs?style=flat&colorA=000000&colorB=000000" alt="Downloads">
 </a>
-<a href="https://www.npmjs.com/package/simple-obs">
-   <img src="https://img.shields.io/npm/v/simple-obs.svg?style=flat&colorA=000000&colorB=000000" alt="Version">
+<a href="https://www.npmjs.com/package/@simple-obs/core">
+   <img src="https://img.shields.io/npm/v/@simple-obs/core?label=core&style=flat&colorA=000000&colorB=000000" alt="Core Version">
 </a>
-<a href="https://bundlephobia.com/result?p=simple-obs">
-   <img src="https://img.shields.io/bundlephobia/min/simple-obs?label=bundle%20size&style=flat&colorA=000000&colorB=000000" alt="Build Size">
+<a href="https://bundlephobia.com/result?p=@simple-obs/core">
+   <img src="https://img.shields.io/bundlephobia/min/@simple-obs/core?label=bundle%20size&style=flat&colorA=000000&colorB=000000" alt="Build Size">
 </a>
 </p>
 

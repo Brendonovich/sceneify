@@ -28,7 +28,7 @@ export class Scene<
 
   // Default initialized to {} as items is populated later by initialize addItem
   items: {
-    [K in keyof Items]: SceneItem<Items[K]>;
+    [K in keyof Items]: ReturnType<Items[K]["createItemInstance"]>;
   } & Record<string, SceneItem> = {} as any;
 
   private itemsSchema: ItemsSchemaInput<Items>;

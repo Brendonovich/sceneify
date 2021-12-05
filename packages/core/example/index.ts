@@ -20,12 +20,21 @@ async function main() {
     await obs.getVideoInfo();
 
   // Sources are just classes, and can be declared anywhere
-  const blueColorSource = new ColorSource({
-    name: "Blue Color Source",
+  const color = new ColorSource({
+    name: "Color Source",
     settings: {
       color: 0xffff0000,
       width: 400,
       height: 400,
+    },
+    filters: {
+      color: new ColorCorrectionFilter({
+        name: "Color Corrector",
+        settings: {
+          brightness: 0,
+          hue_shift: 0,
+        },
+      }),
     },
   });
 
@@ -33,8 +42,8 @@ async function main() {
   const mainScene = new Scene({
     name: "Main",
     items: {
-      blue: {
-        source: blueColorSource,
+      red: {
+        source: color,
         position: {
           alignment: Alignment.Center,
           x: OBS_WIDTH / 2,
@@ -46,20 +55,7 @@ async function main() {
 
   // Once Scene.create() is called, mainScene and its items can be used however you like.
   await mainScene.create();
-  await mainScene.makeCurrentScene()
-
-  await mainScene.addFilter(
-    "color",
-    new ColorCorrectionFilter({
-      name: "Color Corrector",
-      settings: {
-        brightness: 10,
-        hue_shift: 30,
-      },
-    })
-  );
-  
-  await mainScene.filters.color.setVisible(false)
+  await mainScene.makeCurrentScene();
 
   await wait(1000);
 
