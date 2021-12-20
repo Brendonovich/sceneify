@@ -55,7 +55,7 @@ This library is not well tested and is still under heavy development. Feel free 
 
    If using typescript, make sure you are at least using `typescript@4.4.0`, as `@simple-obs/core` uses some features of it to provide more accurate types for requests and events.
 
-3. Connect to OBS. See the example folder for more info.
+3. Connect to OBS. See the [example](https://github.com/Brendonovich/simple-obs/blob/master/packages/core/example/index.ts) for more info.
 
 ## Acknowledgements
 
