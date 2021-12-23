@@ -1,0 +1,125 @@
+import { ColorSource, OBS, Scene } from "../src";
+import MockOBSWebsocket from "./mocks/OBSWebsocket";
+
+let obs = new OBS();
+
+let socket = obs.socket;
+
+beforeEach(() => {
+  obs.socket = new MockOBSWebsocket();
+  socket = obs.socket;
+});
+
+describe("create()", () => {
+  it("creates new scenes", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await scene.create(obs);
+
+    expect(scene.initalized).toBe(true);
+    expect(scene.exists).toBe(true);
+
+    const obsScenes = await socket.call("GetSceneList");
+    expect(
+      obsScenes.scenes.find((s: any) => s.sceneName === scene.name)
+    ).not.toBeUndefined();
+  });
+
+  it("detects existing scenes", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await socket.call("CreateScene", { sceneName: scene.name });
+
+    await scene.create(obs);
+
+    expect(scene.initalized).toBe(true);
+    expect(scene.exists).toBe(true);
+  });
+
+  it("creates nested scenes", async () => {
+    const nested3 = new Scene({
+      name: "Nested 3",
+      items: {},
+    });
+
+    const nested2 = new Scene({
+      name: "Nested 2",
+      items: {
+        nested: {
+          source: nested3,
+        },
+      },
+    });
+
+    const nested1 = new Scene({
+      name: "Nested 1",
+      items: {
+        nested: {
+          source: nested2,
+        },
+      },
+    });
+
+    const parent = new Scene({
+      name: "Parent",
+      items: {
+        nested: {
+          source: nested1,
+        },
+      },
+    });
+
+    jest.spyOn(nested1, "create");
+    jest.spyOn(nested2, "create");
+    jest.spyOn(nested3, "create");
+
+    await parent.create(obs);
+
+    expect(nested1.create).toHaveBeenCalled();
+    expect(nested2.create).toHaveBeenCalled();
+    expect(nested3.create).toHaveBeenCalled();
+
+    const { scenes } = await socket.call("GetSceneList");
+    expect(scenes.length).toBe(5);
+  });
+
+  it("detects existing sources", async () => {
+    const existingSource = new ColorSource({
+      name: "Existing Source",
+      settings: {},
+    });
+
+    const tempScene = new Scene({
+      name: "Temp",
+      items: {
+        existing: {
+          source: existingSource,
+        },
+      },
+    });
+
+    await tempScene.create(obs);
+
+    const mainScene = new Scene({
+      name: "Main",
+      items: {
+        existing: {
+          source: existingSource,
+        },
+      },
+    });
+
+    await mainScene.create(obs);
+
+    expect(mainScene.items.existing.source).toBe(
+      tempScene.items.existing.source
+    );
+    expect(existingSource.itemInstances.size).toBe(2);
+  });
+});

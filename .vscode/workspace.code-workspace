@@ -27,7 +27,7 @@
       "filters"
     ],
     "jest.disabledWorkspaceFolders": ["root"],
-    "jest.jestCommandLine": "npx jest -i",
+    "jest.jestCommandLine": "pnpm test --",
     "search.exclude": {
       "**/node_modules": true,
       "**/bower_components": true,

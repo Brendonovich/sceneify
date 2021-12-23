@@ -1,23 +1,37 @@
 {
   "name": "simple-obs-root",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "website"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Brendonovich/simple-obs"
   },
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "website"
+    ]
+  },
   "scripts": {
-    "test": "yarn jest --runInBand",
-    "test:coverage": "yarn jest --runInBand --coverage",
+    "test": "beemo jest",
+    "coverage": "pnpm test -- --coverage",
     "build": "packemon build --addEngines",
     "type": "beemo typescript --build"
   },
   "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.16.5",
     "@beemo/cli": "^2.0.3",
     "@beemo/core": "^2.1.1",
     "@beemo/dev": "^1.6.4"
+  },
+  "dependencies": {
+    "@babel/core": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@beemo/driver-babel": "^2.0.5",
+    "@beemo/driver-eslint": "^2.0.4",
+    "@beemo/driver-jest": "^2.0.4",
+    "eslint": "^8.5.0",
+    "jest": "^27.4.5",
+    "packemon": "^1.10.0",
+    "ts-jest": "^27.1.2"
   }
 }

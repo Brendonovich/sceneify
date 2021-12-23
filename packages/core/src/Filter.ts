@@ -1,5 +1,5 @@
 import { Source } from "./Source";
-import { obs } from "./obs";
+import { OBS } from "./obs";
 import { DeepPartial } from "./types";
 
 export interface FilterArgs<Settings> {
@@ -32,39 +32,39 @@ export abstract class Filter<
 
   _settingsType!: Settings;
 
-  async setSettings(settings: DeepPartial<Settings>) {
-    if (!this.source) {
-      console.warn(
-        `Attempted to set settings on sourceless filter ${this.name}`
-      );
-      return;
-    }
+  // async setSettings(settings: DeepPartial<Settings>) {
+  //   if (!this.source) {
+  //     console.warn(
+  //       `Attempted to set settings on sourceless filter ${this.name}`
+  //     );
+  //     return;
+  //   }
 
-    await obs.setSourceFilterSettings({
-      source: this.source.name,
-      filter: this.name,
-      settings: settings as any,
-    });
+  //   await this.source.obs.socket.call("SetFi").setSourceFilterSettings({
+  //     source: this.source.name,
+  //     filter: this.name,
+  //     settings: settings as any,
+  //   });
 
-    for (let setting in settings) {
-      this.settings[setting] = settings[setting];
-    }
-  }
+  //   for (let setting in settings) {
+  //     this.settings[setting] = settings[setting];
+  //   }
+  // }
 
-  setVisible(visible: boolean) {
-    if (!this.source) {
-      console.warn(
-        `Attempted to set visibility on sourceless filter ${this.name}`
-      );
-      return;
-    }
+  // setVisible(visible: boolean) {
+  //   if (!this.source) {
+  //     console.warn(
+  //       `Attempted to set visibility on sourceless filter ${this.name}`
+  //     );
+  //     return;
+  //   }
 
-    this.visible = visible;
+  //   this.visible = visible;
 
-    return obs.setSourceFilterVisibility({
-      source: this.source.name,
-      filter: this.name,
-      visible,
-    });
-  }
+  //   return obs.setSourceFilterVisibility({
+  //     source: this.source.name,
+  //     filter: this.name,
+  //     visible,
+  //   });
+  // }
 }

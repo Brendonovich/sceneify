@@ -1,16 +1,7 @@
 export default {
   module: "@beemo/dev",
   drivers: [
-    "babel",
-    [
-      "jest",
-      {
-        env: {
-          NODE_ENV: "test",
-        },
-      },
-    ],
-    "prettier",
+    ["jest", {}],
     [
       "typescript",
       {
