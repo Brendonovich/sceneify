@@ -1,13 +1,11 @@
 import { ColorSource, OBS, Scene } from "../src";
-import MockOBSWebsocket from "./mocks/OBSWebsocket";
+import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
-
-let socket = obs.socket;
+let socket: MockOBSWebSocket;
 
 beforeEach(() => {
-  obs.socket = new MockOBSWebsocket();
-  socket = obs.socket;
+  socket = obs.socket = new MockOBSWebSocket();
 });
 
 describe("create()", () => {

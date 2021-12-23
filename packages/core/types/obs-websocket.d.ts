@@ -1,27 +1,26 @@
-import "obs-websocket-js";
+import {
+  OBSRequestTypes as BaseRequestTypes,
+  OBSResponseTypes as BaseResponseTypes,
+} from "obs-websocket-js";
 
-// export enum SceneItemAlignment {
-//   CenterLeft = 1,
-//   Center = 0,
-//   CenterRight = 2,
-//   TopLeft = 5,
-//   TopCenter = 4,
-//   TopRight = 6,
-//   BottomLeft = 9,
-//   BottomCenter = 8,
-//   BottomRight = 10,
-// }
+export enum SceneItemAlignment {
+  CenterLeft = 1,
+  Center = 0,
+  CenterRight = 2,
+  TopLeft = 5,
+  TopCenter = 4,
+  TopRight = 6,
+  BottomLeft = 9,
+  BottomCenter = 8,
+  BottomRight = 10,
+}
 
-// export enum SourceType {
-//   OBS_SOURCE_TYPE_INPUT,
-//   OBS_SOURCE_TYPE_FILTER,
-//   OBS_SOURCE_TYPE_TRANSITION,
-//   OBS_SOURCE_TYPE_SCENE,
-// }
-
-// declare module "obs-websocket-js/dist/json.modern" {
-//   export * from "obs-websocket-js"
-// }
+export enum SourceType {
+  OBS_SOURCE_TYPE_INPUT,
+  OBS_SOURCE_TYPE_FILTER,
+  OBS_SOURCE_TYPE_TRANSITION,
+  OBS_SOURCE_TYPE_SCENE,
+}
 
 declare module "obs-websocket-js" {
   export interface SceneItemTransform {
@@ -59,7 +58,7 @@ declare module "obs-websocket-js" {
     cropBottom: number;
   }
 
-  export interface OBSRequestTypes {
+  export interface OBSRequestTypesOverrides {
     GetSceneItemList: {
       sceneName: string;
     };
@@ -89,7 +88,7 @@ declare module "obs-websocket-js" {
     GetSceneList: never;
   }
 
-  export interface OBSResponseTypes {
+  export interface OBSResponseTypesOverrides {
     GetSceneItemList: {
       sceneItemId: number;
       sceneItemIndex: number;
@@ -113,9 +112,31 @@ declare module "obs-websocket-js" {
       scenes: {
         sceneName: string;
         sceneIndex: number;
-      };
+      }[];
       currentProgramSceneName: string;
       currentPreviewSceneName: string;
     };
+
+    GetInputList: {
+      inputs: {
+        inputName: string;
+        inputKind: string;
+        unversionedInputKind: string;
+      }[];
+    };
+
+    GetInputSettings: {
+      inputSettings: Record<any, any>;
+      inputName: string;
+      inputKind: string;
+    };
   }
+
+  export type PatchedOBSRequestTypes =
+    | Omit<BaseRequestTypes, keyof OBSRequestTypesOverrides> &
+        OBSRequestTypesOverrides;
+
+  export type PatchedOBSResponseTypes =
+    | Omit<BaseResponseTypes, keyof OBSResponseTypesOverrides> &
+        OBSResponseTypesOverrides;
 }

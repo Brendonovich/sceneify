@@ -1,5 +1,5 @@
 import { Scene } from "./Scene";
-import { OBS } from "./obs";
+import { OBS } from "./OBS";
 import { Filter } from "./Filter";
 import { SceneItem } from "./SceneItem";
 import { DeepPartial } from "./types";
@@ -62,7 +62,7 @@ export abstract class Source<
    *
    */
   async setSettings(settings: DeepPartial<Settings>) {
-    await this.obs.socket.call("SetInputSettings", {
+    await this.obs.call("SetInputSettings", {
       inputName: this.name,
       inputSettings: settings,
     });
@@ -85,7 +85,7 @@ export abstract class Source<
   //   }
 
   //   const exists = await this.obs
-  //     .socket.call("GetFilter",{
+  //     .call("GetFilter",{
   //       source: this.name,
   //       filter: filter.name,
   //     })
@@ -217,7 +217,7 @@ export abstract class Source<
     this.obs = obs;
 
     try {
-      const { inputSettings, inputKind } = await this.obs.socket.call(
+      const { inputSettings, inputKind } = await this.obs.call(
         "GetInputSettings",
         {
           inputName: this.name,
@@ -232,7 +232,7 @@ export abstract class Source<
 
       await this.saveRefs();
 
-      this.obs.sources.set(this.name, this);
+      this.obs.inputs.set(this.name, this);
 
       this._exists = true;
 
@@ -274,7 +274,7 @@ export abstract class Source<
       // If a ref exists, get the properties of the referenced item
       if (id !== undefined) {
         try {
-          const res = await this.obs.socket.call("GetSceneItemTransform", {
+          const res = await this.obs.call("GetSceneItemTransform", {
             sceneItemId: id,
             sceneName: scene.name,
           });
@@ -286,13 +286,10 @@ export abstract class Source<
           // If the item doesn't actually exist, remove the existing ref and create a new instance of the source
           this.removeRef(scene.name, ref);
 
-          const { sceneItemId } = await this.obs.socket.call(
-            "CreateSceneItem",
-            {
-              sceneName: scene.name,
-              sourceName: this.name,
-            }
-          );
+          const { sceneItemId } = await this.obs.call("CreateSceneItem", {
+            sceneName: scene.name,
+            sourceName: this.name,
+          });
 
           itemId = sceneItemId;
         }
@@ -305,7 +302,7 @@ export abstract class Source<
 
         // Also, not checking if a matching item already exists saves on OBS requests :)
 
-        const { sceneItemId } = await this.obs.socket.call("CreateSceneItem", {
+        const { sceneItemId } = await this.obs.call("CreateSceneItem", {
           sceneName: scene.name,
           sourceName: this.name,
         });
@@ -313,14 +310,14 @@ export abstract class Source<
         itemId = sceneItemId;
       }
     } else {
-      const { sceneItemId } = await this.obs.socket.call("CreateInput", {
+      const { sceneItemId } = await this.obs.call("CreateInput", {
         inputName: this.name,
         inputKind: this.type,
         sceneName: scene.name,
         inputSettings: this.settings,
       });
 
-      this.obs.sources.set(this.name, this);
+      this.obs.inputs.set(this.name, this);
 
       this._exists = true;
 
@@ -401,7 +398,7 @@ export abstract class Source<
   protected saveRefs() {
     // This isn't await-ed since the worst thing that can happen with a failed ref is a source is deleted by obs.clean.
     // We don't really care to know when it finishes.
-    return this.obs.socket.call("SetInputSettings", {
+    return this.obs.call("SetInputSettings", {
       inputName: this.name,
       inputSettings: {
         SIMPLE_OBS_REFS: this.refs,

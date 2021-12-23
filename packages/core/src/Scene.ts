@@ -1,5 +1,5 @@
 import { SceneItemTransform } from "obs-websocket-js";
-import { OBS } from "./obs";
+import { OBS } from "./OBS";
 import { SceneItem } from "./SceneItem";
 import { ItemRef, Source, SourceSettings, SourceFilters } from "./Source";
 import { DeepPartial } from "./types";
@@ -60,11 +60,11 @@ export class Scene<
   async create(obs: OBS): Promise<this> {
     // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
     if (this.exists) return this;
-    
+
     await super.initialize(obs);
 
     if (!this.exists) {
-      await obs.socket.call("CreateScene", {
+      await obs.call("CreateScene", {
         sceneName: this.name,
       });
       await this.saveRefs();
@@ -97,7 +97,7 @@ export class Scene<
       );
 
     // First, check if the scene exists by fetching its scene item list. Fail if scene isn't found
-    const sceneItems = await obs.socket.call("GetSceneItemList", {
+    const sceneItems = await obs.call("GetSceneItemList", {
       sceneName: this.name,
     });
 
@@ -214,17 +214,6 @@ export class Scene<
 
     return item;
   }
-
-  /**
-   * Just wraps `obs.createScene` and sets `this._exists`
-   */
-  private async _create() {}
-
-  /**
-   * UTILITIES
-   *
-   * Utility functions that wrap basic OBS functions.
-   */
 
   /**
    * CREATE ITEM OVERRIDES

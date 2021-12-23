@@ -1,7 +1,7 @@
 import OBSWebSocket, {
-  OBSRequestTypes,
-  OBSResponseTypes,
   OutgoingMessage,
+  PatchedOBSRequestTypes as OBSRequestTypes,
+  PatchedOBSResponseTypes as OBSResponseTypes,
   SceneItemTransform,
 } from "obs-websocket-js";
 
@@ -46,9 +46,7 @@ class Input {
     public kind: string,
     public settings: Record<string, any> = {},
     public filters: Filter[] = []
-  ) {
-    obs.inputs.add(this);
-  }
+  ) {}
 
   removeInstance(instance: SceneItem) {
     this.instances.splice(this.instances.indexOf(instance), 1);
@@ -111,10 +109,13 @@ class OBS {
     this.createScene("_");
   }
 
+  get allInputs(): Input[] {
+    return [...this.scenes, ...this.inputs];
+  }
+
   createScene(name: string) {
     const scene = new Scene(this, name);
     this.scenes.push(scene);
-    this.inputs.add(scene);
     return scene;
   }
 
@@ -127,7 +128,7 @@ class OBS {
   }
 }
 
-export default class MockOBSWebSocket extends OBSWebSocket {
+export class MockOBSWebSocket extends OBSWebSocket {
   override protocol = "";
 
   OBS = new OBS();
@@ -167,6 +168,8 @@ export default class MockOBSWebSocket extends OBSWebSocket {
           data.inputSettings
         );
 
+        this.OBS.inputs.add(input);
+
         const sceneItemId = scene.generateId();
 
         new SceneItem(sceneItemId, input, scene);
@@ -178,7 +181,7 @@ export default class MockOBSWebSocket extends OBSWebSocket {
 
       case "GetInputSettings": {
         const data = requestData as OBSRequestTypes["GetInputSettings"];
-        const input = [...this.OBS.inputs].find(
+        const input = [...this.OBS.allInputs].find(
           (i) => i.name === data.inputName
         );
 
@@ -194,7 +197,7 @@ export default class MockOBSWebSocket extends OBSWebSocket {
 
       case "SetInputSettings": {
         const data = requestData as OBSRequestTypes["SetInputSettings"];
-        const input = [...this.OBS.inputs].find(
+        const input = [...this.OBS.allInputs].find(
           (i) => i.name === data.inputName
         );
 
@@ -244,7 +247,7 @@ export default class MockOBSWebSocket extends OBSWebSocket {
 
         if (!scene) throw new Error("Scene not found");
 
-        const input = [...this.OBS.inputs].find(
+        const input = [...this.OBS.allInputs].find(
           (i) => i.name === data.sourceName
         );
 
@@ -304,8 +307,6 @@ export default class MockOBSWebSocket extends OBSWebSocket {
       }
 
       case "GetSceneList": {
-        const data = requestData as OBSRequestTypes["GetSceneList"];
-
         ret = {
           scenes: this.OBS.scenes.map((scene, index) => ({
             sceneName: scene.name,
@@ -313,6 +314,18 @@ export default class MockOBSWebSocket extends OBSWebSocket {
           })),
           currentProgramSceneName: "",
           currentPreviewSceneName: "",
+        };
+
+        break;
+      }
+
+      case "GetInputList": {
+        ret = {
+          inputs: [...this.OBS.inputs].map((input, index) => ({
+            inputName: input.name,
+            inputIndex: index,
+            inputKind: input.kind,
+          })),
         };
 
         break;

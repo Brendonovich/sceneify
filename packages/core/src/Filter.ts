@@ -1,5 +1,5 @@
 import { Source } from "./Source";
-import { OBS } from "./obs";
+import { OBS } from "./OBS";
 import { DeepPartial } from "./types";
 
 export interface FilterArgs<Settings> {
@@ -40,7 +40,7 @@ export abstract class Filter<
   //     return;
   //   }
 
-  //   await this.source.obs.socket.call("SetFi").setSourceFilterSettings({
+  //   await this.source.obs.call("SetFi").setSourceFilterSettings({
   //     source: this.source.name,
   //     filter: this.name,
   //     settings: settings as any,

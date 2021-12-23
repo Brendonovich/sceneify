@@ -1,5 +1,5 @@
 import { SceneItemTransform } from "obs-websocket-js";
-import { OBS } from "./obs";
+import { OBS } from "./OBS";
 import { Scene } from "./Scene";
 import { Source } from "./Source";
 import { DeepPartial } from "./types";
@@ -24,7 +24,7 @@ export class SceneItem<TSource extends Source = Source> {
   transform = {} as SceneItemTransform;
 
   async setTransform(transform: DeepPartial<SceneItemTransform>) {
-    await this.source.obs.socket.call("SetSceneItemTransform", {
+    await this.source.obs.call("SetSceneItemTransform", {
       sceneName: this.scene.name,
       sceneItemId: this.id,
       transform,
@@ -52,7 +52,7 @@ export class SceneItem<TSource extends Source = Source> {
   }
 
   async getTransform() {
-    const { sceneItemTransform } = await this.source.obs.socket.call(
+    const { sceneItemTransform } = await this.source.obs.call(
       "GetSceneItemTransform",
       {
         sceneItemId: this.id,
