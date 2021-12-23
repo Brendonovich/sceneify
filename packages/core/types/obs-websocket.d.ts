@@ -89,6 +89,12 @@ declare module "obs-websocket-js" {
       sceneItemId: number;
       sceneItemLocked: boolean;
     };
+
+    StartStream: never;
+
+    StopStream: never;
+
+    ToggleStream: never;
   }
 
   export interface OBSResponseTypesOverrides {
@@ -145,6 +151,21 @@ declare module "obs-websocket-js" {
     };
 
     SetSceneItemLocked: undefined;
+
+    StartStream: undefined;
+
+    StopStream: undefined;
+
+    ToggleStream: {
+      outputActive: boolean;
+    };
+
+    GetInputAudioMonitorType: {
+      monitorType:
+        | "OBS_MONITORING_TYPE_NONE"
+        | "OBS_MONITORING_TYPE_MONITOR_ONLY"
+        | "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT";
+    };
   }
 
   export type PatchedOBSRequestTypes =

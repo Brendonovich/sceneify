@@ -4,6 +4,7 @@ import { Filter } from "./Filter";
 import { SceneItem } from "./SceneItem";
 import { DeepPartial } from "./types";
 import { SceneItemTransform } from "obs-websocket-js";
+import { MonitoringType } from ".";
 
 export type SceneName = string;
 export type ItemRef = string;
@@ -23,7 +24,6 @@ export abstract class Source<
   _settingsType!: Settings;
 
   name: string;
-  settings: DeepPartial<Settings>;
   filters: Filters & Record<string, Filter> = {} as any;
   linked = false;
 
@@ -57,10 +57,8 @@ export abstract class Source<
     this.filters = args.filters ?? ({} as Filters);
   }
 
-  /**
-   * Sets this source's settings, both on this instance and the OBS source.
-   *
-   */
+  settings: DeepPartial<Settings>;
+
   async setSettings(settings: DeepPartial<Settings>) {
     await this.obs.call("SetInputSettings", {
       inputName: this.name,
@@ -70,6 +68,109 @@ export abstract class Source<
     for (let setting in settings) {
       this.settings[setting] = settings[setting];
     }
+  }
+
+  /**
+   *
+   * PROPERTIES
+   *
+   */
+
+  async fetchProperties() {
+    const args = { inputName: this.name };
+    const [
+      { inputMuted },
+      { inputVolumeDb, inputVolumeMul },
+      { inputAudioSyncOffset },
+      { monitorType },
+    ] = await Promise.all([
+      this.obs.call("GetInputMute", args),
+      this.obs.call("GetInputVolume", args),
+      this.obs.call("GetInputAudioSyncOffset", args),
+      this.obs.call("GetInputAudioMonitorType", args),
+    ]);
+
+    this.muted = inputMuted;
+    this.volume = {
+      db: inputVolumeDb,
+      mul: inputVolumeMul,
+    };
+    this.audioSyncOffset = inputAudioSyncOffset;
+    this.audioMonitorType = monitorType as MonitoringType;
+  }
+
+  // Muted
+
+  muted = false;
+
+  async setMuted(muted: boolean) {
+    await this.obs.call("SetInputMute", {
+      inputName: this.name,
+      inputMuted: muted,
+    });
+
+    this.muted = muted;
+  }
+
+  async toggleMuted() {
+    const { inputMuted } = await this.obs.call("ToggleInputMute", {
+      inputName: this.name,
+    });
+
+    this.muted = inputMuted;
+
+    return inputMuted;
+  }
+
+  // Volume
+
+  volume = {
+    db: 0,
+    mul: 0,
+  };
+
+  async setVolume(data: { db: number } | { mul: number }) {
+    await this.obs.call("SetInputVolume", {
+      inputName: this.name,
+      inputVolumeDb: (data as any).db,
+      inputVolumeMul: (data as any).mul,
+    });
+
+    const resp = await this.obs.call("GetInputVolume", {
+      inputName: this.name,
+    });
+
+    this.volume = {
+      db: resp.inputVolumeDb,
+      mul: resp.inputVolumeMul,
+    };
+  }
+
+  // Audio
+  // Sync Offset
+
+  audioSyncOffset = 0;
+
+  async setAudioSyncOffset(offset: number) {
+    await this.obs.call("SetInputAudioSyncOffset", {
+      inputName: this.name,
+      inputAudioSyncOffset: offset,
+    });
+
+    this.audioSyncOffset = offset;
+  }
+
+  // Monitoring Type
+
+  audioMonitorType = MonitoringType.None;
+
+  async setAudioMonitorType(type: MonitoringType) {
+    await this.obs.call("SetInputAudioMonitorType", {
+      inputName: this.name,
+      monitorType: type,
+    });
+
+    this.audioMonitorType = type;
   }
 
   /**

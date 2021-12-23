@@ -28,6 +28,12 @@ export enum BoundsType {
   MaxOnly = "OBS_BOUNDS_MAX_ONLY",
 }
 
+export enum MonitoringType {
+  None = "OBS_MONITORING_TYPE_NONE",
+  MonitorOnly = "OBS_MONITORING_TYPE_MONITOR_ONLY",
+  MonitorAndOutput = "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
+}
+
 export const DEFAULT_SCENE_ITEM_TRANSFORM: SceneItemTransform = {
   positionX: 0,
   positionY: 0,

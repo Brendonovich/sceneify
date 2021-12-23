@@ -155,7 +155,7 @@ export class Scene<
 
           Object.assign(this.items, { [ref]: item });
 
-          await item.fetchTransform();
+          await item.fetchProperties();
 
           let optionRequests: Promise<any>[] = [];
           if (options?.setProperties)
@@ -208,7 +208,7 @@ export class Scene<
     // Get the item's properties and assign them in case some properties are dependent
     // on things like source settings (eg. Image source, where width and height is dependent
     // on the size of the image)
-    await item.fetchTransform();
+    await item.fetchProperties();
 
     Object.assign(this.items, { [ref]: item });
 

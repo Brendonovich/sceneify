@@ -144,4 +144,28 @@ export class OBS {
   ): Promise<PatchedOBSResponseTypes[T]> {
     return this.socket.call(requestType as any, requestData as any);
   }
+
+  /**
+   * Streaming state
+   */
+
+  streaming = false;
+
+  async startStreaming() {
+    await this.call("StartStream");
+
+    this.streaming = true;
+  }
+
+  async stopStreaming() {
+    await this.call("StopStream");
+
+    this.streaming = false;
+  }
+
+  async toggleStreaming() {
+    const { outputActive } = await this.call("ToggleStream");
+
+    this.streaming = outputActive;
+  }
 }

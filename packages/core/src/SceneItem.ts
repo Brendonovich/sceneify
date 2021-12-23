@@ -21,7 +21,28 @@ export class SceneItem<TSource extends Source = Source> {
     source.itemInstances.add(this);
   }
 
+  /**
+   *
+   * PROPERTIES
+   *
+   */
+
+  async fetchProperties() {
+    const args = {
+      sceneName: this.scene.name,
+      sceneItemId: this.id,
+    };
+    const [] = await Promise.all([
+      this.source.obs.call("GetSceneItemTransform", args),
+      this.source.obs.call("GetSceneItemEnabled", args),
+      this.source.obs.call("GetSceneItemLocked", args),
+    ]);
+  }
+
+  // Transform
+
   transform = { ...DEFAULT_SCENE_ITEM_TRANSFORM };
+
   async setTransform(transform: Partial<SceneItemTransform>) {
     await this.source.obs.call("SetSceneItemTransform", {
       sceneName: this.scene.name,
@@ -29,12 +50,16 @@ export class SceneItem<TSource extends Source = Source> {
       transform,
     });
 
+    // Merge deep to ignore undefined
     mergeDeep(this.transform, transform);
 
     this.updateSizeFromSource();
   }
 
+  // Enabled
+
   enabled = true;
+
   async setEnabled(enabled: boolean) {
     await this.source.obs.call("SetSceneItemEnabled", {
       sceneName: this.scene.name,
@@ -45,7 +70,10 @@ export class SceneItem<TSource extends Source = Source> {
     this.enabled = enabled;
   }
 
+  // Locked
+
   locked = false;
+
   async setLocked(locked: boolean) {
     await this.source.obs.call("SetSceneItemLocked", {
       sceneName: this.scene.name,
@@ -70,20 +98,6 @@ export class SceneItem<TSource extends Source = Source> {
     this.transform.height = this.transform.scaleY * this.transform.sourceHeight;
   }
 
-  async fetchTransform() {
-    const { sceneItemTransform } = await this.source.obs.call(
-      "GetSceneItemTransform",
-      {
-        sceneItemId: this.id,
-        sceneName: this.scene.name,
-      }
-    );
-    
-    this.transform = sceneItemTransform
-
-    return this.transform;
-  }
-
   async remove() {
     await this.source.obs.call("RemoveSceneItem", {
       sceneName: this.scene.name,
@@ -91,5 +105,6 @@ export class SceneItem<TSource extends Source = Source> {
     });
 
     this.source.itemInstances.delete(this);
+    delete this.scene.items[this.ref];
   }
 }
