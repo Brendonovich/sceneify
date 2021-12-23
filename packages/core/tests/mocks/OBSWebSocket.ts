@@ -4,30 +4,10 @@ import OBSWebSocket, {
   PatchedOBSResponseTypes as OBSResponseTypes,
   SceneItemTransform,
 } from "obs-websocket-js";
+import { DEFAULT_SCENE_ITEM_TRANSFORM } from "../../src/constants";
 
 import { DeepPartial } from "../../src/types";
 import { mergeDeep } from "../../src/utils";
-
-const DEFAULT_SCENE_ITEM_TRANSFORM: SceneItemTransform = {
-  positionX: 0,
-  positionY: 0,
-  rotation: 0,
-  scaleX: 1,
-  scaleY: 1,
-  cropTop: 0,
-  cropBottom: 0,
-  cropLeft: 0,
-  cropRight: 0,
-  alignment: 0,
-  boundsAlignment: 0,
-  sourceWidth: 0,
-  sourceHeight: 0,
-  width: 0,
-  height: 0,
-  boundsWidth: 0,
-  boundsHeight: 0,
-  boundsType: "OBS_BOUNDS_NONE",
-};
 
 class Filter {
   constructor(

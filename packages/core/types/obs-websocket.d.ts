@@ -3,25 +3,6 @@ import {
   OBSResponseTypes as BaseResponseTypes,
 } from "obs-websocket-js";
 
-export enum SceneItemAlignment {
-  CenterLeft = 1,
-  Center = 0,
-  CenterRight = 2,
-  TopLeft = 5,
-  TopCenter = 4,
-  TopRight = 6,
-  BottomLeft = 9,
-  BottomCenter = 8,
-  BottomRight = 10,
-}
-
-export enum SourceType {
-  OBS_SOURCE_TYPE_INPUT,
-  OBS_SOURCE_TYPE_FILTER,
-  OBS_SOURCE_TYPE_TRANSITION,
-  OBS_SOURCE_TYPE_SCENE,
-}
-
 declare module "obs-websocket-js" {
   export interface SceneItemTransform {
     sourceWidth: number;
@@ -86,6 +67,28 @@ declare module "obs-websocket-js" {
     };
 
     GetSceneList: never;
+
+    GetSceneItemEnabled: {
+      sceneName: string;
+      sceneItemId: number;
+    };
+
+    SetSceneItemEnabled: {
+      sceneName: string;
+      sceneItemId: number;
+      sceneItemEnabled: boolean;
+    };
+
+    GetSceneItemLocked: {
+      sceneName: string;
+      sceneItemId: number;
+    };
+
+    SetSceneItemLocked: {
+      sceneName: string;
+      sceneItemId: number;
+      sceneItemLocked: boolean;
+    };
   }
 
   export interface OBSResponseTypesOverrides {
@@ -130,6 +133,18 @@ declare module "obs-websocket-js" {
       inputName: string;
       inputKind: string;
     };
+
+    GetSceneItemEnabled: {
+      sceneItemEnabled: boolean;
+    };
+
+    SetSceneItemEnabled: undefined;
+
+    GetSceneItemLocked: {
+      sceneItemLocked: boolean;
+    };
+
+    SetSceneItemLocked: undefined;
   }
 
   export type PatchedOBSRequestTypes =

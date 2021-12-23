@@ -2,10 +2,9 @@ import { ColorSource, OBS, Scene } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
-let socket: MockOBSWebSocket;
 
 beforeEach(() => {
-  socket = obs.socket = new MockOBSWebSocket();
+  obs.socket = new MockOBSWebSocket();
 });
 
 describe("create()", () => {
@@ -20,7 +19,7 @@ describe("create()", () => {
     expect(scene.initalized).toBe(true);
     expect(scene.exists).toBe(true);
 
-    const obsScenes = await socket.call("GetSceneList");
+    const obsScenes = await obs.call("GetSceneList");
     expect(
       obsScenes.scenes.find((s: any) => s.sceneName === scene.name)
     ).not.toBeUndefined();
@@ -32,7 +31,7 @@ describe("create()", () => {
       items: {},
     });
 
-    await socket.call("CreateScene", { sceneName: scene.name });
+    await obs.call("CreateScene", { sceneName: scene.name });
 
     await scene.create(obs);
 
@@ -83,7 +82,7 @@ describe("create()", () => {
     expect(nested2.create).toHaveBeenCalled();
     expect(nested3.create).toHaveBeenCalled();
 
-    const { scenes } = await socket.call("GetSceneList");
+    const { scenes } = await obs.call("GetSceneList");
     expect(scenes.length).toBe(5);
   });
 

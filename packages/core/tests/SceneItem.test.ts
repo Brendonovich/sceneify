@@ -2,10 +2,9 @@ import { Scene, ColorSource, OBS } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
-let socket: MockOBSWebSocket;
 
 beforeEach(() => {
-  socket = obs.socket = new MockOBSWebSocket();
+  obs.socket = new MockOBSWebSocket();
 });
 
 describe("setTransform()", () => {
@@ -34,7 +33,7 @@ describe("setTransform()", () => {
       positionX: 10,
     });
 
-    const { sceneItemTransform } = await socket.call("GetSceneItemTransform", {
+    const { sceneItemTransform } = await obs.call("GetSceneItemTransform", {
       sceneName: scene.name,
       sceneItemId: item.id,
     });
@@ -73,7 +72,7 @@ describe("setTransform()", () => {
       positionY: undefined,
     });
 
-    const { sceneItemTransform } = await socket.call("GetSceneItemTransform", {
+    const { sceneItemTransform } = await obs.call("GetSceneItemTransform", {
       sceneName: scene.name,
       sceneItemId: item.id,
     });

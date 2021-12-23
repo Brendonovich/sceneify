@@ -1,8 +1,8 @@
 import { SceneItemTransform } from "obs-websocket-js";
-import { OBS } from "./OBS";
+
+import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
 import { Scene } from "./Scene";
 import { Source } from "./Source";
-import { DeepPartial } from "./types";
 import { mergeDeep } from "./utils";
 
 /**
@@ -21,9 +21,8 @@ export class SceneItem<TSource extends Source = Source> {
     source.itemInstances.add(this);
   }
 
-  transform = {} as SceneItemTransform;
-
-  async setTransform(transform: DeepPartial<SceneItemTransform>) {
+  transform = { ...DEFAULT_SCENE_ITEM_TRANSFORM };
+  async setTransform(transform: Partial<SceneItemTransform>) {
     await this.source.obs.call("SetSceneItemTransform", {
       sceneName: this.scene.name,
       sceneItemId: this.id,
@@ -33,6 +32,28 @@ export class SceneItem<TSource extends Source = Source> {
     mergeDeep(this.transform, transform);
 
     this.updateSizeFromSource();
+  }
+
+  enabled = true;
+  async setEnabled(enabled: boolean) {
+    await this.source.obs.call("SetSceneItemEnabled", {
+      sceneName: this.scene.name,
+      sceneItemId: this.id,
+      sceneItemEnabled: enabled,
+    });
+
+    this.enabled = enabled;
+  }
+
+  locked = false;
+  async setLocked(locked: boolean) {
+    await this.source.obs.call("SetSceneItemLocked", {
+      sceneName: this.scene.name,
+      sceneItemId: this.id,
+      sceneItemLocked: locked,
+    });
+
+    this.locked = locked;
   }
 
   /**
@@ -45,13 +66,11 @@ export class SceneItem<TSource extends Source = Source> {
     this.transform.sourceWidth = sourceWidth ?? this.transform.sourceWidth;
     this.transform.sourceHeight = sourceHeight ?? this.transform.sourceHeight;
 
-    this.transform.width =
-      this.transform.scaleX * this.transform.sourceWidth;
-    this.transform.height =
-      this.transform.scaleY * this.transform.sourceHeight;
+    this.transform.width = this.transform.scaleX * this.transform.sourceWidth;
+    this.transform.height = this.transform.scaleY * this.transform.sourceHeight;
   }
 
-  async getTransform() {
+  async fetchTransform() {
     const { sceneItemTransform } = await this.source.obs.call(
       "GetSceneItemTransform",
       {
@@ -59,14 +78,18 @@ export class SceneItem<TSource extends Source = Source> {
         sceneName: this.scene.name,
       }
     );
-
-    mergeDeep(this.transform, sceneItemTransform);
+    
+    this.transform = sceneItemTransform
 
     return this.transform;
   }
 
-  // delete() {
-  //   this.source.itemInstances.delete(this);
-  //   return obs.deleteSceneItem({ scene: this.scene.name, id: this.id });
-  // }
+  async remove() {
+    await this.source.obs.call("RemoveSceneItem", {
+      sceneName: this.scene.name,
+      sceneItemId: this.id,
+    });
+
+    this.source.itemInstances.delete(this);
+  }
 }
