@@ -6,7 +6,7 @@
     "rootDir": "."
   },
   "extends": "../../../tsconfig.test.json",
-  "include": ["**/*", "types/**/*", "../../../types/**/*"],
+  "include": ["**/*", "../types/**/*", "../../../types/**/*"],
   "references": [
     {
       "path": ".."

@@ -8,5 +8,4 @@ export * from "./constants";
 
 export * from "./sources";
 export * from "./filters";
-
-export type { SceneItemTransform } from "obs-websocket-js";
+export * from "./types";

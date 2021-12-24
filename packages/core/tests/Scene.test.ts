@@ -21,7 +21,7 @@ describe("create()", () => {
 
     const obsScenes = await obs.call("GetSceneList");
     expect(
-      obsScenes.scenes.find((s: any) => s.sceneName === scene.name)
+      obsScenes.scenes.find((s) => s.sceneName === scene.name)
     ).not.toBeUndefined();
   });
 

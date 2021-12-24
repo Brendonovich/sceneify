@@ -1,5 +1,4 @@
-import { SceneItemTransform } from "obs-websocket-js";
-
+import { SceneItemTransform } from "./types";
 import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
 import { Scene } from "./Scene";
 import { Source } from "./Source";

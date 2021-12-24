@@ -2,8 +2,7 @@ import { Scene } from "./Scene";
 import { OBS } from "./OBS";
 import { Filter } from "./Filter";
 import { SceneItem } from "./SceneItem";
-import { DeepPartial } from "./types";
-import { SceneItemTransform } from "obs-websocket-js";
+import { SceneItemTransform, DeepPartial } from "./types";
 import { MonitoringType } from ".";
 
 export type SceneName = string;

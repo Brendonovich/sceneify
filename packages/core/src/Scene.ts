@@ -1,4 +1,4 @@
-import { SceneItemTransform } from "obs-websocket-js";
+import { SceneItemTransform } from "./types";
 import { OBS } from "./OBS";
 import { SceneItem } from "./SceneItem";
 import { ItemRef, Source, SourceSettings, SourceFilters } from "./Source";

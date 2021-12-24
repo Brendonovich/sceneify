@@ -1,4 +1,4 @@
-import { SceneItemTransform } from "obs-websocket-js";
+import { SceneItemTransform } from "./types";
 
 export enum Alignment {
   CenterLeft = 1,

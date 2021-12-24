@@ -1,12 +1,11 @@
-import OBSWebSocket, {
-  OutgoingMessage,
+import OBSWebSocket, { OutgoingMessage } from "obs-websocket-js";
+import {
   PatchedOBSRequestTypes as OBSRequestTypes,
   PatchedOBSResponseTypes as OBSResponseTypes,
   SceneItemTransform,
-} from "obs-websocket-js";
-import { DEFAULT_SCENE_ITEM_TRANSFORM } from "../../src/constants";
-
-import { DeepPartial } from "../../src/types";
+} from "../../";
+import { DEFAULT_SCENE_ITEM_TRANSFORM } from "../../";
+import { DeepPartial } from "../../";
 import { mergeDeep } from "../../src/utils";
 
 class Filter {
