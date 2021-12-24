@@ -215,6 +215,13 @@ export class Scene<
     return item;
   }
 
+  async makeCurrentScene(preview?: boolean) {
+    await this.obs.call(
+      preview ? "SetCurrentPreviewScene" : "SetCurrentProgramScene",
+      { sceneName: this.name }
+    );
+  }
+
   /**
    * CREATE ITEM OVERRIDES
    *

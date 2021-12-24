@@ -13,6 +13,6 @@
     "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "@simple-obs/animation": "link:../"
+    "@simple-obs/animation": "workspace:0.2.3"
   }
 }

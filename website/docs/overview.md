@@ -18,12 +18,14 @@ Now, JDudeTV uses Simple OBS for creating his entire OBS layout, animating it an
 
 ## That's great, but I want to see some code!
 
-Here's a quick example of creating two scenes: One nested scene that contains a color source which has a color correction filter applied to it, and another scene which contains the nested scene at 2x scale. The hue shift of the color source's filter is then animated along with the rotation of the main scene's nested scene item.
+Here's a quick example of creating two scenes: One nested scene that contains a color source, and another scene which contains the nested scene at 2x scale.
 
 This example assumes it is being ran inside any `async` function, and all necessary imports have been imported.
 
 ```ts
-await obs.connect({ address: "localhost:4444" });
+const obs = new OBS();
+
+await obs.connect("localhost:4444");
 
 const nestedScene = new Scene({
   name: "Nested",
@@ -32,14 +34,6 @@ const nestedScene = new Scene({
       source: new ColorSource({
         name: "Nested Color Source",
         settings: {},
-        filters: {
-          colorCorrect: new ColorCorrectionFilter({
-            name: "Color Correct Filter",
-            settings: {
-              hue_shift: 0,
-            },
-          }),
-        },
       }),
     },
   },
@@ -50,15 +44,13 @@ const mainScene = new Scene({
   items: {
     nested: {
       source: nestedScene,
-      scale: {
-        x: 2,
-        y: 2,
-        alignment: Alignment.Center,
-      },
+      scaleX: 2,
+      scaleY: 2,
+      alignment: Alignment.Center,
     },
   },
 });
 
-await mainScene.create();
+await mainScene.create(obs);
 await mainScene.makeCurrentScene();
 ```

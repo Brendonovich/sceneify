@@ -1,14 +1,15 @@
 import {
   Alignment,
-  ColorCorrectionFilter,
   ColorSource,
-  obs,
+  OBS,
   Scene,
 } from "@simple-obs/core";
 import { Easing, keyframe, animate } from "@simple-obs/animation";
 
 async function main() {
-  await obs.connect({ address: "localhost:4444" });
+  const obs = new OBS();
+
+  await obs.connect("localhost:4444");
 
   const mainScene = new Scene({
     name: "Main",
@@ -22,10 +23,8 @@ async function main() {
             height: 400,
           },
         }),
-        position: {
-          alignment: Alignment.Center,
-          y: 400,
-        },
+        alignment: Alignment.Center,
+        positionY: 400,
       },
       red: {
         source: new ColorSource({
@@ -35,50 +34,46 @@ async function main() {
             width: 200,
             height: 200,
           },
-          filters: {
-            color: new ColorCorrectionFilter({
-              name: "Color",
-              settings: {
-                hue_shift: 0,
-              },
-            }),
-          },
+          // filters: {
+          //   color: new ColorCorrectionFilter({
+          //     name: "Color",
+          //     settings: {
+          //       hue_shift: 0,
+          //     },
+          //   }),
+          // },
         }),
-        position: {
-          y: 800,
-        },
+        positionY: 800,
       },
     },
   });
 
-  await mainScene.create();
+  await mainScene.create(obs);
   await mainScene.makeCurrentScene();
 
   await animate({
     subjects: {
       blueItem: mainScene.items.blue,
-      redColorFilter: mainScene.items.red.source.filters.color,
+      // redColorFilter: mainScene.items.red.source.filters.color,
       redSource: mainScene.items.red.source,
     },
     keyframes: {
       blueItem: {
-        position: {
-          x: {
-            // Keyframe values can be passed as simple values and use default easing
-            0: 0,
-            // Or can be passed with custom easing values (+ more data in the future)
-            1000: keyframe(1920, Easing.InOut),
-            2000: keyframe(0, Easing.InOut),
-          },
-        },
-      },
-      redColorFilter: {
-        hue_shift: {
+        positionX: {
+          // Keyframe values can be passed as simple values and use default easing
           0: 0,
-          1000: 180,
-          2000: 0,
+          // Or can be passed with custom easing values (+ more data in the future)
+          1000: keyframe(1920, Easing.InOut),
+          2000: keyframe(0, Easing.InOut),
         },
       },
+      // redColorFilter: {
+      //   hue_shift: {
+      //     0: 0,
+      //     1000: 180,
+      //     2000: 0,
+      //   },
+      // },
       redSource: {
         width: {
           0: keyframe(200, Easing.InOut),

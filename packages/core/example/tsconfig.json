@@ -72,5 +72,10 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
     "stripInternal": true
   },
-  "include": ["./index.ts"]
+  "include": ["./index.ts"],
+  "references": [
+    {
+      "path": ".."
+    }
+  ]
 }
