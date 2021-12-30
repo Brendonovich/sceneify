@@ -1,4 +1,4 @@
-import { Scene, ColorSource, OBS } from "../src";
+import { Scene, OBS, Source } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
@@ -13,7 +13,8 @@ describe("setTransform()", () => {
       name: "Test",
       items: {
         item: {
-          source: new ColorSource({
+          source: new Source({
+            type: "test",
             name: "Source",
             settings: {},
           }),
@@ -50,7 +51,8 @@ describe("setTransform()", () => {
       name: "Test",
       items: {
         item: {
-          source: new ColorSource({
+          source: new Source({
+            type: "test",
             name: "Source",
             settings: {},
           }),

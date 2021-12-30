@@ -6,7 +6,6 @@ import {
   SceneItem,
   SceneItemTransform,
   Source,
-  ColorSource,
 } from "@simple-obs/core";
 import { Queue } from "@datastructures-js/queue";
 
@@ -16,19 +15,6 @@ import { DeepSearch } from "./types";
 import { getDeep } from "./utils";
 
 export const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const scene = new Scene({
-  name: "",
-  items: {
-    item: {
-      source: new ColorSource({
-        name: "",
-      }),
-    },
-  },
-});
-
-const item = scene.item("item");
 
 export type AnimatableProperties<
   T extends SceneItemTransform = SceneItemTransform

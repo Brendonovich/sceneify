@@ -35,7 +35,9 @@ module.exports = {
       "docusaurus-plugin-typedoc-api",
       {
         projectRoot: path.join(__dirname, "../"),
-        packages: ["core", "animation"].map((pkg) => `packages/${pkg}`),
+        packages: ["core", "sources", "filters", "animation"].map(
+          (pkg) => `packages/${pkg}`
+        ),
         tsconfigName: "tsconfig.docs.json",
       },
     ],

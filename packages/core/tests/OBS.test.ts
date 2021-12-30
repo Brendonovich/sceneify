@@ -1,4 +1,4 @@
-import { ColorSource, OBS, Scene } from "../src";
+import { Source, OBS, Scene } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
@@ -13,8 +13,9 @@ describe("clean()", () => {
       name: "Test",
       items: {
         item: {
-          source: new ColorSource({
+          source: new Source({
             name: "Source",
+            type: "test",
             settings: {},
           }),
         },

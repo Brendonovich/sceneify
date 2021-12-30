@@ -6,8 +6,6 @@ export * from "./Filter";
 export * from "./OBS";
 export * from "./constants";
 
-export * from "./sources";
-export * from "./filters";
 export type {
   PatchedOBSRequestTypes as OBSRequestTypes,
   PatchedOBSResponseTypes as OBSResponseTypes,

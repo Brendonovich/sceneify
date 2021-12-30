@@ -1,10 +1,6 @@
-import {
-  Alignment,
-  ColorCorrectionFilter,
-  ColorSource,
-  obs,
-  Scene,
-} from "@simple-obs/core";
+import { Alignment, OBS, Scene } from "@simple-obs/core";
+import { ColorCorrectionFilter } from "@simple-obs/filters";
+import { ColorSource } from "@simple-obs/sources";
 
 // README
 // Running this code requies that you create a scene named "Linked Scene" with a single
@@ -12,12 +8,15 @@ import {
 // will cause the script to throw an error
 
 async function main() {
-  // Connect to OBS before creating or linking any scenes
-  await obs.connect({ address: "localhost:4444" });
+  const obs = new OBS();
 
-  // The underlying websocket is exposed through helper functions and the `obs.socket` object
-  const { baseWidth: OBS_WIDTH, baseHeight: OBS_HEIGHT } =
-    await obs.getVideoInfo();
+  // Connect to OBS before creating or linking any scenes
+  await obs.connect("localhost:4444");
+
+  // Requests can be made directly through the websocket using OBS.call
+  const { baseWidth: OBS_WIDTH, baseHeight: OBS_HEIGHT } = await obs.call(
+    "GetVideoSettings"
+  );
 
   // Sources are just classes, and can be declared anywhere
   const color = new ColorSource({
@@ -44,30 +43,28 @@ async function main() {
     items: {
       red: {
         source: color,
-        position: {
-          alignment: Alignment.Center,
-          x: OBS_WIDTH / 2,
-          y: OBS_HEIGHT / 2,
-        },
+        alignment: Alignment.Center,
+        positionX: OBS_WIDTH / 2,
+        positionY: OBS_HEIGHT / 2,
       },
     },
   });
 
   // Once Scene.create() is called, mainScene and its items can be used however you like.
-  await mainScene.create();
+  await mainScene.create(obs);
   await mainScene.makeCurrentScene();
 
   await wait(1000);
 
   // Color should change from red to green after 1 second
-  await mainScene.items.red.source.setSettings({
+  await mainScene.item("red").source.setSettings({
     color: 0xff00ff00,
   });
 
   await wait(1000);
 
   // Color should change from green to pink
-  await mainScene.items.red.source.filters.color.setSettings({
+  await mainScene.item("red").source.filter("color").setSettings({
     hue_shift: 180,
   });
 
@@ -80,11 +77,9 @@ async function main() {
         source: new ColorSource({
           name: "Linked Color Source",
         }),
-        position: {
-          alignment: Alignment.TopLeft,
-          x: 0,
-          y: 0,
-        },
+        alignment: Alignment.TopLeft,
+        positionX: 0,
+        positionY: 0,
       },
     },
   });
@@ -94,7 +89,7 @@ async function main() {
   // When linking, you can choose whether to force the linked items to have their properties and/or
   // settings set to the values you have defined in your schema. You'll probably want these to be true
   // if your schema contains custom property or setting values.
-  await linkedScene.link({
+  await linkedScene.link(obs, {
     setProperties: true,
   });
 
@@ -105,12 +100,10 @@ async function main() {
   await wait(1000);
 
   // Color source should move from top left to bottom right after 1 second
-  await linkedScene.items.color.setProperties({
-    position: {
-      alignment: Alignment.BottomRight,
-      x: OBS_WIDTH,
-      y: OBS_HEIGHT,
-    },
+  await linkedScene.item("color").setTransform({
+    alignment: Alignment.BottomRight,
+    positionX: OBS_WIDTH,
+    positionY: OBS_HEIGHT,
   });
 
   await wait(3000);
@@ -121,12 +114,11 @@ async function main() {
     items: {
       main: {
         source: mainScene,
-        position: {
-          x: OBS_WIDTH / 2,
-          y: OBS_HEIGHT / 2,
-          alignment: Alignment.Center,
-        },
-        scale: { x: 1, y: 1 },
+        positionX: OBS_WIDTH / 2,
+        positionY: OBS_HEIGHT / 2,
+        alignment: Alignment.Center,
+        scaleX: 1,
+        scaleY: 1,
       },
       linked: {
         source: linkedScene,
@@ -134,14 +126,15 @@ async function main() {
     },
   });
 
-  await finalSceen.create();
+  await finalSceen.create(obs);
   await finalSceen.makeCurrentScene();
 
   await wait(1000);
 
   // Operation performed on the 'main' item of 'Final Scene', not the main scene itself
-  await finalSceen.items.main.setProperties({
-    scale: { x: 0.5, y: 0.5 },
+  await finalSceen.item("main").setTransform({
+    scaleX: 0.5,
+    scaleY: 0.5,
   });
 }
 

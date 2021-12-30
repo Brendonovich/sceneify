@@ -15,6 +15,12 @@
     },
     {
       "path": "packages/core/tests"
+    },
+    {
+      "path": "packages/filters"
+    },
+    {
+      "path": "packages/sources"
     }
   ]
 }

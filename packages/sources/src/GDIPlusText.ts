@@ -1,6 +1,10 @@
-import { CustomSourceArgs, Source, SourceFilters } from "../Source";
+import {
+  Source,
+  SourceFilters,
+  CustomSourceArgs,
+} from "@simple-obs/core";
 
-type Settings = {
+export type GDIPlusTextSourceSettings = {
   text: string;
   font: {
     face: string;
@@ -16,8 +20,8 @@ type Settings = {
 
 export class GDIPlusTextSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<Settings, Filters> {
-  constructor(args: CustomSourceArgs<Settings, Filters>) {
+> extends Source<GDIPlusTextSourceSettings, Filters> {
+  constructor(args: CustomSourceArgs<GDIPlusTextSourceSettings, Filters>) {
     super({ ...args, type: "text_gdiplus_v2" });
   }
 }

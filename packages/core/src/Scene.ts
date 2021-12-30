@@ -219,7 +219,7 @@ export class Scene<
     return item;
   }
 
-  item<R extends string>(ref: R): SourceItemType<Items[R]>;
+  item<R extends keyof Items>(ref: R): SourceItemType<Items[R]>;
   item(ref: string): SceneItem | undefined;
 
   /**

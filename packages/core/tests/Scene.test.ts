@@ -1,4 +1,4 @@
-import { ColorSource, OBS, Scene } from "../src";
+import { OBS, Scene, Source } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
@@ -9,11 +9,6 @@ beforeEach(() => {
 
 describe("create()", () => {
   it("creates new scenes", async () => {
-    // const scene = new Scene({
-    //   name: "Test",
-    //   items: {},
-    // });
-
     const scene = new Scene({ name: "Test", items: {} });
 
     await scene.create(obs);
@@ -89,8 +84,9 @@ describe("create()", () => {
   });
 
   it("detects existing sources", async () => {
-    const existingSource = new ColorSource({
+    const existingSource = new Source({
       name: "Existing Source",
+      type: "test",
       settings: {},
     });
 

@@ -1,9 +1,4 @@
-import {
-  Alignment,
-  ColorSource,
-  OBS,
-  Scene,
-} from "@simple-obs/core";
+import { Alignment, ColorCorrectionFilter, ColorSource, OBS, Scene } from "@simple-obs/core";
 import { Easing, keyframe, animate } from "@simple-obs/animation";
 
 async function main() {
@@ -34,14 +29,14 @@ async function main() {
             width: 200,
             height: 200,
           },
-          // filters: {
-          //   color: new ColorCorrectionFilter({
-          //     name: "Color",
-          //     settings: {
-          //       hue_shift: 0,
-          //     },
-          //   }),
-          // },
+          filters: {
+            color: new ColorCorrectionFilter({
+              name: "Color",
+              settings: {
+                hue_shift: 0,
+              },
+            }),
+          },
         }),
         positionY: 800,
       },
@@ -53,9 +48,9 @@ async function main() {
 
   await animate({
     subjects: {
-      blueItem: mainScene.items.blue,
+      blueItem: mainScene.item("blue"),
       // redColorFilter: mainScene.items.red.source.filters.color,
-      redSource: mainScene.items.red.source,
+      redSource: mainScene.item("red").source,
     },
     keyframes: {
       blueItem: {

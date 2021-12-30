@@ -1,5 +1,5 @@
 {
-  "name": "@simple-obs/core",
+  "name": "@simple-obs/sources",
   "version": "1.0.0",
   "description": "",
   "main": "./lib/node/index.js",
@@ -12,14 +12,9 @@
     "test": "jest -i"
   },
   "dependencies": {
-    "next-tick": "^1.1.0",
-    "obs-websocket-js": "5.0.0-alpha.2"
+    "@simple-obs/core": "^1.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.3",
-    "@types/next-tick": "^1.0.0",
-    "@types/node": "^16.9.3",
-    "@types/ws": "^7.4.6",
     "jest": "^27.4.5"
   },
   "files": [

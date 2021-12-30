@@ -1,8 +1,11 @@
-import { CustomSourceArgs } from "..";
-import { Source, SourceFilters } from "../Source";
-import { DeepPartial } from "../types";
+import {
+  DeepPartial,
+  Source,
+  SourceFilters,
+  CustomSourceArgs,
+} from "@simple-obs/core";
 
-type Settings = {
+export type ColorSourceSettings = {
   color: number;
   width: number;
   height: number;
@@ -10,12 +13,12 @@ type Settings = {
 
 export class ColorSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<Settings, Filters> {
-  constructor(args: CustomSourceArgs<Settings, Filters>) {
+> extends Source<ColorSourceSettings, Filters> {
+  constructor(args: CustomSourceArgs<ColorSourceSettings, Filters>) {
     super({ ...args, type: "color_source_v3" });
   }
 
-  override async setSettings(settings: DeepPartial<Settings>) {
+  override async setSettings(settings: DeepPartial<ColorSourceSettings>) {
     await super.setSettings(settings);
 
     this.itemInstances.forEach((item) =>

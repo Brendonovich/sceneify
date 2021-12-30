@@ -3,7 +3,7 @@ import { OBS } from "./OBS";
 import { Filter } from "./Filter";
 import { SceneItem, SceneItemTransform } from "./SceneItem";
 import { DeepPartial } from "./types";
-import { MonitoringType } from ".";
+import { MonitoringType } from "./constants";
 
 export type SourceRefs = Record<string, Record<string, number>>;
 
@@ -96,7 +96,7 @@ export class Source<
     }
   }
 
-  filter<R extends string>(ref: R): Filters[R];
+  filter<R extends keyof Filters>(ref: R): Filters[R];
   filter(ref: string): Filter | undefined;
 
   /**

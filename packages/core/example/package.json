@@ -10,9 +10,12 @@
   "author": "Brendan Allan",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^16.9.3",
     "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "@simple-obs/core": "workspace:0.3.20"
+    "@simple-obs/core": "^1.0.0",
+    "@simple-obs/filters": "^1.0.0",
+    "@simple-obs/sources": "^1.0.0"
   }
 }

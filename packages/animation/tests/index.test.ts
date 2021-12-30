@@ -1,5 +1,5 @@
 import { Queue } from "@datastructures-js/queue";
-import { ColorSource, CustomSourceArgs, Source } from "@simple-obs/core";
+import { CustomSourceArgs, Source } from "@simple-obs/core";
 
 import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 
@@ -9,7 +9,8 @@ describe("processTimeline()", () => {
   });
 
   test("Simple", () => {
-    let source = new ColorSource({
+    let source = new Source({
+      type: "test",
       name: "Test Source",
     });
 
@@ -59,7 +60,7 @@ describe("processTimeline()", () => {
       constructor(args: CustomSourceArgs<any, any>) {
         super({
           ...args,
-          type: "TEST",
+          type: "test",
         });
       }
     }

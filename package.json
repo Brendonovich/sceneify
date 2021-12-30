@@ -21,13 +21,12 @@
     "@babel/plugin-transform-modules-commonjs": "^7.16.5",
     "@beemo/cli": "^2.0.3",
     "@beemo/core": "^2.1.1",
-    "@beemo/dev": "^1.6.4"
+    "typescript": "^4.4.4"
   },
   "dependencies": {
     "@babel/core": "^7.16.5",
     "@babel/preset-env": "^7.16.5",
     "@beemo/driver-babel": "^2.0.5",
-    "@beemo/driver-eslint": "^2.0.4",
     "@beemo/driver-jest": "^2.0.4",
     "eslint": "^8.5.0",
     "jest": "^27.4.5",

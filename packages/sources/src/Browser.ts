@@ -1,10 +1,13 @@
-import { CustomSourceArgs } from "..";
-import { Scene } from "../Scene";
-import { SceneItem } from "../SceneItem";
-import { Source, SourceFilters } from "../Source";
-import { DeepPartial } from "../types";
+import {
+  DeepPartial,
+  Source,
+  SourceFilters,
+  SceneItem,
+  Scene,
+  CustomSourceArgs,
+} from "@simple-obs/core";
 
-type Settings = {
+export type BrowserSourceSettings = {
   url: string;
   width: number;
   height: number;
@@ -30,8 +33,8 @@ export class BrowserSourceItem<
  */
 export class BrowserSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<Settings, Filters> {
-  constructor(args: CustomSourceArgs<Settings, Filters>) {
+> extends Source<BrowserSourceSettings, Filters> {
+  constructor(args: CustomSourceArgs<BrowserSourceSettings, Filters>) {
     super({ ...args, type: "browser_source" });
   }
 
@@ -43,7 +46,7 @@ export class BrowserSource<
     return new BrowserSourceItem(this, scene, id, ref);
   }
 
-  override async setSettings(settings: DeepPartial<Settings>) {
+  override async setSettings(settings: DeepPartial<BrowserSourceSettings>) {
     await super.setSettings(settings);
 
     this.itemInstances.forEach((item) =>

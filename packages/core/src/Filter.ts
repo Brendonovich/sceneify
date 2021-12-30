@@ -1,19 +1,32 @@
 import { Source } from "./Source";
 import { DeepPartial, FilterSettings } from "./types";
 
+export interface FilterArgs<Settings extends FilterSettings> {
+  name: string;
+  kind: string;
+  settings?: DeepPartial<Settings>;
+  enabled?: boolean;
+}
+
+export type CustomFilterArgs<Settings extends FilterSettings> = Omit<
+  FilterArgs<Settings>,
+  "kind"
+>;
+
 export abstract class Filter<
   Settings extends FilterSettings = FilterSettings,
   TSource extends Source = Source
 > {
-  constructor(
-    public name: string,
-    public kind: string,
-    initialSettings: DeepPartial<Settings> = {} as DeepPartial<Settings>,
-    public enabled = true
-  ) {
-    this.initialSettings = initialSettings;
+  constructor(args: FilterArgs<Settings>) {
+    this.initialSettings = args.settings || ({} as any);
+    this.name = args.name;
+    this.kind = args.kind;
+    this.enabled = args.enabled ?? true;
   }
 
+  name: string;
+  kind: string;
+  enabled: boolean;
   settings: DeepPartial<Settings> = {} as any;
 
   source?: TSource;
