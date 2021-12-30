@@ -20,37 +20,55 @@ Now, JDudeTV uses Simple OBS for creating his entire OBS layout, animating it an
 
 Here's a quick example of creating two scenes: One nested scene that contains a color source, and another scene which contains the nested scene at 2x scale.
 
-This example assumes it is being ran inside any `async` function, and all necessary imports have been imported.
-
 ```ts
-const obs = new OBS();
+import { OBS, Scene } from "@simple-obs/core";
+import { ColorSource } from "@simple-obs/sources";
 
-await obs.connect("localhost:4444");
+async function main() {
+  // Creates an OBS object that will connect to OBS
+  const obs = new OBS();
 
-const nestedScene = new Scene({
-  name: "Nested",
-  items: {
-    color: {
-      source: new ColorSource({
-        name: "Nested Color Source",
-        settings: {},
-      }),
+  // Connects the OBS object to OBS
+  await obs.connect("localhost:4444");
+
+  // Declares the scene that we will nest.
+  // Calling 'new Scene' only creates the object in code,
+  // and does not create it in OBS.
+  const nestedScene = new Scene({
+    name: "Nested",
+    items: {
+      color: {
+        source: new ColorSource({
+          name: "Nested Color Source",
+          settings: {},
+        }),
+      },
     },
-  },
-});
+  });
 
-const mainScene = new Scene({
-  name: "Main",
-  items: {
-    nested: {
-      source: nestedScene,
-      scaleX: 2,
-      scaleY: 2,
-      alignment: Alignment.Center,
+  // Declares the main scene that contains the nested scene declared above.
+  // Again, this does *not* create the scene in OBS yet.
+  const mainScene = new Scene({
+    name: "Main",
+    items: {
+      nested: {
+        source: nestedScene,
+        scaleX: 2,
+        scaleY: 2,
+        alignment: Alignment.Center,
+      },
     },
-  },
-});
+  });
 
-await mainScene.create(obs);
-await mainScene.makeCurrentScene();
+  // Finally, tells the main scene to create itself in OBS.
+  // As the nested scene has not been created yet,
+  // and is an item of the main scene,
+  // it will automatically be created.
+  await mainScene.create(obs);
+
+  // Sets the current scene in OBS to the main scene
+  await mainScene.makeCurrentScene();
+}
+
+main();
 ```
