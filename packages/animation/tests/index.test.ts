@@ -1,5 +1,5 @@
 import { Queue } from "@datastructures-js/queue";
-import { ColorSource, Source } from "@simple-obs/core";
+import { ColorSource, CustomSourceArgs, Source } from "@simple-obs/core";
 
 import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 
@@ -56,7 +56,12 @@ describe("processTimeline()", () => {
         };
       };
     }> {
-      type = "TEST";
+      constructor(args: CustomSourceArgs<any, any>) {
+        super({
+          ...args,
+          type: "TEST",
+        });
+      }
     }
 
     let source = new NestedSettingsSource({

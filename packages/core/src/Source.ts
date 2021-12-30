@@ -270,7 +270,6 @@ export class Source<
             filter.kind !== obsFilter.filterKind)
       )
     );
-
     const filtersToUpdateSettings = this.filters.filter((filter) =>
       filters.some(
         (sourceFilter) =>
@@ -419,12 +418,12 @@ export class Source<
         itemId = sceneItemId;
       }
     } else {
-      // const { sceneItemId } = await this.obs.call("CreateInput", {
-      //   inputName: this.name,
-      //   inputKind: this.type,
-      //   sceneName: scene.name,
-      //   inputSettings: this.settings,
-      // });
+      const { sceneItemId } = await this.obs.call("CreateInput", {
+        inputName: this.name,
+        inputKind: this.type,
+        sceneName: scene.name,
+        inputSettings: this.settings,
+      });
 
       this.obs.sources.set(this.name, this);
 
@@ -432,7 +431,7 @@ export class Source<
 
       await this.initializeFilters();
 
-      itemId = 0;
+      itemId = sceneItemId;
     }
 
     // As we have created a new scene item, set the corresponding ref.

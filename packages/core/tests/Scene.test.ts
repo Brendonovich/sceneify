@@ -4,7 +4,7 @@ import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 let obs = new OBS();
 
 beforeEach(() => {
-  obs.socket = new MockOBSWebSocket();
+  obs.socket = new MockOBSWebSocket() as any;
 });
 
 describe("create()", () => {
@@ -14,7 +14,7 @@ describe("create()", () => {
     //   items: {},
     // });
 
-    const scene = new Scene("Test", {});
+    const scene = new Scene({ name: "Test", items: {} });
 
     await scene.create(obs);
 

@@ -4,7 +4,7 @@ import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 let obs = new OBS();
 
 beforeEach(() => {
-  obs.socket = new MockOBSWebSocket();
+  obs.socket = new MockOBSWebSocket() as any;
 });
 
 describe("clean()", () => {

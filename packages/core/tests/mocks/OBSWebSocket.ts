@@ -1,19 +1,25 @@
-import OBSWebSocket, { OutgoingMessage } from "obs-websocket-js";
 import {
-  PatchedOBSRequestTypes as OBSRequestTypes,
-  PatchedOBSResponseTypes as OBSResponseTypes,
+  DEFAULT_SCENE_ITEM_TRANSFORM,
+  OBSRequestTypes,
+  OBSResponseTypes,
   SceneItemTransform,
+  DeepPartial,
 } from "../../";
-import { DEFAULT_SCENE_ITEM_TRANSFORM } from "../../";
-import { DeepPartial } from "../../";
 import { mergeDeep } from "../../src/utils";
 
 class Filter {
   constructor(
     public name: string,
-    public type: string,
-    public settings: Record<string, any> = {}
+    public kind: string,
+    public settings: Record<string, any> = {},
+    public enabled = true
   ) {}
+
+  input!: Input;
+
+  get index() {
+    return this.input.filters.indexOf(this);
+  }
 }
 
 class Input {
@@ -36,9 +42,21 @@ class Input {
   checkInstanceCount() {
     if (this.instances.length === 0) this.obs.removeInput(this);
   }
+
+  addFilter(filter: Filter, index?: number) {
+    this.filters.splice(index ?? this.filters.length, 0, filter);
+    filter.input = this;
+  }
+
+  removeFilter(filter: Filter) {
+    this.filters.splice(filter.index, 1);
+  }
 }
 
 class SceneItem {
+  enabled = true;
+  locked = true
+
   constructor(
     public id: number,
     public input: Input,
@@ -107,12 +125,10 @@ class OBS {
   }
 }
 
-export class MockOBSWebSocket extends OBSWebSocket {
-  override protocol = "";
-
+export class MockOBSWebSocket {
   OBS = new OBS();
 
-  override async call<Type extends keyof OBSRequestTypes>(
+  async call<Type extends keyof OBSRequestTypes>(
     requestType: Type,
     requestData?: OBSRequestTypes[Type]
   ): Promise<OBSResponseTypes[Type]> {
@@ -309,18 +325,195 @@ export class MockOBSWebSocket extends OBSWebSocket {
 
         break;
       }
+
+      case "GetSourceFilterList": {
+        const data = requestData as OBSRequestTypes["GetSourceFilterList"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        ret = {
+          filters: source.filters.map((filter) => ({
+            filterName: filter.name,
+            filterEnabled: filter.enabled,
+            filterIndex: filter.index,
+            filterKind: filter.kind,
+            filterSettings: filter.settings,
+          })),
+        };
+
+        break;
+      }
+
+      case "CreateSourceFilter": {
+        const data = requestData as OBSRequestTypes["CreateSourceFilter"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        const filter = new Filter(
+          data.filterName,
+          data.filterKind,
+          data.filterSettings
+        );
+
+        source.addFilter(filter, data.filterIndex);
+
+        break;
+      }
+
+      case "RemoveSourceFilter": {
+        const data = requestData as OBSRequestTypes["RemoveSourceFilter"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        const filter = source.filters.find((f) => f.name === data.filterName);
+
+        if (!filter) throw new Error("Filter not found");
+
+        source.removeFilter(filter);
+
+        break;
+      }
+
+      case "GetSourceFilterDefaultSettings": {
+        ret = { filterSettings: {} };
+
+        break;
+      }
+
+      case "GetSourceFilter": {
+        const data = requestData as OBSRequestTypes["GetSourceFilter"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        const filter = source.filters.find((f) => f.name === data.filterName);
+
+        if (!filter) throw new Error("Filter not found");
+
+        ret = {
+          filterName: filter.name,
+          filterEnabled: filter.enabled,
+          filterIndex: filter.index,
+          filterKind: filter.kind,
+          filterSettings: filter.settings,
+        };
+
+        break;
+      }
+
+      case "SetSourceFilterIndex": {
+        const data = requestData as OBSRequestTypes["SetSourceFilterIndex"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        const filter = source.filters.find((f) => f.name === data.filterName);
+
+        if (!filter) throw new Error("Filter not found");
+
+        source.filters.splice(filter.index, 1);
+        source.filters.splice(data.filterIndex, 0, filter);
+
+        break;
+      }
+
+      case "SetSourceFilterSettings": {
+        const data = requestData as OBSRequestTypes["SetSourceFilterSettings"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        const filter = source.filters.find((f) => f.name === data.filterName);
+
+        if (!filter) throw new Error("Filter not found");
+
+        for (let settingKey in data.filterSettings) {
+          filter.settings[settingKey] = data.filterSettings[settingKey];
+        }
+
+        break;
+      }
+
+      case "SetSourceFilterEnabled": {
+        const data = requestData as OBSRequestTypes["SetSourceFilterEnabled"];
+
+        const source = [...this.OBS.inputs].find(
+          (i) => i.name === data.sourceName
+        );
+
+        if (!source) throw new Error("Source not found");
+
+        const filter = source.filters.find((f) => f.name === data.filterName);
+
+        if (!filter) throw new Error("Filter not found");
+
+        filter.enabled = data.filterEnabled;
+
+        break;
+      }
+
+      case "GetSceneItemEnabled": {
+        const data = requestData as OBSRequestTypes["GetSceneItemEnabled"];
+
+        const scene = [...this.OBS.scenes].find(
+          (s) => s.name === data.sceneName
+        );
+
+        if (!scene) throw new Error("Scene not found");
+
+        const item = scene.items.find((i) => i.id === data.sceneItemId);
+
+        if (!item) throw new Error("Scene item not found");
+
+        ret = {
+          sceneItemEnabled: item.enabled,
+        };
+
+        break;
+      }
+
+      case "GetSceneItemLocked": {
+        const data = requestData as OBSRequestTypes["GetSceneItemLocked"];
+
+        const scene = [...this.OBS.scenes].find(
+          (s) => s.name === data.sceneName
+        );
+
+        if (!scene) throw new Error("Scene not found");
+
+        const item = scene.items.find((i) => i.id === data.sceneItemId);
+
+        if (!item) throw new Error("Scene item not found");
+
+        ret = {
+          sceneItemLocked: item.locked,
+        };
+
+        break;
+      }
     }
 
     return ret;
-  }
-
-  protected override async encodeMessage(_: OutgoingMessage): Promise<never> {
-    throw new Error("OBSWebsocket.encodeMessage is not implemented");
-  }
-
-  protected override async decodeMessage(
-    _: string | ArrayBuffer | Blob
-  ): Promise<never> {
-    throw new Error("OBSWebsocket.decodeMessage is not implemented");
   }
 }

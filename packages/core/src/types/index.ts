@@ -161,7 +161,7 @@ export interface OBSRequestTypesOverrides {
   SetSourceFilterSettings: {
     sourceName: string;
     filterName: string;
-    filterSettings: string;
+    filterSettings: FilterSettings;
   };
 
   SetSourceFilterEnabled: {
@@ -249,7 +249,7 @@ export interface OBSResponseTypesOverrides {
 
   RemoveSourceFilter: undefined;
 
-  GetSourceFilterDefaultSettings: FilterSettings;
+  GetSourceFilterDefaultSettings: { filterSettings: FilterSettings };
 
   GetSourceFilter: Filter;
 
@@ -261,9 +261,9 @@ export interface OBSResponseTypesOverrides {
 }
 
 export type PatchedOBSRequestTypes =
-  | OBSRequestTypesOverrides &
-      Omit<BaseRequestTypes, keyof OBSRequestTypesOverrides>;
+  | Omit<BaseRequestTypes, keyof OBSRequestTypesOverrides> &
+      OBSRequestTypesOverrides;
 
 export type PatchedOBSResponseTypes =
-  | OBSResponseTypesOverrides &
-      Omit<BaseResponseTypes, keyof OBSResponseTypesOverrides>;
+  | Omit<BaseResponseTypes, keyof OBSResponseTypesOverrides> &
+      OBSResponseTypesOverrides;

@@ -4,7 +4,7 @@ import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 let obs = new OBS();
 
 beforeEach(() => {
-  obs.socket = new MockOBSWebSocket();
+  obs.socket = new MockOBSWebSocket() as any;
 });
 
 describe("setTransform()", () => {
@@ -60,7 +60,7 @@ describe("setTransform()", () => {
 
     await scene.create(obs);
 
-    const item = scene.item("item")
+    const item = scene.item("item");
 
     expect(item.transform.rotation).toBe(0);
     expect(item.transform.positionX).toBe(0);
