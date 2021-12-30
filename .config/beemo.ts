@@ -1,4 +1,5 @@
 export default {
+  module: "@beemo/dev",
   drivers: [
     ["jest", {}],
     [
