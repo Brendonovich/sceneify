@@ -1,5 +1,4 @@
 ---
-sidebar_label: Installation
 sidebar_index: 1
 ---
 
