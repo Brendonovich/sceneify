@@ -13,6 +13,6 @@
     "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "@simple-obs/core": "link:../"
+    "@simple-obs/core": "workspace:0.3.20"
   }
 }

@@ -1,6 +1,11 @@
 export * from "./easing";
 
-import { Filter, SceneItem, SceneItemProperties, Source } from "@simple-obs/core";
+import {
+  Filter,
+  SceneItem,
+  SceneItemTransform,
+  Source,
+} from "@simple-obs/core";
 import { Queue } from "@datastructures-js/queue";
 
 import { performance } from "./performance";
@@ -11,13 +16,14 @@ import { getDeep } from "./utils";
 export const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export type AnimatableProperties<
-  T extends SceneItemProperties = SceneItemProperties
+  T extends SceneItemTransform = SceneItemTransform
 > = DeepSearch<
   Omit<T, "width" | "height" | "sourceWidth" | "sourceHeight">,
   KeyframeProperty
 >;
 
-export type AnimationSubject = SceneItem | Source | Filter;
+export type AnimationSubject = SceneItem | Source;
+// | Filter;
 export interface Keyframe<
   T extends number | string | boolean = number | string | boolean
 > {
@@ -102,7 +108,7 @@ export function processSubjectKeyframes<Subject extends AnimationSubject>(
   let ret: SubjectKeyframes = {};
 
   for (let property in keyframesToProcess) {
-    const propertyValues = keyframesToProcess[property];
+    const propertyValues = keyframesToProcess[property]!;
     const firstValue = Object.values(propertyValues)[0];
 
     const currentPath = [...parentPath, property];
@@ -136,7 +142,7 @@ export function processSubjectKeyframes<Subject extends AnimationSubject>(
         const back = queue.back();
         if (back) from = back.to;
         else if (subject instanceof SceneItem)
-          from = getDeep(subject.properties, currentPath);
+          from = getDeep(subject.transform, currentPath);
         else from = getDeep(subject.settings, currentPath);
 
         let callback = () => {};
@@ -242,11 +248,11 @@ async function animateTick(): Promise<any> {
       continue;
     }
 
-    if (subject instanceof SceneItem) subject.setProperties(interpolatedData);
+    if (subject instanceof SceneItem) subject.setTransform(interpolatedData);
     else {
       subject.setSettings(interpolatedData);
-      if (interpolatedData.visible !== undefined && subject instanceof Filter)
-        subject.setVisible(interpolatedData.visible);
+      // if (interpolatedData.visible !== undefined && subject instanceof Filter)
+      //   subject.setVisible(interpolatedData.visible);
     }
   }
 

@@ -6,29 +6,20 @@
   "types": "./dts/index.d.ts",
   "module": "./esm/index.js",
   "browser": "./lib/browser/index.js",
-  "scripts": {
-    "test": "jest -i",
-    "prepublish": "yarn build"
-  },
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "test": "jest -i"
+  },
   "dependencies": {
     "next-tick": "^1.1.0",
-    "obs-websocket-js": "^4.0.3"
+    "obs-websocket-js": "^5.0.0-alpha.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.1",
     "@types/next-tick": "^1.0.0",
     "@types/node": "^16.9.3",
     "@types/ws": "^7.4.6",
-    "esbuild": "^0.13.2",
-    "jest": "^27.2.1",
-    "microbundle": "^0.13.3",
-    "rollup": "^2.57.0",
-    "rollup-plugin-dts": "^4.0.0",
-    "rollup-plugin-esbuild": "^4.5.0",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.4.0"
+    "jest": "^27.4.5"
   },
   "files": [
     "dist",
@@ -51,5 +42,13 @@
   "engines": {
     "node": ">=12.17.0",
     "npm": ">=6.13.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "<rootDir>/tests/tsconfig.json"
+      }
+    }
   }
 }

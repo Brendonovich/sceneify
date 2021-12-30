@@ -45,7 +45,7 @@ module.exports = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       image: "img/logo.png",
-      metadatas: [{ name: "twitter:card", content: "summary" }],
+      metadata: [{ name: "twitter:card", content: "summary" }],
       navbar: {
         title: "Simple OBS",
         logo: {
@@ -53,12 +53,12 @@ module.exports = {
           src: "img/logo.png",
         },
         items: [
-          // {
-          //   type: "doc",
-          //   docId: "overview",
-          //   position: "left",
-          //   label: "Docs",
-          // },
+          {
+            type: "doc",
+            docId: "overview",
+            position: "left",
+            label: "Docs",
+          },
           {
             to: "api",
             label: "API",
@@ -73,15 +73,15 @@ module.exports = {
       },
       footer: {
         links: [
-          // {
-          //   title: "Docs",
-          //   items: [
-          //     {
-          //       label: "Overview",
-          //       to: "/docs/overview",
-          //     },
-          //   ],
-          // },
+          {
+            title: "Docs",
+            items: [
+              {
+                label: "Overview",
+                to: "/docs/overview",
+              },
+            ],
+          },
           {
             title: "Links",
             items: [

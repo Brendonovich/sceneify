@@ -7,6 +7,6 @@
   },
   "exclude": ["dts", "tests"],
   "extends": "../../tsconfig.options.json",
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "types/**/*", "../../types/**/*"],
   "references": []
 }

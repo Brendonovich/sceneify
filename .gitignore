@@ -11,3 +11,4 @@ dist
 coverage
 esm
 dts
+.pnpm-debug.log

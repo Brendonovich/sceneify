@@ -12,6 +12,9 @@
     },
     {
       "path": "packages/core"
+    },
+    {
+      "path": "packages/core/tests"
     }
   ]
 }

@@ -1,9 +1,9 @@
 import { Scene } from "./Scene";
-import { obs } from "./obs";
+import { OBS } from "./OBS";
 import { Filter } from "./Filter";
-import { SceneItem, SceneItemProperties } from "./SceneItem";
-import { DeepPartial } from "./types";
-import { mergeDeep } from "./utils";
+import { SceneItem } from "./SceneItem";
+import { SceneItemTransform, DeepPartial } from "./types";
+import { MonitoringType } from ".";
 
 export type SceneName = string;
 export type ItemRef = string;
@@ -23,11 +23,14 @@ export abstract class Source<
   _settingsType!: Settings;
 
   name: string;
-  settings: DeepPartial<Settings>;
-  filters: Filters & Record<string, Filter> = {} as any;
+  filters: Filter[] = [];
   linked = false;
 
+  private filtersMap: Filters & Record<string, Filter> = {} as Filters;
+
   itemInstances = new Set<SceneItem>();
+
+  obs!: OBS;
 
   /**
    * Whether this source has at least one scene item in OBS
@@ -52,18 +55,15 @@ export abstract class Source<
   }) {
     this.name = args.name;
     this.settings = args.settings ?? ({} as DeepPartial<Settings>);
-    this.filters = args.filters ?? ({} as Filters);
+    this.filtersMap = args.filters ?? ({} as Filters);
   }
 
-  /**
-   * Sets this source's settings, both on this instance and the OBS source.
-   *
-   */
+  settings: DeepPartial<Settings>;
+
   async setSettings(settings: DeepPartial<Settings>) {
-    await obs.setSourceSettings({
-      name: this.name,
-      type: this.type,
-      settings,
+    await this.obs.call("SetInputSettings", {
+      inputName: this.name,
+      inputSettings: settings,
     });
 
     for (let setting in settings) {
@@ -71,44 +71,154 @@ export abstract class Source<
     }
   }
 
+  filter<R extends string>(ref: R): Filters[R];
+  filter(ref: string): Filter | undefined;
+
+  filter(ref: string) {
+    return this.filtersMap[ref];
+  }
+
+  /**
+   *
+   * PROPERTIES
+   *
+   */
+
+  async fetchProperties() {
+    const args = { inputName: this.name };
+    const [
+      { inputMuted },
+      { inputVolumeDb, inputVolumeMul },
+      { inputAudioSyncOffset },
+      { monitorType },
+    ] = await Promise.all([
+      this.obs.call("GetInputMute", args),
+      this.obs.call("GetInputVolume", args),
+      this.obs.call("GetInputAudioSyncOffset", args),
+      this.obs.call("GetInputAudioMonitorType", args),
+    ]);
+
+    this.muted = inputMuted;
+    this.volume = {
+      db: inputVolumeDb,
+      mul: inputVolumeMul,
+    };
+    this.audioSyncOffset = inputAudioSyncOffset;
+    this.audioMonitorType = monitorType as MonitoringType;
+  }
+
+  // Muted
+
+  muted = false;
+
+  async setMuted(muted: boolean) {
+    await this.obs.call("SetInputMute", {
+      inputName: this.name,
+      inputMuted: muted,
+    });
+
+    this.muted = muted;
+  }
+
+  async toggleMuted() {
+    const { inputMuted } = await this.obs.call("ToggleInputMute", {
+      inputName: this.name,
+    });
+
+    this.muted = inputMuted;
+
+    return inputMuted;
+  }
+
+  // Volume
+
+  volume = {
+    db: 0,
+    mul: 0,
+  };
+
+  async setVolume(data: { db: number } | { mul: number }) {
+    await this.obs.call("SetInputVolume", {
+      inputName: this.name,
+      inputVolumeDb: (data as any).db,
+      inputVolumeMul: (data as any).mul,
+    });
+
+    const resp = await this.obs.call("GetInputVolume", {
+      inputName: this.name,
+    });
+
+    this.volume = {
+      db: resp.inputVolumeDb,
+      mul: resp.inputVolumeMul,
+    };
+  }
+
+  // Audio
+  // Sync Offset
+
+  audioSyncOffset = 0;
+
+  async setAudioSyncOffset(offset: number) {
+    await this.obs.call("SetInputAudioSyncOffset", {
+      inputName: this.name,
+      inputAudioSyncOffset: offset,
+    });
+
+    this.audioSyncOffset = offset;
+  }
+
+  // Monitoring Type
+
+  audioMonitorType = MonitoringType.None;
+
+  async setAudioMonitorType(type: MonitoringType) {
+    await this.obs.call("SetInputAudioMonitorType", {
+      inputName: this.name,
+      monitorType: type,
+    });
+
+    this.audioMonitorType = type;
+  }
+
   /**
    * Adds a filter to this source, provided that 1. The filter has not already been applied
    * to another source, and 2. The source in OBS does not have a filter with a different type
    * but the same name as the filter being added. Does not support inserting at a particular order as of yet.
    */
-  async addFilter(ref: string, filter: Filter) {
-    if (filter.source) {
-      throw new Error(
-        `Filter ${this.name} has already been applied to source ${filter.source.name}`
-      );
-    }
+  // async addFilter(ref: string, filter: Filter) {
+  //   if (filter.source) {
+  //     throw new Error(
+  //       `Filter ${this.name} has already been applied to source ${filter.source.name}`
+  //     );
+  //   }
 
-    const exists = await obs
-      .getSourceFilterInfo({
-        source: this.name,
-        filter: filter.name,
-      })
-      .then((i) => {
-        if (i.type !== filter.type)
-          throw new Error(
-            `Filter ${this.name} already exists but has different type. Expected ${filter.type}, found ${i.type}`
-          );
-        return true;
-      })
-      .catch(() => false);
+  //   const exists = await this.obs
+  //     .call("GetFilter",{
+  //       source: this.name,
+  //       filter: filter.name,
+  //     })
+  //     .then((i) => {
+  //       if (i.type !== filter.type)
+  //         throw new Error(
+  //           `Filter ${this.name} already exists but has different type. Expected ${filter.type}, found ${i.type}`
+  //         );
+  //       return true;
+  //     })
+  //     .catch(() => false);
 
-    filter.source = this;
+  //   filter.source = this;
 
-    if (!exists)
-      await obs.addFilterToSource({
-        ...filter,
-        source: this.name,
-      });
+  //   if (!exists)
+  //     await obs.addFilterToSource({
+  //       ...filter,
+  //       source: this.name,
+  //     });
 
-    await filter.setSettings(filter.initialSettings);
+  //   await filter.setSettings(filter.initialSettings);
 
-    Object.assign(this.filters, { [ref]: filter });
-  }
+  //   Object.assign(this.filters, { [ref]: filter });
+  // }
 
   /**
    * Overridable function for creating `SceneItem` instances for a source.
@@ -127,75 +237,75 @@ export abstract class Source<
    *
    * This shouldn't be required very often, probably only on source initialization.
    */
-  async refreshFilters() {
-    if (!this.exists) return;
+  // async refreshFilters() {
+  //   if (!this.exists) return;
 
-    const { filters: sourceFilters } = await obs.getSourceFilters({
-      source: this.name,
-    });
+  //   const { filters: sourceFilters } = await obs.getSourceFilters({
+  //     source: this.name,
+  //   });
 
-    const filtersArray: Filter[] = Object.values(this.filters);
+  //   const filtersArray: Filter[] = Object.values(this.filters);
 
-    const filtersToRemove = sourceFilters.filter((sourceFilter) =>
-      // Only include filters where every local filter does not match
-      filtersArray.every(
-        (filter) =>
-          filter.name !== sourceFilter.name ||
-          (filter.name === sourceFilter.name &&
-            filter.type !== sourceFilter.type)
-      )
-    );
-    const filtersToAdd = filtersArray.filter((filter) =>
-      // Only include filters where every sourceFilter is not found
-      sourceFilters.every(
-        (sourceFilter) =>
-          filter.name !== sourceFilter.name ||
-          (filter.name === sourceFilter.name &&
-            filter.type !== sourceFilter.type)
-      )
-    );
-    const filtersToUpdateSettings = filtersArray.filter((filter) =>
-      sourceFilters.some(
-        (sourceFilter) =>
-          filter.name === sourceFilter.name && filter.type === sourceFilter.type
-      )
-    );
+  //   const filtersToRemove = sourceFilters.filter((sourceFilter) =>
+  //     // Only include filters where every local filter does not match
+  //     filtersArray.every(
+  //       (filter) =>
+  //         filter.name !== sourceFilter.name ||
+  //         (filter.name === sourceFilter.name &&
+  //           filter.type !== sourceFilter.type)
+  //     )
+  //   );
+  //   const filtersToAdd = filtersArray.filter((filter) =>
+  //     // Only include filters where every sourceFilter is not found
+  //     sourceFilters.every(
+  //       (sourceFilter) =>
+  //         filter.name !== sourceFilter.name ||
+  //         (filter.name === sourceFilter.name &&
+  //           filter.type !== sourceFilter.type)
+  //     )
+  //   );
+  //   const filtersToUpdateSettings = filtersArray.filter((filter) =>
+  //     sourceFilters.some(
+  //       (sourceFilter) =>
+  //         filter.name === sourceFilter.name && filter.type === sourceFilter.type
+  //     )
+  //   );
 
-    await Promise.all([
-      ...filtersToRemove.map(
-        (f) =>
-          obs.removeFilterFromSource({
-            source: this.name,
-            filter: f.name,
-          }),
-        ...filtersToAdd.map((f) =>
-          obs.addFilterToSource({
-            source: this.name,
-            name: f.name,
-            settings: f.settings,
-            type: f.type,
-          })
-        ),
-        ...filtersToUpdateSettings.map((f) =>
-          obs.setSourceFilterSettings({
-            filter: f.name,
-            source: this.name,
-            settings: f.settings,
-          })
-        )
-      ),
-    ]);
+  //   await Promise.all([
+  //     ...filtersToRemove.map(
+  //       (f) =>
+  //         obs.removeFilterFromSource({
+  //           source: this.name,
+  //           filter: f.name,
+  //         }),
+  //       ...filtersToAdd.map((f) =>
+  //         obs.addFilterToSource({
+  //           source: this.name,
+  //           name: f.name,
+  //           settings: f.settings,
+  //           type: f.type,
+  //         })
+  //       ),
+  //       ...filtersToUpdateSettings.map((f) =>
+  //         obs.setSourceFilterSettings({
+  //           filter: f.name,
+  //           source: this.name,
+  //           settings: f.settings,
+  //         })
+  //       )
+  //     ),
+  //   ]);
 
-    await Promise.all(
-      filtersArray.map((filter, index) =>
-        obs.reorderSourceFilter({
-          source: this.name,
-          filter: filter.name,
-          newIndex: index,
-        })
-      )
-    );
-  }
+  //   await Promise.all(
+  //     filtersArray.map((filter, index) =>
+  //       obs.reorderSourceFilter({
+  //         source: this.name,
+  //         filter: filter.name,
+  //         newIndex: index,
+  //       })
+  //     )
+  //   );
+  // }
 
   /**
    * Fetches initial data for the source.
@@ -210,40 +320,42 @@ export abstract class Source<
    * @internal
    *
    */
-  initialize(): true | Promise<true> {
-    if (this.initalized) return true;
+  async initialize(obs: OBS) {
+    if (this.initalized) return;
 
-    return obs
-      .getSourceSettings({
-        name: this.name,
-      })
-      .then(async ({ sourceSettings, sourceType }) => {
-        // Exit if source exists but type doesn't match
-        if (sourceType !== this.type) throw ["WRONG_TYPES", sourceType];
+    this.obs = obs;
 
-        // Assign refs from previous runs of code
-        if (sourceSettings.SIMPLE_OBS_REFS)
-          this.refs = sourceSettings.SIMPLE_OBS_REFS;
+    try {
+      const { inputSettings, inputKind } = await this.obs.call(
+        "GetInputSettings",
+        {
+          inputName: this.name,
+        }
+      );
+      // Exit if source exists but type doesn't match
+      if (inputKind !== this.type) throw ["WRONG_KIND", inputKind];
 
-        await this.saveRefs();
+      // Assign refs from previous runs of code
+      if (inputSettings.SIMPLE_OBS_REFS)
+        this.refs = inputSettings.SIMPLE_OBS_REFS as any;
 
-        obs.sources.set(this.name, this);
+      await this.saveRefs();
 
-        this._exists = true;
+      this.obs.inputs.set(this.name, this);
 
-        await this.initializeFilters();
+      this._exists = true;
 
-        return this.exists;
-      })
-      .catch((e) => {
-        if (Array.isArray(e) && e[0] === "WRONG_TYPES")
-          throw new Error(
-            `Source with name ${this.name} has different type in OBS than expected. Found: ${e[1]}, Expected: ${this.type}`
-          );
+      await this.initializeFilters();
+    } catch (e) {
+      if (Array.isArray(e) && e[0] === "WRONG_KIND")
+        throw new Error(
+          `Source with name ${this.name} has different type in OBS than expected. Found: ${e[1]}, Expected: ${this.type}`
+        );
 
-        return (this._exists = false);
-      })
-      .finally(() => (this._initialized = true)) as Promise<true>;
+      this._exists = false;
+    }
+
+    this._initialized = true;
   }
 
   /**
@@ -262,7 +374,7 @@ export abstract class Source<
       );
 
     let itemId: number;
-    let properties: SceneItemProperties | null = null;
+    let transform: SceneItemTransform | null = null;
 
     if (this.exists) {
       // First, attempt to connect to existing scene item with provided ref
@@ -271,22 +383,24 @@ export abstract class Source<
       // If a ref exists, get the properties of the referenced item
       if (id !== undefined) {
         try {
-          properties = await obs.getSceneItemProperties({
-            id,
-            scene: scene.name,
+          const res = await this.obs.call("GetSceneItemTransform", {
+            sceneItemId: id,
+            sceneName: scene.name,
           });
+
+          transform = res.sceneItemTransform;
 
           itemId = id;
         } catch {
           // If the item doesn't actually exist, remove the existing ref and create a new instance of the source
           this.removeRef(scene.name, ref);
 
-          const { itemId: id } = await obs.addSceneItem({
-            scene: scene.name,
-            source: this.name,
+          const { sceneItemId } = await this.obs.call("CreateSceneItem", {
+            sceneName: scene.name,
+            sourceName: this.name,
           });
 
-          itemId = id;
+          itemId = sceneItemId;
         }
       } else {
         // If no ref exists, we could try and look for items that match the source,
@@ -297,28 +411,28 @@ export abstract class Source<
 
         // Also, not checking if a matching item already exists saves on OBS requests :)
 
-        const { itemId: id } = await obs.addSceneItem({
-          scene: scene.name,
-          source: this.name,
+        const { sceneItemId } = await this.obs.call("CreateSceneItem", {
+          sceneName: scene.name,
+          sourceName: this.name,
         });
 
-        itemId = id;
+        itemId = sceneItemId;
       }
     } else {
-      const { itemId: newItemId } = await obs.createSource({
-        name: this.name,
-        type: this.type,
-        scene: scene.name,
-        settings: this.settings,
+      const { sceneItemId } = await this.obs.call("CreateInput", {
+        inputName: this.name,
+        inputKind: this.type,
+        sceneName: scene.name,
+        inputSettings: this.settings,
       });
 
-      obs.sources.set(this.name, this);
+      this.obs.inputs.set(this.name, this);
 
       this._exists = true;
 
       await this.initializeFilters();
 
-      itemId = newItemId;
+      itemId = sceneItemId;
     }
 
     // As we have created a new scene item, set the corresponding ref.
@@ -328,7 +442,7 @@ export abstract class Source<
     const item = this.createItemInstance(scene, itemId, ref);
 
     // If we found an existing item and got its properties, assign them
-    if (properties !== null) item.properties = properties;
+    if (transform !== null) item.transform = transform;
 
     return item;
   }
@@ -350,7 +464,7 @@ export abstract class Source<
     }
 
     // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
-    await this.refreshFilters();
+    // await this.refreshFilters();
   }
 
   /**
@@ -393,10 +507,9 @@ export abstract class Source<
   protected saveRefs() {
     // This isn't await-ed since the worst thing that can happen with a failed ref is a source is deleted by obs.clean.
     // We don't really care to know when it finishes.
-    return obs.setSourceSettings({
-      name: this.name,
-      type: this.type,
-      settings: {
+    return this.obs.call("SetInputSettings", {
+      inputName: this.name,
+      inputSettings: {
         SIMPLE_OBS_REFS: this.refs,
       },
     });
