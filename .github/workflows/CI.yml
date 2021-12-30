@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [wsv5]
+    branches: [master]
   pull_request:
-    branches: [wsv5]
+    branches: [master]
 
 jobs:
   build:
