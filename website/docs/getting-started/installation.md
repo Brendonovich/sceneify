@@ -50,21 +50,21 @@ These can be installed in the same way as before:
 <TabItem value="npm" label="npm">
 
 ```
-npm i @simple-obs/filters @simple-obs/sources
+npm i @simple-obs/sources @simple-obs/filters
 ```
 
 </TabItem>
 <TabItem value="yarn" label="Yarn">
 
 ```
-yarn add @simple-obs/filters @simple-obs/sources
+yarn add @simple-obs/sources @simple-obs/filters
 ```
 
 </TabItem>
 <TabItem value="pnpm" label="pnpm">
 
 ```
-pnpm i @simple-obs/filters @simple-obs/sources
+pnpm i @simple-obs/sources @simple-obs/filters
 ```
 
 </TabItem>
