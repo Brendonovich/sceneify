@@ -1,3 +1,5 @@
+import { Source } from "../Source";
+
 export type DeepPartial<T> = T extends Function
   ? T
   : T extends object
@@ -9,6 +11,10 @@ export type FilterType<Base, Condition> = Pick<
   {
     [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
   }[keyof Base]
+>;
+
+export type SourceItemType<S extends Source> = ReturnType<
+  S["createItemInstance"]
 >;
 
 export * from "./obs-websocket-js";

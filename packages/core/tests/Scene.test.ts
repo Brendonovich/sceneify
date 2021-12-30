@@ -114,8 +114,8 @@ describe("create()", () => {
 
     await mainScene.create(obs);
 
-    expect(mainScene.items.existing.source).toBe(
-      tempScene.items.existing.source
+    expect(mainScene.item("existing").source).toBe(
+      tempScene.item("existing").source
     );
     expect(existingSource.itemInstances.size).toBe(2);
   });

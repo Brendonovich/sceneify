@@ -1,4 +1,4 @@
-import { SceneItemTransform } from "./types";
+import { SceneItemTransform, SourceItemType } from "./types";
 import { OBS } from "./OBS";
 import { SceneItem } from "./SceneItem";
 import { ItemRef, Source, SourceSettings, SourceFilters } from "./Source";
@@ -27,17 +27,14 @@ export class Scene<
 > extends Source<Settings, Filters> {
   type = "scene";
 
-  // Default initialized to {} as items is populated later by initialize addItem
-  items: {
-    [K in keyof Items]: ReturnType<Items[K]["createItemInstance"]>;
-  } & Record<string, SceneItem> = {} as any;
+  items: SceneItem[] = [];
 
   private itemsSchema: ItemsSchemaInput<Items>;
 
   /**
-   * PUBLIC METHODS
+   * MAIN METHODS
    *
-   * Methods that can be called by code that uses obs-js
+   * Methods that provide functionality specific to simple-obs.
    */
 
   /**  */
@@ -73,6 +70,7 @@ export class Scene<
     await wait(50);
 
     this._exists = true;
+    
     obs.scenes.set(this.name, this);
 
     for (const ref in this.itemsSchema) {
@@ -185,11 +183,9 @@ export class Scene<
     // First, check if the source is initialized to ensure that `source.exists` is accurate
     await source.initialize(this.obs);
 
-    let item: SceneItem;
-
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required
-    item = await source.createItem(ref, this);
+    const item = await source.createItem(ref, this);
 
     const sourceUpdateRequests = sourceNeedsUpdating
       ? [
@@ -209,12 +205,28 @@ export class Scene<
     // on things like source settings (eg. Image source, where width and height is dependent
     // on the size of the image)
     await item.fetchProperties();
-
-    Object.assign(this.items, { [ref]: item });
-
+    
+    this.items.push(item)
+    
     return item;
   }
 
+  item<R extends string>(ref: R): SourceItemType<Items[R]>;
+  item(ref: string): SceneItem | undefined;
+
+  item(ref: string) {
+    return this.items.find((i) => i.ref === ref);
+  }
+
+  /**
+   * UTILITIES
+   *
+   * Functions that wrap OBS calls to make them easier to use.
+   */
+
+  /**   *
+   * @param preview Whether to make the scene the current preview scene
+   */
   async makeCurrentScene(preview?: boolean) {
     await this.obs.call(
       preview ? "SetCurrentPreviewScene" : "SetCurrentProgramScene",

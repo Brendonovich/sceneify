@@ -104,6 +104,6 @@ export class SceneItem<TSource extends Source = Source> {
     });
 
     this.source.itemInstances.delete(this);
-    delete this.scene.items[this.ref];
+    this.scene.items.splice(this.scene.items.indexOf(this), 1);
   }
 }

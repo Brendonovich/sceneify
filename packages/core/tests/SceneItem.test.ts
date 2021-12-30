@@ -23,7 +23,7 @@ describe("setTransform()", () => {
 
     await scene.create(obs);
 
-    const item = scene.items.item;
+    const item = scene.item("item");
 
     expect(item.transform.rotation).toBe(0);
     expect(item.transform.positionX).toBe(0);
@@ -60,7 +60,7 @@ describe("setTransform()", () => {
 
     await scene.create(obs);
 
-    const item = scene.items.item;
+    const item = scene.item("item")
 
     expect(item.transform.rotation).toBe(0);
     expect(item.transform.positionX).toBe(0);

@@ -23,8 +23,10 @@ export abstract class Source<
   _settingsType!: Settings;
 
   name: string;
-  filters: Filters & Record<string, Filter> = {} as any;
+  filters: Filter[] = [];
   linked = false;
+
+  private filtersMap: Filters & Record<string, Filter> = {} as Filters;
 
   itemInstances = new Set<SceneItem>();
 
@@ -53,7 +55,7 @@ export abstract class Source<
   }) {
     this.name = args.name;
     this.settings = args.settings ?? ({} as DeepPartial<Settings>);
-    this.filters = args.filters ?? ({} as Filters);
+    this.filtersMap = args.filters ?? ({} as Filters);
   }
 
   settings: DeepPartial<Settings>;
@@ -67,6 +69,13 @@ export abstract class Source<
     for (let setting in settings) {
       this.settings[setting] = settings[setting];
     }
+  }
+
+  filter<R extends string>(ref: R): Filters[R];
+  filter(ref: string): Filter | undefined;
+
+  filter(ref: string) {
+    return this.filtersMap[ref];
   }
 
   /**
