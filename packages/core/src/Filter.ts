@@ -1,70 +1,62 @@
 import { Source } from "./Source";
-import { OBS } from "./OBS";
-import { DeepPartial } from "./types";
-
-export interface FilterArgs<Settings> {
-  name: string;
-  settings: DeepPartial<Settings>;
-}
-
-type FilterSettings = Record<string, any>;
+import { DeepPartial, FilterSettings } from "./types";
 
 export abstract class Filter<
   Settings extends FilterSettings = FilterSettings,
   TSource extends Source = Source
 > {
-  /**
-   * @internal
-   */
-  initialSettings: DeepPartial<Settings>;
-
-  constructor({ name, settings }: FilterArgs<Settings>) {
-    this.name = name;
-    this.initialSettings = settings;
+  constructor(
+    public name: string,
+    public kind: string,
+    initialSettings: DeepPartial<Settings> = {} as DeepPartial<Settings>,
+    public enabled = true
+  ) {
+    this.initialSettings = initialSettings;
   }
 
-  abstract type: string;
-
-  name: string;
-  source?: TSource;
   settings: DeepPartial<Settings> = {} as any;
-  visible = true;
 
+  source?: TSource;
+
+  /** @internal */
   _settingsType!: Settings;
+  /** @internal */
+  initialSettings: DeepPartial<Settings> = {} as DeepPartial<Settings>;
 
-  // async setSettings(settings: DeepPartial<Settings>) {
-  //   if (!this.source) {
-  //     console.warn(
-  //       `Attempted to set settings on sourceless filter ${this.name}`
-  //     );
-  //     return;
-  //   }
+  async setSettings(settings: DeepPartial<Settings>) {
+    this.checkSource();
 
-  //   await this.source.obs.call("SetFi").setSourceFilterSettings({
-  //     source: this.source.name,
-  //     filter: this.name,
-  //     settings: settings as any,
-  //   });
+    await this.source!.obs.call("SetSourceFilterSettings", {
+      sourceName: this.source!.name,
+      filterName: this.name,
+      filterSettings: settings as any,
+    });
 
-  //   for (let setting in settings) {
-  //     this.settings[setting] = settings[setting];
-  //   }
-  // }
+    for (let setting in settings) {
+      this.settings[setting] = settings[setting];
+    }
+  }
 
-  // setVisible(visible: boolean) {
-  //   if (!this.source) {
-  //     console.warn(
-  //       `Attempted to set visibility on sourceless filter ${this.name}`
-  //     );
-  //     return;
-  //   }
+  async setEnabled(enabled: boolean) {
+    this.checkSource();
 
-  //   this.visible = visible;
+    await this.source!.obs.call("SetSourceFilterEnabled", {
+      sourceName: this.source!.name,
+      filterEnabled: enabled,
+      filterName: this.name,
+    });
 
-  //   return obs.setSourceFilterVisibility({
-  //     source: this.source.name,
-  //     filter: this.name,
-  //     visible,
-  //   });
-  // }
+    this.enabled = enabled;
+  }
+
+  get index(): number {
+    this.checkSource();
+
+    return this.source!.filters.indexOf(this);
+  }
+
+  private checkSource() {
+    if (!this.source)
+      throw new Error(`Filter ${this.name} does not have source.`);
+  }
 }

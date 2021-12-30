@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "next-tick": "^1.1.0",
-    "obs-websocket-js": "^5.0.0-alpha.0"
+    "obs-websocket-js": "5.0.0-alpha.2"
   },
   "devDependencies": {
     "@types/next-tick": "^1.0.0",

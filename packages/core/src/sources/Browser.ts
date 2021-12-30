@@ -1,3 +1,4 @@
+import { CustomSourceArgs } from "..";
 import { Scene } from "../Scene";
 import { SceneItem } from "../SceneItem";
 import { Source, SourceFilters } from "../Source";
@@ -28,9 +29,11 @@ export class BrowserSourceItem<
  * or the source's width and height are updated.
  */
 export class BrowserSource<
-  F extends SourceFilters = SourceFilters
-> extends Source<Settings, F> {
-  type = "browser_source";
+  Filters extends SourceFilters = SourceFilters
+> extends Source<Settings, Filters> {
+  constructor(args: CustomSourceArgs<Settings, Filters>) {
+    super({ ...args, type: "browser_source" });
+  }
 
   override createItemInstance(
     scene: Scene,

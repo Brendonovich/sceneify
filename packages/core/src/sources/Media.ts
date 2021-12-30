@@ -1,13 +1,13 @@
-import { Source, SourceFilters } from "../Source";
+import { CustomSourceArgs, Source, SourceFilters } from "../Source";
 
+type Settings = {
+  local_file: string;
+  hw_decode: boolean;
+};
 export class MediaSource<
-  F extends SourceFilters = SourceFilters
-> extends Source<
-  {
-    local_file: string;
-    hw_decode: boolean;
-  },
-  F
-> {
-  type = "ffmpeg_source";
+  Filters extends SourceFilters = SourceFilters
+> extends Source<Settings, Filters> {
+  constructor(args: CustomSourceArgs<Settings, Filters>) {
+    super({ ...args, type: "ffmpeg_source" });
+  }
 }

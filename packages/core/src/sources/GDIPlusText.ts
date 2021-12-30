@@ -1,22 +1,23 @@
-import { Source, SourceFilters } from "../Source";
+import { CustomSourceArgs, Source, SourceFilters } from "../Source";
+
+type Settings = {
+  text: string;
+  font: {
+    face: string;
+    flags: number;
+    size: number;
+    style: string;
+  };
+  antialiasing: boolean;
+  color: number;
+  read_from_file: boolean;
+  file: string;
+};
 
 export class GDIPlusTextSource<
-  F extends SourceFilters = SourceFilters
-> extends Source<
-  {
-    text: string;
-    font: {
-      face: string;
-      flags: number;
-      size: number;
-      style: string;
-    };
-    antialiasing: boolean;
-    color: number;
-    read_from_file: boolean;
-    file: string;
-  },
-  F
-> {
-  type = "text_gdiplus_v2";
+  Filters extends SourceFilters = SourceFilters
+> extends Source<Settings, Filters> {
+  constructor(args: CustomSourceArgs<Settings, Filters>) {
+    super({ ...args, type: "text_gdiplus_v2" });
+  }
 }

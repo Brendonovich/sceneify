@@ -9,10 +9,12 @@ beforeEach(() => {
 
 describe("create()", () => {
   it("creates new scenes", async () => {
-    const scene = new Scene({
-      name: "Test",
-      items: {},
-    });
+    // const scene = new Scene({
+    //   name: "Test",
+    //   items: {},
+    // });
+
+    const scene = new Scene("Test", {});
 
     await scene.create(obs);
 

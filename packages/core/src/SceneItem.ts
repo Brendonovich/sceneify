@@ -1,8 +1,36 @@
-import { SceneItemTransform } from "./types";
 import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
 import { Scene } from "./Scene";
 import { Source } from "./Source";
 import { mergeDeep } from "./utils";
+import { Alignment, BoundsType } from ".";
+
+export interface SceneItemTransform {
+  sourceWidth: number;
+  sourceHeight: number;
+
+  positionX: number;
+  positionY: number;
+
+  rotation: number;
+
+  scaleX: number;
+  scaleY: number;
+
+  width: number;
+  height: number;
+
+  alignment: Alignment;
+
+  boundsType: BoundsType;
+  boundsAlignment: Alignment;
+  boundsWidth: number;
+  boundsHeight: number;
+
+  cropLeft: number;
+  cropTop: number;
+  cropRight: number;
+  cropBottom: number;
+}
 
 /**
  * Represents an item of a source in OBS.
@@ -10,15 +38,22 @@ import { mergeDeep } from "./utils";
  * It's the responsibility of the caller (probably a Source) to ensure that
  * the item has been created. SceneItems are for accessing already existing items.
  */
-export class SceneItem<TSource extends Source = Source> {
+export class SceneItem<
+  TSource extends Source = Source,
+  TScene extends Scene = Scene
+> {
   constructor(
     public source: TSource,
-    public scene: Scene,
+    public scene: TScene,
     public id: number,
     public ref: string
   ) {
     source.itemInstances.add(this);
   }
+
+  transform: SceneItemTransform = { ...DEFAULT_SCENE_ITEM_TRANSFORM };
+  enabled = true;
+  locked = false;
 
   /**
    *
@@ -26,21 +61,25 @@ export class SceneItem<TSource extends Source = Source> {
    *
    */
 
+  /**
+   * Fetches the item's transform, enabled, and locked properties and assigns them to the item.
+   */
   async fetchProperties() {
     const args = {
       sceneName: this.scene.name,
       sceneItemId: this.id,
     };
-    const [] = await Promise.all([
-      this.source.obs.call("GetSceneItemTransform", args),
-      this.source.obs.call("GetSceneItemEnabled", args),
-      this.source.obs.call("GetSceneItemLocked", args),
-    ]);
+    const [{ sceneItemTransform }, { sceneItemEnabled }, { sceneItemLocked }] =
+      await Promise.all([
+        this.source.obs.call("GetSceneItemTransform", args),
+        this.source.obs.call("GetSceneItemEnabled", args),
+        this.source.obs.call("GetSceneItemLocked", args),
+      ]);
+
+    this.transform = sceneItemTransform as SceneItemTransform;
+    this.enabled = sceneItemEnabled;
+    this.locked = sceneItemLocked;
   }
-
-  // Transform
-
-  transform = { ...DEFAULT_SCENE_ITEM_TRANSFORM };
 
   async setTransform(transform: Partial<SceneItemTransform>) {
     await this.source.obs.call("SetSceneItemTransform", {
@@ -55,10 +94,6 @@ export class SceneItem<TSource extends Source = Source> {
     this.updateSizeFromSource();
   }
 
-  // Enabled
-
-  enabled = true;
-
   async setEnabled(enabled: boolean) {
     await this.source.obs.call("SetSceneItemEnabled", {
       sceneName: this.scene.name,
@@ -68,10 +103,6 @@ export class SceneItem<TSource extends Source = Source> {
 
     this.enabled = enabled;
   }
-
-  // Locked
-
-  locked = false;
 
   async setLocked(locked: boolean) {
     await this.source.obs.call("SetSceneItemLocked", {

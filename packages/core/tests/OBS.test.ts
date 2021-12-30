@@ -28,7 +28,7 @@ describe("clean()", () => {
       scenesBeforeClean.find(({ sceneName }) => sceneName === scene.name)
     ).not.toBeUndefined();
 
-    obs.inputs.clear();
+    obs.sources.clear();
     obs.scenes.clear();
 
     await obs.clean();

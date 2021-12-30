@@ -1,11 +1,9 @@
 import ObsWebSocket from "obs-websocket-js";
-import {
-  PatchedOBSRequestTypes,
-  PatchedOBSResponseTypes,
-} from "./types";
+import { PatchedOBSRequestTypes, PatchedOBSResponseTypes } from "./types";
 
 import type { Scene } from "./Scene";
-import { Source, ItemID, ItemRef, SceneName } from "./Source";
+import { Source } from "./Source";
+import { SourceRefs } from ".";
 
 export class OBS {
   /**
@@ -16,7 +14,7 @@ export class OBS {
   /**
    * All of the sources that this OBS instance has access to, excluding scenes
    */
-  inputs = new Map<string, Source>();
+  sources = new Map<string, Source>();
 
   /**
    * All of the scenes that this OBS instance has access to
@@ -34,13 +32,13 @@ export class OBS {
 
     this.rpcVersion = data.negotiatedRpcVersion;
 
-    this.inputs.clear();
+    this.sources.clear();
     this.scenes.clear();
   }
 
   /**
-   * Goes though each source in OBS and removes it if 1. simple-obs owns it and 2. there are no references
-   * to the source in code.
+   * Goes though each source in OBS and removes it if simple-obs owns it,
+   * and there are no references to the source in code.
    */
   async clean() {
     const { scenes } = await this.call("GetSceneList");
@@ -70,7 +68,7 @@ export class OBS {
             ? data.inputSettings.SIMPLE_OBS_REFS
             : undefined,
       }),
-      {} as Record<string, Record<SceneName, Record<ItemRef, ItemID>>>
+      {} as Record<string, SourceRefs>
     );
 
     // Delete refs that are actually in use
@@ -127,22 +125,26 @@ export class OBS {
         this.scenes.delete(danglingCodeScene);
     }
 
-    for (let danglingCodeInputs of this.inputs.keys()) {
+    for (let danglingCodeInputs of this.sources.keys()) {
       if (inputs.some(({ inputName }) => inputName === danglingCodeInputs))
-        this.inputs.delete(danglingCodeInputs);
+        this.sources.delete(danglingCodeInputs);
     }
 
     // TODO: Refresh filters
     await Promise.all([
-      ...[...this.inputs.values()].map((input) => input.pushRefs()),
+      ...[...this.sources.values()].map((input) => input.pushRefs()),
       ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
     ]);
   }
 
+  /** @internal */
   call<T extends keyof PatchedOBSRequestTypes>(
     requestType: T,
     requestData?: PatchedOBSRequestTypes[T]
-  ): Promise<PatchedOBSResponseTypes[T]> {
+  ): Promise<PatchedOBSResponseTypes[T]>;
+  call(requestType: string, requestData?: object): Promise<any>;
+
+  call(requestType: string, requestData?: object): Promise<any> {
     return this.socket.call(requestType as any, requestData as any);
   }
 

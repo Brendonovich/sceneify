@@ -1,15 +1,21 @@
-import { SceneItemTransform, SourceItemType } from "./types";
+import { SourceItemType } from "./types";
 import { OBS } from "./OBS";
-import { SceneItem } from "./SceneItem";
-import { ItemRef, Source, SourceSettings, SourceFilters } from "./Source";
+import { SceneItem, SceneItemTransform } from "./SceneItem";
+import { Source, SourceSettings, SourceFilters } from "./Source";
 import { DeepPartial } from "./types";
 import { wait } from "./utils";
 
-type ItemSchemaInput<T extends Source = Source> = {
+/**
+ * Describes how a scene item should be created, including its base source and transform
+ */
+export type ItemSchemaInput<T extends Source = Source> = {
   source: T;
 } & DeepPartial<SceneItemTransform>;
 
-type ItemsSchemaInput<Items extends Record<string, Source>> = {
+/**
+ * Describes a scene's map of scene items with {@link ItemSchemaInput ItemSchemaInputs}
+ */
+export type ItemsSchemaInput<Items extends Record<string, Source>> = {
   [K in keyof Items]: ItemSchemaInput<Items[K]>;
 };
 
@@ -20,13 +26,22 @@ interface LinkOptions {
   setSourceSettings: boolean;
 }
 
+export interface SceneArgs<
+  Items extends Record<string, Source>,
+  Settings extends SourceSettings,
+  Filters extends SourceFilters
+> {
+  name: string;
+  items: ItemsSchemaInput<Items>;
+  filters?: Filters;
+  settings?: DeepPartial<Settings>;
+}
+
 export class Scene<
-  Items extends Record<string, Source> = {},
-  Settings extends SourceSettings = {},
+  Items extends Record<string, Source> = Record<string, Source>,
+  Settings extends SourceSettings = SourceSettings,
   Filters extends SourceFilters = SourceFilters
 > extends Source<Settings, Filters> {
-  type = "scene";
-
   items: SceneItem[] = [];
 
   private itemsSchema: ItemsSchemaInput<Items>;
@@ -38,13 +53,8 @@ export class Scene<
    */
 
   /**  */
-  constructor(args: {
-    name: string;
-    items: ItemsSchemaInput<Items>;
-    filters?: Filters;
-    settings?: DeepPartial<Settings>;
-  }) {
-    super(args);
+  constructor(args: SceneArgs<Items, Settings, Filters>) {
+    super({ ...args, type: "scene" });
 
     this.itemsSchema = args.items;
   }
@@ -70,7 +80,7 @@ export class Scene<
     await wait(50);
 
     this._exists = true;
-    
+
     obs.scenes.set(this.name, this);
 
     for (const ref in this.itemsSchema) {
@@ -173,10 +183,8 @@ export class Scene<
     // TODO: Ordering options
   }
 
-  async addItem<T extends Source>(
-    ref: string,
-    { source, ...transform }: ItemSchemaInput<T>
-  ) {
+  async addItem<T extends Source>(ref: string, itemSchema: ItemSchemaInput<T>) {
+    const { source, ...transform } = itemSchema;
     // We only need to update the source after the first time the source is initialized
     const sourceNeedsUpdating = !source.initalized;
 
@@ -197,7 +205,7 @@ export class Scene<
     // We always need to set the item properties, but only need to set source settings and the like once
     // when we initalize the source
     await Promise.all<any>([
-      item.setTransform(transform),
+      item.setTransform(transform as SceneItemTransform),
       ...sourceUpdateRequests,
     ]);
 
@@ -205,15 +213,18 @@ export class Scene<
     // on things like source settings (eg. Image source, where width and height is dependent
     // on the size of the image)
     await item.fetchProperties();
-    
-    this.items.push(item)
-    
+
+    this.items.push(item);
+
     return item;
   }
 
   item<R extends string>(ref: R): SourceItemType<Items[R]>;
   item(ref: string): SceneItem | undefined;
 
+  /**
+   * Gets a scene item from the scene by its ref.
+   */
   item(ref: string) {
     return this.items.find((i) => i.ref === ref);
   }
@@ -224,7 +235,7 @@ export class Scene<
    * Functions that wrap OBS calls to make them easier to use.
    */
 
-  /**   *
+  /**
    * @param preview Whether to make the scene the current preview scene
    */
   async makeCurrentScene(preview?: boolean) {
@@ -247,7 +258,7 @@ export class Scene<
    * @override
    */
   override async createItem(
-    ref: ItemRef,
+    ref: string,
     scene: Scene
   ): Promise<SceneItem<this>> {
     if (!this.exists) await this.create(scene.obs);
@@ -259,7 +270,7 @@ export class Scene<
    * @internal
    * @override
    */
-  createInitialItem(ref: ItemRef, scene: Scene) {
+  createInitialItem(ref: string, scene: Scene) {
     return this.createItem(ref, scene);
   }
 }

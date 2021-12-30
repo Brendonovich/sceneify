@@ -8,4 +8,8 @@ export * from "./constants";
 
 export * from "./sources";
 export * from "./filters";
-export * from "./types";
+export type {
+  PatchedOBSRequestTypes as OBSRequestTypes,
+  PatchedOBSResponseTypes as OBSResponseTypes,
+  DeepPartial,
+} from "./types";

@@ -1,4 +1,4 @@
-import { SceneItemTransform } from "./types";
+import { SceneItemTransform } from "./SceneItem";
 
 export enum Alignment {
   CenterLeft = 1,
