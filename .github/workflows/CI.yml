@@ -3,8 +3,14 @@ name: CI
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - "website/**"
+      - "translations/**"
   pull_request:
     branches: [master]
+    paths-ignore:
+      - "website/**"
+      - "translations/**"
 
 jobs:
   build:
