@@ -98,7 +98,10 @@ module.exports = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Brendonovich`,
+        copyright: `
+          Copyright © ${new Date().getFullYear()} Brendonovich <br>
+          Simple OBS is in no way affiliated with OBS Studio or the OBS Project
+        `,
       },
       prism: {
         theme: lightCodeTheme,
