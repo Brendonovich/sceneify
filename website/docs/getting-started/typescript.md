@@ -1,5 +1,5 @@
 ---
-sidebar_index: 2
+sidebar_position: 2
 ---
 
 # TypeScript Support

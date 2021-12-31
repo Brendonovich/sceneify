@@ -1,5 +1,5 @@
 ---
-sidebar_index: 1
+sidebar_position: 1
 ---
 
 # Installation
