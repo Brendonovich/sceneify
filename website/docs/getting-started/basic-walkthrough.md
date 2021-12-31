@@ -124,4 +124,4 @@ Making sure you have OBS running, run the script you just wrote. You should see 
 There are so many features that weren't touched on in this walkthrough, and you are likely confused about some things.
 
 <!-- - The [Guides](/docs/guides/scenes) explain most parts of Simple OBS and how to use them -->
-- The [API Referene](/api) contains detailed information on the types and uses of every aspect of Simple OBS.
+- The [API Reference](/api) contains detailed information on the types and uses of every aspect of Simple OBS.
