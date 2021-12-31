@@ -43,3 +43,5 @@ new Scene({
   name: "Scene Name",
 });
 ```
+
+After the scene is created, its [items](/api/core/class/Scene#items) array will be populated with all of its items, and each item can be accessed by ref using [item()](/api/core/class/Scene#item).

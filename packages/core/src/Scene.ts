@@ -61,8 +61,6 @@ export class Scene<
 
   /**
    * Creates a scene in OBS and populates it with items as defined by the scene's items schema.
-   *
-   * Can be called normally, and is also called by `Scene.addItem` through the `Scene.createItem` override.
    */
   async create(obs: OBS): Promise<this> {
     // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
@@ -84,7 +82,7 @@ export class Scene<
     obs.scenes.set(this.name, this);
 
     for (const ref in this.itemsSchema) {
-      await this.addItem(ref, this.itemsSchema[ref]);
+      await this.createItem(ref, this.itemsSchema[ref]);
     }
 
     await this.setSettings({
@@ -183,7 +181,10 @@ export class Scene<
     // TODO: Ordering options
   }
 
-  async addItem<T extends Source>(ref: string, itemSchema: SceneItemSchema<T>) {
+  async createItem<T extends Source>(
+    ref: string,
+    itemSchema: SceneItemSchema<T>
+  ) {
     const { source, ...transform } = itemSchema;
     // We only need to update the source after the first time the source is initialized
     const sourceNeedsUpdating = !source.initalized;
@@ -193,7 +194,7 @@ export class Scene<
 
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required
-    const item = await source.createItem(ref, this);
+    const item = await source.createSceneItem(ref, this);
 
     const sourceUpdateRequests = sourceNeedsUpdating
       ? [
@@ -257,13 +258,13 @@ export class Scene<
    * @internal
    * @override
    */
-  override async createItem(
+  override async createSceneItem(
     ref: string,
     scene: Scene
   ): Promise<SceneItem<this>> {
     if (!this.exists) await this.create(scene.obs);
 
-    return await super.createItem(ref, scene);
+    return await super.createSceneItem(ref, scene);
   }
 
   /**
@@ -271,6 +272,6 @@ export class Scene<
    * @override
    */
   createInitialItem(ref: string, scene: Scene) {
-    return this.createItem(ref, scene);
+    return this.createSceneItem(ref, scene);
   }
 }

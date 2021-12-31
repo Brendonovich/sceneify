@@ -27,9 +27,24 @@ They also have some additional properties:
 - [id](/api/core/class/SceneItem#id) - The id of the item in OBS
 - [ref](/api/core/class/SceneItem#ref) - The ref of the item used by Simple OBS
 
+## Creating Dynamically
+
+Scene items don't have to be created at the same time as a scene.
+You may use [createItem()](/api/core/class/Scene#createItem) to create an item from a [schema](/api/core#SceneItemSchema) at any time after a scene has been created.
+
+```ts
+await scene.createItem("anotherRef", {
+  source: anotherSource,
+  positionX: 0,
+  enabled: false,
+});
+```
+
+This function is used internally by [create()](/api/core/class/Scene#create), so you can be certain that creation of the item will perform the same way as if it was created at the same time as the scene.
+
 ## Removing
 
-SceneItems can be removed from their containing scene with [remove()](/api/core/class/SceneItem#remove)
+Scene items can be removed from their containing scene with [remove()](/api/core/class/SceneItem#remove)
 
 ```ts
 await someItem.remove();

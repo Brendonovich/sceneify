@@ -366,7 +366,7 @@ export class Source<
    * @returns A SceneItem created by `Source.createSceneItem`
    * @internal
    */
-  async createItem(ref: string, scene: Scene): Promise<SceneItem<this>> {
+  async createSceneItem(ref: string, scene: Scene): Promise<SceneItem<this>> {
     if (!this.initalized)
       throw new Error(
         `Cannot create item of source ${this.name} as it is not initialized`
