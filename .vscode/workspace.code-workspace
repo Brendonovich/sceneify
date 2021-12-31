@@ -25,7 +25,8 @@
       "core",
       "animation",
       "filters",
-      "web"
+      "web",
+      "sources"
     ],
     "jest.disabledWorkspaceFolders": ["root", "website"],
     "jest.jestCommandLine": "pnpm test --",

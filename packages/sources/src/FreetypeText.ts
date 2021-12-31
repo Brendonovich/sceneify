@@ -19,7 +19,7 @@ export class FreetypeTextSource<
   constructor(args: CustomSourceArgs<FreetypeTextSourceSettings, Filters>) {
     super({
       ...args,
-      type: "text_ft2_source_v2",
+      kind: "text_ft2_source_v2",
     });
   }
 }

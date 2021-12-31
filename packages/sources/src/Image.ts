@@ -12,6 +12,6 @@ export class ImageSource<
   Filters extends SourceFilters = SourceFilters
 > extends Source<ImageSourceSettings, Filters> {
   constructor(args: CustomSourceArgs<ImageSourceSettings, Filters>) {
-    super({ ...args, type: "image_source" });
+    super({ ...args, kind: "image_source" });
   }
 }

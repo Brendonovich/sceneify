@@ -8,6 +8,6 @@ export class MediaSource<
   Filters extends SourceFilters = SourceFilters
 > extends Source<MediaSourceSettings, Filters> {
   constructor(args: CustomSourceArgs<MediaSourceSettings, Filters>) {
-    super({ ...args, type: "ffmpeg_source" });
+    super({ ...args, kind: "ffmpeg_source" });
   }
 }

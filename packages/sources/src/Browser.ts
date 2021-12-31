@@ -35,7 +35,7 @@ export class BrowserSource<
   Filters extends SourceFilters = SourceFilters
 > extends Source<BrowserSourceSettings, Filters> {
   constructor(args: CustomSourceArgs<BrowserSourceSettings, Filters>) {
-    super({ ...args, type: "browser_source" });
+    super({ ...args, kind: "browser_source" });
   }
 
   override createItemInstance(

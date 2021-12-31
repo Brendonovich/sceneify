@@ -11,7 +11,7 @@ export class DisplayCaptureSource<
   constructor(args: CustomSourceArgs<DisplayCaptureSourceSettings, Filters>) {
     super({
       ...args,
-      type: "monitor_capture",
+      kind: "monitor_capture",
     });
   }
 }

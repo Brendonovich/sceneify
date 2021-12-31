@@ -22,6 +22,6 @@ export class GDIPlusTextSource<
   Filters extends SourceFilters = SourceFilters
 > extends Source<GDIPlusTextSourceSettings, Filters> {
   constructor(args: CustomSourceArgs<GDIPlusTextSourceSettings, Filters>) {
-    super({ ...args, type: "text_gdiplus_v2" });
+    super({ ...args, kind: "text_gdiplus_v2" });
   }
 }

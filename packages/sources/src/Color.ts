@@ -15,7 +15,7 @@ export class ColorSource<
   Filters extends SourceFilters = SourceFilters
 > extends Source<ColorSourceSettings, Filters> {
   constructor(args: CustomSourceArgs<ColorSourceSettings, Filters>) {
-    super({ ...args, type: "color_source_v3" });
+    super({ ...args, kind: "color_source_v3" });
   }
 
   override async setSettings(settings: DeepPartial<ColorSourceSettings>) {
