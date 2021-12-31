@@ -1,9 +1,9 @@
 ---
 sidebar_position: 2
-slug: /creating-scenes
+slug: /scene
 ---
 
-# Creating Scenes
+# Scene
 
 To create an empty scene, first declare it with and give it a name:
 
@@ -19,7 +19,7 @@ Then, call [create()](/api/core/class/Scene#create) and provide an instance of [
 await someScene.create(obs);
 ```
 
-## With Items
+## Items
 
 Scenes accept an `items` property, which is a map that describes how each of the scene's items should be created.
 

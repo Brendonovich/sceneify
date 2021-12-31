@@ -1,9 +1,9 @@
 ---
 sidebar_position: 1
-slug: /creating-sources
+slug: /source
 ---
 
-# Creating Sources
+# Source
 
 [Sources](/api/core/class/Source) can be declared by calling `new Source` with the appropriate arguments.
 
