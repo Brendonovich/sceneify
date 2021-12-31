@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Basic Walkthrough
 
-This page will contain a walkthrough of how to create two scenes, one nested inside another, to demonstrate some of Simple OBS's functionality.
+This page contains a walkthrough of how to create two scenes, one nested inside another, to demonstrate some of Simple OBS's functionality.
 
 ## Step 0: Create a new Scene Collection
 
