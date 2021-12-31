@@ -100,7 +100,7 @@ const mainScene = new Scene({
 
 ## Step 4: Create the Scenes in OBS
 
-Finally, tell the main scene to create itself and all of its children (in this case, the nested scene) in the instance of [OBS](/api/class/core/OBS) you created in Step 1:
+Finally, tell the main scene to create itself and all of its children (in this case, the nested scene) in the instance of [OBS](/api/core/class/OBS) you created in Step 1:
 
 ```ts
 await mainScene.create(obs);
