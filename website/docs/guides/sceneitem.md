@@ -5,7 +5,7 @@ slug: /sceneitem
 
 # SceneItem
 
-After creating a scene, you can access its items using [item()](/api/core/class/Scene#item).
+After creating a scene, you can access specific items using [item()](/api/core/class/Scene#item).
 Simply provide an item's `ref` and it will return the [item](/api/core/class/SceneItem) or `undefined` if there is no item with the provided `ref`.
 
 ```ts
