@@ -4,13 +4,13 @@ sidebar_position: 1
 
 # Overview
 
+Simple OBS is a library for NodeJS and the browser for creating, and manipulating items in OBS. With a consistent API and easy extensibility, it makes interacting with OBS through OBS Websocket much simpler and more approachable.
+
 :::caution
 
 This documentation is for the upcoming 1.0.0 release of Simple OBS that uses OBS Websocket v5.
 
 :::
-
-Simple OBS is a library for NodeJS and the browser for creating, and manipulating items in OBS. With a consistent API and easy extensibility, it makes interacting with OBS through OBS Websocket much simpler and more approachable.
 
 ## Motivation
 
