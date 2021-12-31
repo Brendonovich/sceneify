@@ -1,12 +1,13 @@
 ---
 sidebar_position: 1
+slug: /installation
 ---
 
 # Installation
 
-## Core
-
 First of all, you will need to install [OBS Websocket v5](https://github.com/obsproject/obs-websocket/releases/latest) if you do not have it installed.
+
+## Core
 
 Then, install [@simple-obs/core](/api/core) with your package manager of choice:
 

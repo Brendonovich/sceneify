@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+slug: /basic-walkthrough
 ---
 
 # Basic Walkthrough
