@@ -15,7 +15,7 @@ describe("clean()", () => {
         item: {
           source: new Source({
             name: "Source",
-            type: "test",
+            kind: "test",
             settings: {},
           }),
         },

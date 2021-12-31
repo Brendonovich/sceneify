@@ -12,6 +12,12 @@ This documentation is for the upcoming 1.0.0 release of Simple OBS that uses OBS
 
 :::
 
+:::note
+
+This documentation assumes that you are familar with OBS, including terminology, unique name requirements of sources and filters, and how items, sources and filters are created and removed.
+
+:::
+
 ## Motivation
 
 OBS is a very powerful piece of software, being capable of compositing, mixing, encoding and streaming live and recorded video. OBS Websocket pushes this to the extreme, allowing for full control of almost every aspect of an OBS instance. That is, as long as you are capable and willing to write the code required to tell the websocket what to do. This can be simple if you're just trying to automate scene switching, mute an audio source or some other small task, but can become quite a daunting task with more complex software and layouts.

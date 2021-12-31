@@ -86,7 +86,7 @@ describe("create()", () => {
   it("detects existing sources", async () => {
     const existingSource = new Source({
       name: "Existing Source",
-      type: "test",
+      kind: "test",
       settings: {},
     });
 

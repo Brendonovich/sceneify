@@ -9,8 +9,9 @@ slug: /source
 
 ```ts
 const imageSource = new Source({
-  name: "Image Source", // Name of the source in OBS
   kind: "image_source", // The kind of the source
+  name: "Image Source", // Name of the scene in OBS
+  // Must be unique among all sources and scenes
 });
 ```
 
@@ -54,3 +55,19 @@ Sources have two properties that you can use to check if they have been processe
 
 - [exists](/api/core/class/Source#exists): Whether the source exists in OBS
 - [initialized](/api/core/class/Source#initialzed): Whether a scene has checked if the source exists in OBS
+
+## Properties
+
+In addition to the two properties above, sources have a number of other properties:
+
+- [name](/api/core/class/Source#name): The name the source was created with
+- [kind](/api/core/class/Source#kind): The kind of the source
+- [filters](/api/core/class/Source#filters): An array of filters corresponding to the filters of the source in OBS
+
+These properties can be set with their associated functions:
+
+- [settings](/api/core/class/Source#settings) - [setSettings](/api/core/class/Source#setSettings)
+- [volume](/api/core/class/Source#volume) - [setVolume](/api/core/class/Source#volume)
+- [audioMonitorType](/api/core/class/Source#audioMonitorType) - [setAudioMonitorType](/api/core/class/Source#setAudioMonitorType)
+- [audioSyncOffset](/api/core/class/Source#audioSyncOffset) - [setAudioSyncOffset](/api/core/class/Source#setAudioSyncOffset)
+- [muted](/api/core/class/Source#muted) - [setMuted](/api/core/class/Source#setMuted)

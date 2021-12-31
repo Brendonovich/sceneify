@@ -9,7 +9,8 @@ To create an empty scene, first declare it with and give it a name:
 
 ```ts
 const someScene = new Scene({
-  name: "Scene Name",
+  name: "Scene Name", // Name of the scene in OBS
+  // Must be unique among all sources and scenes
 });
 ```
 
@@ -45,3 +46,7 @@ new Scene({
 ```
 
 After the scene is created, its [items](/api/core/class/Scene#items) array will be populated with all of its items, and each item can be accessed by ref using [item()](/api/core/class/Scene#item).
+
+## Properties
+
+As scenes are also sources, they inherit all the [properties](/docs/source#properties) that a regular [Source](/api/core/class/Source) would.

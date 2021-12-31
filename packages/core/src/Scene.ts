@@ -54,7 +54,7 @@ export class Scene<
 
   /**  */
   constructor(args: SceneArgs<Items, Settings, Filters>) {
-    super({ ...args, type: "scene" });
+    super({ ...args, kind: "scene" });
 
     this.itemsSchema = args.items;
   }

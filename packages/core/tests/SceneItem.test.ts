@@ -14,7 +14,7 @@ describe("setTransform()", () => {
       items: {
         item: {
           source: new Source({
-            type: "test",
+            kind: "test",
             name: "Source",
             settings: {},
           }),
@@ -52,7 +52,7 @@ describe("setTransform()", () => {
       items: {
         item: {
           source: new Source({
-            type: "test",
+            kind: "test",
             name: "Source",
             settings: {},
           }),

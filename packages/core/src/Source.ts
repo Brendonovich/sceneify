@@ -15,7 +15,7 @@ export interface SourceArgs<
   Filters extends SourceFilters
 > {
   name: string;
-  type: string;
+  kind: string;
   settings?: DeepPartial<Settings>;
   filters?: Filters;
 }
@@ -31,7 +31,7 @@ export class Source<
 > {
   constructor(args: SourceArgs<Settings, Filters>) {
     this.name = args.name;
-    this.type = args.type;
+    this.kind = args.kind;
     this.settings = args.settings ?? ({} as DeepPartial<Settings>);
     this.filtersMap = args.filters ?? ({} as Filters);
   }
@@ -43,7 +43,7 @@ export class Source<
 
   /** */
   name: string;
-  type: string;
+  kind: string;
   filters: Filter[] = [];
   settings: DeepPartial<Settings>;
   volume = {
@@ -152,7 +152,7 @@ export class Source<
     return inputMuted;
   }
 
-  async setVolume(data: { db: number } | { mul: number }) {
+  async setVolume(data: { db?: number; mul?: number }) {
     await this.obs.call("SetInputVolume", {
       inputName: this.name,
       inputVolumeDb: (data as any).db,
@@ -332,7 +332,7 @@ export class Source<
         }
       );
       // Exit if source exists but type doesn't match
-      if (inputKind !== this.type) throw ["WRONG_KIND", inputKind];
+      if (inputKind !== this.kind) throw ["WRONG_KIND", inputKind];
 
       // Assign refs from previous runs of code
       if (inputSettings.SIMPLE_OBS_REFS)
@@ -348,7 +348,7 @@ export class Source<
     } catch (e) {
       if (Array.isArray(e) && e[0] === "WRONG_KIND")
         throw new Error(
-          `Source with name ${this.name} has different type in OBS than expected. Found: ${e[1]}, Expected: ${this.type}`
+          `Source with name ${this.name} has different type in OBS than expected. Found: ${e[1]}, Expected: ${this.kind}`
         );
 
       this._exists = false;
@@ -420,7 +420,7 @@ export class Source<
     } else {
       const { sceneItemId } = await this.obs.call("CreateInput", {
         inputName: this.name,
-        inputKind: this.type,
+        inputKind: this.kind,
         sceneName: scene.name,
         inputSettings: this.settings,
       });

@@ -12,22 +12,7 @@ Simply provide an item's `ref` and it will return the [item](/api/core/class/Sce
 const someItem = someScene.item("someItem");
 ```
 
-## Properties
-
-SceneItems have three main properties that can be updated by their associated functions:
-
-- [transform](/api/core/class/SceneItem#transform) & [setTransform](/api/core/class/SceneItem#setTransform)
-- [enabled](/api/core/class/SceneItem#enabled) & [setEnabled](/api/core/class/SceneItem#setEnabled)
-- [locked](/api/core/class/SceneItem#locked) & [setLocked](/api/core/class/SceneItem#setLocked)
-
-They also have some additional properties:
-
-- [scene](/api/core/class/SceneItem#scene) - The scene that the item exists in
-- [source](/api/core/class/SceneItem#source) - The source that the item is an instance of
-- [id](/api/core/class/SceneItem#id) - The id of the item in OBS
-- [ref](/api/core/class/SceneItem#ref) - The ref of the item used by Simple OBS
-
-## Creating Dynamically
+## Creating Items Dynamically
 
 Scene items don't have to be created at the same time as a scene.
 You may use [createItem()](/api/core/class/Scene#createItem) to create an item from a [schema](/api/core#SceneItemSchema) at any time after a scene has been created.
@@ -49,3 +34,16 @@ Scene items can be removed from their containing scene with [remove()](/api/core
 ```ts
 await someItem.remove();
 ```
+
+## Properties
+
+- [scene](/api/core/class/SceneItem#scene) - The scene that the item exists in
+- [source](/api/core/class/SceneItem#source) - The source that the item is an instance of
+- [id](/api/core/class/SceneItem#id) - The id of the item in OBS
+- [ref](/api/core/class/SceneItem#ref) - The ref of the item used by Simple OBS
+
+These properties can be set with their associated functions:
+
+- [transform](/api/core/class/SceneItem#transform) - [setTransform](/api/core/class/SceneItem#setTransform)
+- [enabled](/api/core/class/SceneItem#enabled) - [setEnabled](/api/core/class/SceneItem#setEnabled)
+- [locked](/api/core/class/SceneItem#locked) - [setLocked](/api/core/class/SceneItem#setLocked)
