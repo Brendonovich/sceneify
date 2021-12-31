@@ -8,15 +8,15 @@ import { wait } from "./utils";
 /**
  * Describes how a scene item should be created, including its base source and transform
  */
-export type ItemSchemaInput<T extends Source = Source> = {
+export type SceneItemSchema<T extends Source = Source> = {
   source: T;
 } & DeepPartial<SceneItemTransform>;
 
 /**
- * Describes a scene's map of scene items with {@link ItemSchemaInput ItemSchemaInputs}
+ * Describes a scene's map of scene items with {@link SceneItemSchema ItemSchemaInputs}
  */
-export type ItemsSchemaInput<Items extends Record<string, Source>> = {
-  [K in keyof Items]: ItemSchemaInput<Items[K]>;
+export type SceneItemSchemas<Items extends Record<string, Source>> = {
+  [K in keyof Items]: SceneItemSchema<Items[K]>;
 };
 
 interface LinkOptions {
@@ -32,7 +32,7 @@ export interface SceneArgs<
   Filters extends SourceFilters
 > {
   name: string;
-  items: ItemsSchemaInput<Items>;
+  items: SceneItemSchemas<Items>;
   filters?: Filters;
   settings?: DeepPartial<Settings>;
 }
@@ -44,7 +44,7 @@ export class Scene<
 > extends Source<Settings, Filters> {
   items: SceneItem[] = [];
 
-  private itemsSchema: ItemsSchemaInput<Items>;
+  private itemsSchema: SceneItemSchemas<Items>;
 
   /**
    * MAIN METHODS
@@ -183,7 +183,7 @@ export class Scene<
     // TODO: Ordering options
   }
 
-  async addItem<T extends Source>(ref: string, itemSchema: ItemSchemaInput<T>) {
+  async addItem<T extends Source>(ref: string, itemSchema: SceneItemSchema<T>) {
     const { source, ...transform } = itemSchema;
     // We only need to update the source after the first time the source is initialized
     const sourceNeedsUpdating = !source.initalized;
