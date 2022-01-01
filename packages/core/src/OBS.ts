@@ -21,7 +21,7 @@ export class OBS {
    */
   scenes = new Map<string, Scene>();
 
-  // @internal
+  /** @internal */
   rpcVersion!: number;
 
   /**
