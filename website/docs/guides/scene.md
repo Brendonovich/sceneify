@@ -49,4 +49,8 @@ After the scene is created, its [items](/api/core/class/Scene#items) array will 
 
 ## Properties
 
-As scenes are also sources, they inherit all the [properties](/docs/source#properties) that a regular [Source](/api/core/class/Source) would.
+As scenes are also sources, they share many similar properties as [Inputs](/api/core/class/Input):
+
+- [name](/api/core/class/Scene#name): The name of the scene
+- [kind](/api/core/class/Scene#kind): The kind of the scene (will always be `scene`)
+- [filters](/api/core/class/Scene#filters): An array of filters corresponding to the filters on the scene in OBS
