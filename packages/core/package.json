@@ -6,6 +6,7 @@
   "types": "./dts/index.d.ts",
   "module": "./esm/index.js",
   "browser": "./lib/browser/index.js",
+  "type": "module",
   "author": "",
   "license": "ISC",
   "scripts": {
@@ -23,6 +24,7 @@
     "jest": "^27.4.5"
   },
   "files": [
+    "cjs/**/*.{cjs,map}",
     "dist",
     "dts",
     "esm/**/*.{js,map}",

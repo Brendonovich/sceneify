@@ -10,7 +10,7 @@
   "author": "Brendan Allan",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^16.9.3",
+    "@types/node": "^16.11.16",
     "ts-node": "^10.2.1"
   },
   "dependencies": {

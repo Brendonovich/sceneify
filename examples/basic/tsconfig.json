@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "target": "ES6"
+    // "esModuleInterop": false,
+    // "allowSyntheticDefaultImports": true
+  },
+  "exclude": ["dts", "tests"],
+  "include": ["./index.ts"]
+}

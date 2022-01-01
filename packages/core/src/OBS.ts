@@ -1,6 +1,6 @@
 import ObsWebSocket from "obs-websocket-js";
-import { PatchedOBSRequestTypes, PatchedOBSResponseTypes } from "./types";
 
+import { PatchedOBSRequestTypes, PatchedOBSResponseTypes } from "./types";
 import type { Scene } from "./Scene";
 import { Source } from "./Source";
 import { SourceRefs } from ".";

@@ -18,7 +18,6 @@
     "type": "beemo typescript --build"
   },
   "devDependencies": {
-    "@babel/plugin-transform-modules-commonjs": "^7.16.5",
     "@beemo/cli": "^2.0.3",
     "@beemo/core": "^2.1.1",
     "@beemo/dev": "^1.7.4",

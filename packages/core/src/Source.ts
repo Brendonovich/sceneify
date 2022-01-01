@@ -23,7 +23,7 @@ export interface SourceArgs<
 export type CustomSourceArgs<
   Settings extends SourceSettings,
   Filters extends SourceFilters
-> = Omit<SourceArgs<Settings, Filters>, "type">;
+> = Omit<SourceArgs<Settings, Filters>, "kind">;
 
 export class Source<
   Settings extends SourceSettings = SourceSettings,
@@ -344,7 +344,7 @@ export class Source<
 
       this._exists = true;
 
-      await this.initializeFilters();
+      // await this.initializeFilters();
     } catch (e) {
       if (Array.isArray(e) && e[0] === "WRONG_KIND")
         throw new Error(
@@ -429,7 +429,7 @@ export class Source<
 
       this._exists = true;
 
-      await this.initializeFilters();
+      // await this.initializeFilters();
 
       itemId = sceneItemId;
     }
