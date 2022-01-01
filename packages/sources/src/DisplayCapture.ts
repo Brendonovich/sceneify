@@ -1,4 +1,4 @@
-import { Source, SourceFilters, CustomSourceArgs } from "@simple-obs/core";
+import { Input, SourceFilters, CustomInputArgs } from "@simple-obs/core";
 
 export type DisplayCaptureSourceSettings = {
   monitor: number;
@@ -7,8 +7,8 @@ export type DisplayCaptureSourceSettings = {
 
 export class DisplayCaptureSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<DisplayCaptureSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<DisplayCaptureSourceSettings, Filters>) {
+> extends Input<DisplayCaptureSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<DisplayCaptureSourceSettings, Filters>) {
     super({
       ...args,
       kind: "monitor_capture",

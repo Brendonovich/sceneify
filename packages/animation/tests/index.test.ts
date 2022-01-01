@@ -1,5 +1,5 @@
 import { Queue } from "@datastructures-js/queue";
-import { CustomSourceArgs, Source } from "@simple-obs/core";
+import { CustomInputArgs, Input } from "@simple-obs/core";
 
 import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 
@@ -9,8 +9,8 @@ describe("processTimeline()", () => {
   });
 
   test("Simple", () => {
-    let source = new Source({
-      type: "test",
+    let source = new Input({
+      kind: "test",
       name: "Test Source",
     });
 
@@ -50,17 +50,17 @@ describe("processTimeline()", () => {
   });
 
   test("Nested", () => {
-    class NestedSettingsSource extends Source<{
+    class NestedSettingsSource extends Input<{
       property: {
         nested: {
           value: number;
         };
       };
     }> {
-      constructor(args: CustomSourceArgs<any, any>) {
+      constructor(args: CustomInputArgs<any, any>) {
         super({
           ...args,
-          type: "test",
+          kind: "test",
         });
       }
     }

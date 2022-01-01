@@ -1,6 +1,6 @@
 import {
-  CustomSourceArgs,
-  Source,
+  CustomInputArgs,
+  Input,
   SourceFilters,
 } from "@simple-obs/core";
 
@@ -10,8 +10,8 @@ export type ImageSourceSettings = {
 
 export class ImageSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<ImageSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<ImageSourceSettings, Filters>) {
+> extends Input<ImageSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<ImageSourceSettings, Filters>) {
     super({ ...args, kind: "image_source" });
   }
 }

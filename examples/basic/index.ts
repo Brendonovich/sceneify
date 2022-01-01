@@ -11,7 +11,7 @@ async function main() {
   const obs = new OBS();
 
   // Connect to OBS before creating or linking any scenes
-  await obs.connect("localhost:4444");
+  await obs.connect("ws:localhost:4444");
 
   // Requests can be made directly through the websocket using OBS.call
   const { baseWidth: OBS_WIDTH, baseHeight: OBS_HEIGHT } = await obs.call(
@@ -27,13 +27,13 @@ async function main() {
       height: 400,
     },
     filters: {
-      color: new ColorCorrectionFilter({
-        name: "Color Corrector",
-        settings: {
-          brightness: 0,
-          hue_shift: 0,
-        },
-      }),
+      // color: new ColorCorrectionFilter({
+      //   name: "Color Corrector",
+      //   settings: {
+      //     brightness: 0,
+      //     hue_shift: 0,
+      //   },
+      // }),
     },
   });
 
@@ -64,9 +64,9 @@ async function main() {
   await wait(1000);
 
   // Color should change from green to pink
-  await mainScene.item("red").source.filter("color").setSettings({
-    hue_shift: 180,
-  });
+  // await mainScene.item("red").source.filter("color").setSettings({
+  //   hue_shift: 180,
+  // });
 
   await wait(3000);
 

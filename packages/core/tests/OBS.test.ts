@@ -1,4 +1,4 @@
-import { Source, OBS, Scene } from "../src";
+import { Input, OBS, Scene } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
@@ -13,7 +13,7 @@ describe("clean()", () => {
       name: "Test",
       items: {
         item: {
-          source: new Source({
+          source: new Input({
             name: "Source",
             kind: "test",
             settings: {},
@@ -29,7 +29,7 @@ describe("clean()", () => {
       scenesBeforeClean.find(({ sceneName }) => sceneName === scene.name)
     ).not.toBeUndefined();
 
-    obs.sources.clear();
+    obs.inputs.clear();
     obs.scenes.clear();
 
     await obs.clean();

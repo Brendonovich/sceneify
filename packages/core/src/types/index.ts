@@ -1,4 +1,4 @@
-import { Source } from "../Source";
+import { Source } from "../Source"
 import {
   OBSRequestTypes as BaseRequestTypes,
   OBSResponseTypes as BaseResponseTypes,
@@ -173,13 +173,15 @@ export interface OBSRequestTypesOverrides {
 
 export interface OBSResponseTypesOverrides {
   GetSceneItemList: {
-    sceneItemId: number;
-    sceneItemIndex: number;
-    sourceName: string;
-    sourceType: string;
-    inputKind?: string;
-    isGroup?: boolean;
-  }[];
+    sceneItems: {
+      sceneItemId: number;
+      sceneItemIndex: number;
+      sourceName: string;
+      sourceType: string;
+      inputKind?: string;
+      isGroup?: boolean;
+    }[];
+  };
 
   GetSceneItemTransform: { sceneItemTransform: SceneItemTransform };
 

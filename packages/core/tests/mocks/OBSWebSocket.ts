@@ -55,7 +55,7 @@ class Input {
 
 class SceneItem {
   enabled = true;
-  locked = true
+  locked = true;
 
   constructor(
     public id: number,
@@ -176,7 +176,7 @@ export class MockOBSWebSocket {
 
       case "GetInputSettings": {
         const data = requestData as OBSRequestTypes["GetInputSettings"];
-        const input = [...this.OBS.allInputs].find(
+        const input = [...this.OBS.inputs].find(
           (i) => i.name === data.inputName
         );
 
@@ -192,7 +192,7 @@ export class MockOBSWebSocket {
 
       case "SetInputSettings": {
         const data = requestData as OBSRequestTypes["SetInputSettings"];
-        const input = [...this.OBS.allInputs].find(
+        const input = [...this.OBS.inputs].find(
           (i) => i.name === data.inputName
         );
 
@@ -509,6 +509,20 @@ export class MockOBSWebSocket {
         ret = {
           sceneItemLocked: item.locked,
         };
+
+        break;
+      }
+
+      case "SetSceneName": {
+        const data = requestData as OBSRequestTypes["SetSceneName"];
+
+        const scene = [...this.OBS.scenes].find(
+          (s) => s.name === data.sceneName
+        );
+
+        if (!scene) throw new Error("Scene not found");
+
+        scene.name = data.newSceneName;
 
         break;
       }

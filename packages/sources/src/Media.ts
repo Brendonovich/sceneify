@@ -1,4 +1,4 @@
-import { Source, SourceFilters, CustomSourceArgs } from "@simple-obs/core";
+import { Input, SourceFilters, CustomInputArgs } from "@simple-obs/core";
 
 export type MediaSourceSettings = {
   local_file: string;
@@ -6,8 +6,8 @@ export type MediaSourceSettings = {
 };
 export class MediaSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<MediaSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<MediaSourceSettings, Filters>) {
+> extends Input<MediaSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<MediaSourceSettings, Filters>) {
     super({ ...args, kind: "ffmpeg_source" });
   }
 }

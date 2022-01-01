@@ -3,5 +3,16 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": []
+  "configurations": [
+    {
+      "name": "example (basic)",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["index.ts"],
+      "runtimeExecutable": "ts-node",
+      "cwd": "${workspaceRoot}/examples/basic",
+      "protocol": "inspector",
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ]
 }

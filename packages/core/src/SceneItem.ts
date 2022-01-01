@@ -85,7 +85,7 @@ export class SceneItem<
     await this.source.obs.call("SetSceneItemTransform", {
       sceneName: this.scene.name,
       sceneItemId: this.id,
-      transform,
+      sceneItemTransform: transform,
     });
 
     // Merge deep to ignore undefined

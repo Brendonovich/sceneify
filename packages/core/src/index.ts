@@ -1,5 +1,6 @@
-export * from "./Scene";
 export * from "./Source";
+export * from "./Scene";
+export * from "./Input";
 export * from "./SceneItem";
 export * from "./Filter";
 

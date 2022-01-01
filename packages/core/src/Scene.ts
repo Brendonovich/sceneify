@@ -1,9 +1,9 @@
 import { SourceItemType } from "./types";
 import { OBS } from "./OBS";
 import { SceneItem, SceneItemTransform } from "./SceneItem";
-import { Source, SourceSettings, SourceFilters } from "./Source";
 import { DeepPartial } from "./types";
 import { wait } from "./utils";
+import { SourceFilters, Source } from "./Source";
 
 /**
  * Describes how a scene item should be created, including its base source and transform
@@ -28,20 +28,17 @@ interface LinkOptions {
 
 export interface SceneArgs<
   Items extends Record<string, Source>,
-  Settings extends SourceSettings,
   Filters extends SourceFilters
 > {
   name: string;
   items: SceneItemSchemas<Items>;
   filters?: Filters;
-  settings?: DeepPartial<Settings>;
 }
 
 export class Scene<
-  Items extends Record<string, Source> = Record<string, Source>,
-  Settings extends SourceSettings = SourceSettings,
-  Filters extends SourceFilters = SourceFilters
-> extends Source<Settings, Filters> {
+  Items extends Record<string, Source> = {},
+  Filters extends SourceFilters = {}
+> extends Source<{}, Filters> {
   items: SceneItem[] = [];
 
   private itemsSchema: SceneItemSchemas<Items>;
@@ -53,7 +50,7 @@ export class Scene<
    */
 
   /**  */
-  constructor(args: SceneArgs<Items, Settings, Filters>) {
+  constructor(args: SceneArgs<Items, Filters>) {
     super({ ...args, kind: "scene" });
 
     this.itemsSchema = args.items;
@@ -66,7 +63,7 @@ export class Scene<
     // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
     if (this.exists) return this;
 
-    await super.initialize(obs);
+    await this.initialize(obs);
 
     if (!this.exists) {
       await obs.call("CreateScene", {
@@ -85,9 +82,9 @@ export class Scene<
       await this.createItem(ref, this.itemsSchema[ref]);
     }
 
-    await this.setSettings({
-      SIMPLE_OBS_LINKED: false,
-    } as any);
+    // await this.setSettings({
+    //   SIMPLE_OBS_LINKED: false,
+    // } as any);
 
     return this;
   }
@@ -97,15 +94,23 @@ export class Scene<
    * Will mark itself as existing if a matching scene is found, but will still throw if the items schema is not matched.
    */
   async link(obs: OBS, options?: Partial<LinkOptions>) {
+    this.obs = obs;
+
     if (this.initalized)
       throw new Error(
-        `Cannot link scene ${this.name} that has already been initialized`
+        `Failed to link scene ${this.name}: Scene is already initialized`
       );
 
     // First, check if the scene exists by fetching its scene item list. Fail if scene isn't found
-    const sceneItems = await obs.call("GetSceneItemList", {
-      sceneName: this.name,
-    });
+    const { sceneItems } = await obs
+      .call("GetSceneItemList", {
+        sceneName: this.name,
+      })
+      .catch(() => {
+        throw new Error(
+          `Failed to link scene ${this.name}: Scene does not exist`
+        );
+      });
 
     this._exists = true;
 
@@ -147,7 +152,7 @@ export class Scene<
     // Iterate through a second time to actually link the scene items.
     await Promise.all(
       Object.entries(this.itemsSchema).map(
-        async ([ref, { source, ...transform }]) => {
+        async ([ref, { source, ...transform }]: [string, SceneItemSchema]) => {
           const schemaItem = sceneItems.find(
             (i) => i.sourceName === source.name
           )!;
@@ -159,7 +164,7 @@ export class Scene<
             ref
           );
 
-          Object.assign(this.items, { [ref]: item });
+          this.items.push(item);
 
           await item.fetchProperties();
 
@@ -174,9 +179,9 @@ export class Scene<
       )
     );
 
-    await this.setSettings({
-      SIMPLE_OBS_LINKED: true,
-    } as any);
+    // await this.setSettings({
+    //   SIMPLE_OBS_LINKED: true,
+    // } as any);
 
     // TODO: Ordering options
   }
@@ -186,29 +191,16 @@ export class Scene<
     itemSchema: SceneItemSchema<T>
   ) {
     const { source, ...transform } = itemSchema;
-    // We only need to update the source after the first time the source is initialized
-    const sourceNeedsUpdating = !source.initalized;
 
-    // First, check if the source is initialized to ensure that `source.exists` is accurate
+    // Check if the source is initialized to ensure that `source.exists` is accurate
     await source.initialize(this.obs);
 
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required
     const item = await source.createSceneItem(ref, this);
 
-    const sourceUpdateRequests = sourceNeedsUpdating
-      ? [
-          source.setSettings(source.settings),
-          // source.refreshFilters()
-        ]
-      : [];
-
-    // We always need to set the item properties, but only need to set source settings and the like once
-    // when we initalize the source
-    await Promise.all<any>([
-      item.setTransform(transform as SceneItemTransform),
-      ...sourceUpdateRequests,
-    ]);
+    if (Object.keys(transform).length !== 0)
+      await item.setTransform(transform as SceneItemTransform);
 
     // Get the item's properties and assign them in case some properties are dependent
     // on things like source settings (eg. Image source, where width and height is dependent
@@ -274,4 +266,36 @@ export class Scene<
   createInitialItem(ref: string, scene: Scene) {
     return this.createSceneItem(ref, scene);
   }
+
+  protected async createFirstSceneItem(scene: Scene): Promise<number> {
+    await this.create(scene.obs);
+
+    const { sceneItemId } = await this.obs.call("CreateSceneItem", {
+      sceneName: scene.name,
+      sourceName: this.name,
+    });
+
+    this.obs.scenes.set;
+
+    return sceneItemId;
+  }
+
+  protected async doInitialize() {
+    if (this.obs._inputNames.has(this.name))
+      throw new Error(
+        `Failed to initialize scene ${this.name}: An input with this name already exists.`
+      );
+
+    return {
+      exists: this.obs._sceneNames.has(this.name),
+      settings: {},
+    };
+  }
+
+  protected async saveRefs() {
+    // TODO: Save scene refs
+  }
+
+  // here as a noop
+  override async setSettings(_: {}) {}
 }

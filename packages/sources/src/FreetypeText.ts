@@ -1,4 +1,4 @@
-import { Source, SourceFilters, CustomSourceArgs } from "@simple-obs/core";
+import { Input, SourceFilters, CustomInputArgs } from "@simple-obs/core";
 
 export type FreetypeTextSourceSettings = {
   text: string;
@@ -15,8 +15,8 @@ export type FreetypeTextSourceSettings = {
 
 export class FreetypeTextSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<FreetypeTextSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<FreetypeTextSourceSettings, Filters>) {
+> extends Input<FreetypeTextSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<FreetypeTextSourceSettings, Filters>) {
     super({
       ...args,
       kind: "text_ft2_source_v2",

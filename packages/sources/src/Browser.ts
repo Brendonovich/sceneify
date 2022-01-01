@@ -1,10 +1,10 @@
 import {
   DeepPartial,
-  Source,
+  Input,
   SourceFilters,
   SceneItem,
   Scene,
-  CustomSourceArgs,
+  CustomInputArgs,
 } from "@simple-obs/core";
 
 export type BrowserSourceSettings = {
@@ -15,9 +15,9 @@ export type BrowserSourceSettings = {
 };
 
 export class BrowserSourceItem<
-  Source extends BrowserSource
-> extends SceneItem<Source> {
-  constructor(source: Source, scene: Scene, id: number, ref: string) {
+  Input extends BrowserSource
+> extends SceneItem<Input> {
+  constructor(source: Input, scene: Scene, id: number, ref: string) {
     super(source, scene, id, ref);
 
     this.updateSizeFromSource(source.settings.width, source.settings.height);
@@ -33,8 +33,8 @@ export class BrowserSourceItem<
  */
 export class BrowserSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<BrowserSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<BrowserSourceSettings, Filters>) {
+> extends Input<BrowserSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<BrowserSourceSettings, Filters>) {
     super({ ...args, kind: "browser_source" });
   }
 

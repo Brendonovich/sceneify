@@ -1,8 +1,8 @@
 import {
   DeepPartial,
-  Source,
+  Input,
   SourceFilters,
-  CustomSourceArgs,
+  CustomInputArgs,
 } from "@simple-obs/core";
 
 export type ColorSourceSettings = {
@@ -13,8 +13,8 @@ export type ColorSourceSettings = {
 
 export class ColorSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<ColorSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<ColorSourceSettings, Filters>) {
+> extends Input<ColorSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<ColorSourceSettings, Filters>) {
     super({ ...args, kind: "color_source_v3" });
   }
 

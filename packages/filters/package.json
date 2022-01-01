@@ -2,11 +2,11 @@
   "name": "@simple-obs/filters",
   "version": "1.0.0",
   "description": "",
-  "main": "./lib/node/index.js",
-  "types": "./dts/index.d.ts",
+  "main": "./cjs/index.cjs",
+  "browser": "./lib/index.js",
   "module": "./esm/index.js",
-  "browser": "./lib/browser/index.js",
-  "type": "module",
+  "types": "./dts/index.d.ts",
+  "type": "commonjs",
   "author": "",
   "license": "ISC",
   "scripts": {
@@ -27,16 +27,19 @@
     "lib/**/*.{js,map}",
     "src/**/*.{ts,tsx,json}"
   ],
-  "packemon": {
-    "format": [
-      "lib",
-      "esm"
-    ],
-    "platform": [
-      "browser",
-      "node"
-    ]
-  },
+  "packemon": [
+    {
+      "format": "cjs",
+      "platform": "node"
+    },
+    {
+      "format": [
+        "lib",
+        "esm"
+      ],
+      "platform": "browser"
+    }
+  ],
   "engines": {
     "node": ">=12.17.0",
     "npm": ">=6.13.0"

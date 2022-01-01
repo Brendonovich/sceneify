@@ -1,4 +1,4 @@
-import { Source, SourceFilters, CustomSourceArgs } from "@simple-obs/core";
+import { Input, SourceFilters, CustomInputArgs } from "@simple-obs/core";
 
 export type VideoCaptureSourceSettings = {
   device: string;
@@ -9,8 +9,8 @@ export type VideoCaptureSourceSettings = {
 
 export class VideoCaptureSource<
   Filters extends SourceFilters = SourceFilters
-> extends Source<VideoCaptureSourceSettings, Filters> {
-  constructor(args: CustomSourceArgs<VideoCaptureSourceSettings, Filters>) {
+> extends Input<VideoCaptureSourceSettings, Filters> {
+  constructor(args: CustomInputArgs<VideoCaptureSourceSettings, Filters>) {
     super({
       ...args,
       kind: "av_capture_input",

@@ -1,14 +1,15 @@
-import { Scene } from "./Scene";
-import { OBS } from "./OBS";
+import { MonitoringType } from "./constants";
 import { Filter } from "./Filter";
+import { OBS } from "./OBS";
+import { Scene } from "./Scene";
 import { SceneItem, SceneItemTransform } from "./SceneItem";
 import { DeepPartial } from "./types";
-import { MonitoringType } from "./constants";
-
-export type SourceRefs = Record<string, Record<string, number>>;
+import { mergeDeep } from "./utils";
 
 export type SourceFilters = Record<string, Filter>;
 export type SourceSettings = Record<string, any>;
+
+export type SourceRefs = Record<string, Record<string, number>>;
 
 export interface SourceArgs<
   Settings extends SourceSettings,
@@ -20,32 +21,15 @@ export interface SourceArgs<
   filters?: Filters;
 }
 
-export type CustomSourceArgs<
-  Settings extends SourceSettings,
-  Filters extends SourceFilters
-> = Omit<SourceArgs<Settings, Filters>, "kind">;
-
-export class Source<
-  Settings extends SourceSettings = SourceSettings,
-  Filters extends SourceFilters = SourceFilters
+export abstract class Source<
+  Settings extends SourceSettings = {},
+  Filters extends SourceFilters = {}
 > {
-  constructor(args: SourceArgs<Settings, Filters>) {
-    this.name = args.name;
-    this.kind = args.kind;
-    this.settings = args.settings ?? ({} as DeepPartial<Settings>);
-    this.filtersMap = args.filters ?? ({} as Filters);
-  }
-
-  /**
-   * PROPERTIES
-   * Data available about the source that is native to OBS
-   */
-
-  /** */
   name: string;
   kind: string;
   filters: Filter[] = [];
   settings: DeepPartial<Settings>;
+
   volume = {
     db: 0,
     mul: 0,
@@ -54,10 +38,8 @@ export class Source<
   audioSyncOffset = 0;
   muted = false;
 
-  /**
-   * METADATA
-   * Data used by simple-obs internally
-   */
+  /** @internal */
+  private filtersMap: Filters & Record<string, Filter> = {} as Filters;
   /** @internal */
   obs!: OBS;
   /** @internal */
@@ -65,9 +47,31 @@ export class Source<
   /** @internal */
   itemInstances = new Set<SceneItem>();
   /** @internal */
-  private filtersMap: Filters & Record<string, Filter> = {} as Filters;
-  /** @internal */
   _settingsType!: Settings;
+
+  /**
+   * Source's refs.
+   * Populated from OBS once on source creation but controlled by the source from then on.
+   */
+  protected refs: SourceRefs = {};
+
+  constructor(args: SourceArgs<Settings, Filters>) {
+    this.name = args.name;
+    this.kind = args.kind;
+    this.settings = args.settings ?? ({} as DeepPartial<Settings>);
+    this.filtersMap = args.filters ?? ({} as Filters);
+  }
+
+  async setSettings(settings: DeepPartial<Settings>) {
+    await this.obs.call("SetInputSettings", {
+      inputName: this.name,
+      inputSettings: settings,
+    });
+
+    for (let setting in settings) {
+      this.settings[setting] = settings[setting];
+    }
+  }
 
   /**
    * Whether this source has at least one scene item in OBS
@@ -85,22 +89,11 @@ export class Source<
   }
   protected _initialized = false;
 
-  async setSettings(settings: DeepPartial<Settings>) {
-    await this.obs.call("SetInputSettings", {
-      inputName: this.name,
-      inputSettings: settings,
-    });
-
-    for (let setting in settings) {
-      this.settings[setting] = settings[setting];
-    }
-  }
-
   filter<R extends keyof Filters>(ref: R): Filters[R];
   filter(ref: string): Filter | undefined;
 
   /**
-   * Gets a filter from the source by its ref
+   * Gets a filter from the input by its ref
    */
   filter(ref: string) {
     return this.filtersMap[ref];
@@ -231,21 +224,12 @@ export class Source<
   }
 
   /**
-   * Overridable function for creating `SceneItem` instances for a source.
-   * Doesn't create any objects in OBS. Instead, creates `SceneItem` instances that can
-   * override default `SceneItem` behaviours.
-   *
-   * @returns An instance of `SceneItem` or a class that derives it.
-   */
-  createItemInstance(scene: Scene, id: number, ref: string): SceneItem<this> {
-    return new SceneItem(this, scene, id, ref);
-  }
-
-  /**
    * Updates the source's filters in OBS so that they match the filters defined in `this.filters`.
    * This is done by removing filters that are present on the source in OBS but not on `this`, and adding filters that are present on `this` but not on the source.
    *
    * This shouldn't be required very often, probably only on source initialization.
+   *
+   * @internal
    */
   async cleanFilters(updateSettings = true) {
     if (!this.exists) return;
@@ -305,55 +289,88 @@ export class Source<
       )
     );
   }
+  /**
+   * Uses the source's filterSchema to populate the filters property,
+   * creating/linking with filters in OBS in the process.
+   */
+  private async initializeFilters() {
+    // Create a FilterInstance for each schema item. This allows for a filter schema to be
+    // used multiple times, but exist in OBS as separate objects.
+    for (let ref in this.filters) {
+      let filter = this.filters[ref];
+
+      filter.source = this;
+      // Necessary since this is usually done in this.addFilter(), and this.refreshFilters() operates on filter.settings
+      // Could probably just do addFilter in a loop instead of all this
+      filter.settings = filter.initialSettings;
+    }
+
+    // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
+    await this.cleanFilters();
+  }
 
   /**
-   * Fetches initial data for the source.
+   * Overridable function for creating {@link SceneItem} instances for a source.
+   * Doesn't create any objects in OBS. Instead, creates {@link SceneItem}  instances that can
+   * override default {@link SceneItem}  behaviours.
    *
-   * @returns If the source has been initialized (will always be `true`).
-   * Returns true immediately if already initialized, else will return a promise that resolves
-   * when initialization is finished.
-   *
-   * Avoiding returning a promise where possible allows for tighter batching of obs requests that
-   * happen in the same tick.
+   * @returns An instance of {@link SceneItem} or a class that extends it.
+   */
+  createItemInstance(scene: Scene, id: number, ref: string): SceneItem<this> {
+    return new SceneItem(this, scene, id, ref);
+  }
+
+  protected getRef(scene: string, ref: string): number | undefined {
+    return this.refs[scene]?.[ref];
+  }
+
+  protected async addRef(scene: string, ref: string, id: number) {
+    (this.refs[scene] ||= {})[ref] = id;
+
+    await this.saveRefs().catch((e) =>
+      console.warn(`Failed to add ref ${ref} -> ${id}`, e)
+    );
+  }
+
+  protected async removeRef(scene: string, ref: string) {
+    if (!this.refs[scene]) return;
+
+    delete this.refs[scene][ref];
+
+    await this.saveRefs().catch((e) =>
+      console.warn(`Failed to remove ref ${ref}`, e)
+    );
+  }
+
+  /**
+   * Gathers this source's itemRefs, calculates the refs value accordingly, and forcefully
+   * pushes it to the source in OBS. This method is destructive, and should only be used sparingly.
    *
    * @internal
-   *
    */
+  pushRefs() {
+    let refs: SourceRefs = {};
+
+    this.itemInstances.forEach((item) => {
+      (refs[item.scene.name] ||= {})[item.ref] = item.id;
+    });
+
+    this.refs = refs;
+
+    return this.saveRefs();
+  }
+
+  /** @internal */
   async initialize(obs: OBS) {
     if (this.initalized) return;
 
     this.obs = obs;
 
-    try {
-      const { inputSettings, inputKind } = await this.obs.call(
-        "GetInputSettings",
-        {
-          inputName: this.name,
-        }
-      );
-      // Exit if source exists but type doesn't match
-      if (inputKind !== this.kind) throw ["WRONG_KIND", inputKind];
+    const { exists, settings } = await this.doInitialize();
 
-      // Assign refs from previous runs of code
-      if (inputSettings.SIMPLE_OBS_REFS)
-        this.refs = inputSettings.SIMPLE_OBS_REFS as any;
+    if (this.exists) mergeDeep(this.settings, settings!);
 
-      await this.saveRefs();
-
-      this.obs.sources.set(this.name, this);
-
-      this._exists = true;
-
-      // await this.initializeFilters();
-    } catch (e) {
-      if (Array.isArray(e) && e[0] === "WRONG_KIND")
-        throw new Error(
-          `Source with name ${this.name} has different type in OBS than expected. Found: ${e[1]}, Expected: ${this.kind}`
-        );
-
-      this._exists = false;
-    }
-
+    this._exists = exists;
     this._initialized = true;
   }
 
@@ -418,20 +435,11 @@ export class Source<
         itemId = sceneItemId;
       }
     } else {
-      const { sceneItemId } = await this.obs.call("CreateInput", {
-        inputName: this.name,
-        inputKind: this.kind,
-        sceneName: scene.name,
-        inputSettings: this.settings,
-      });
-
-      this.obs.sources.set(this.name, this);
+      itemId = await this.createFirstSceneItem(scene);
 
       this._exists = true;
 
       // await this.initializeFilters();
-
-      itemId = sceneItemId;
     }
 
     // As we have created a new scene item, set the corresponding ref.
@@ -447,26 +455,6 @@ export class Source<
   }
 
   /**
-   * Uses the source's filterSchema to populate the filters property,
-   * creating/linking with filters in OBS in the process.
-   */
-  private async initializeFilters() {
-    // Create a FilterInstance for each schema item. This allows for a filter schema to be
-    // used multiple times, but exist in OBS as separate objects.
-    for (let ref in this.filters) {
-      let filter = this.filters[ref];
-
-      filter.source = this;
-      // Necessary since this is usually done in this.addFilter(), and this.refreshFilters() operates on filter.settings
-      // Could probably just do addFilter in a loop instead of all this
-      filter.settings = filter.initialSettings;
-    }
-
-    // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
-    await this.cleanFilters();
-  }
-
-  /**
    * Creates an instance of the source with the provided data and marks itself as existing and
    * initialized, as if the source was created by code.
    *
@@ -478,79 +466,29 @@ export class Source<
     this.linked = true;
     this._exists = true;
     this._initialized = true;
+    this.obs = scene.obs;
 
     return this.createItemInstance(scene, id, ref);
   }
 
+  protected abstract saveRefs(): Promise<void>;
+
   /**
-   * REFS MANAGEMENT
-   *
-   * Methods and state for managing refs: Data stored in OBS that
-   * links scene item references in code to scene item IDs in OBS,
-   * so that scene items created in code can be recovered after code restarts,
-   * removing the need for all scene items to be removed and recreated to guarantee
-   * consistency between code and OBS.
+   * Creates the source and a scene item of it.
+   * This is abstract since scenes start with 0 items,
+   * but inputs start with 1, and scenes have to
+   * generate items before creating scene items
    */
+  protected abstract createFirstSceneItem(scene: Scene): Promise<number>;
 
   /**
-   * Source's refs.
-   * Populated from OBS once on source creation but controlled by the source from then on.
-   */
-  private refs: SourceRefs = {};
-
-  /**
-   * Sends this source's refs to OBS to be saved onto the source
-   *
-   * @throws If saving the refs fails
-   */
-  protected saveRefs() {
-    // This isn't await-ed since the worst thing that can happen with a failed ref is a source is deleted by obs.clean.
-    // We don't really care to know when it finishes.
-    return this.obs.call("SetInputSettings", {
-      inputName: this.name,
-      inputSettings: {
-        SIMPLE_OBS_REFS: this.refs,
-      },
-    });
-  }
-
-  protected getRef(scene: string, ref: string): number | undefined {
-    return this.refs[scene]?.[ref];
-  }
-
-  protected addRef(scene: string, ref: string, id: number) {
-    (this.refs[scene] ||= {})[ref] = id;
-
-    this.saveRefs().catch((e) =>
-      console.warn(`Failed to add ref ${ref} -> ${id}`, e)
-    );
-  }
-
-  protected removeRef(scene: string, ref: string) {
-    if (!this.refs[scene]) return;
-
-    delete this.refs[scene][ref];
-
-    this.saveRefs().catch((e) =>
-      console.warn(`Failed to remove ref ${ref}`, e)
-    );
-  }
-
-  /**
-   * Gathers this source's itemRefs, calculates the refs value accordingly, and forcefully
-   * pushes it to the source in OBS. This method is destructive, and should only be used sparingly.
+   * Fetches whether the source exists in OBS, its settings,
+   * and performs initialization tasks
    *
    * @internal
    */
-  pushRefs() {
-    let refs: SourceRefs = {};
-
-    this.itemInstances.forEach((item) => {
-      (refs[item.scene.name] ||= {})[item.ref] = item.id;
-    });
-
-    this.refs = refs;
-
-    return this.saveRefs();
-  }
+  protected abstract doInitialize(): Promise<{
+    exists: boolean;
+    settings?: DeepPartial<Settings>;
+  }>;
 }

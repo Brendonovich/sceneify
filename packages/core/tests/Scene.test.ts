@@ -1,4 +1,4 @@
-import { OBS, Scene, Source } from "../src";
+import { OBS, Scene, Input } from "../src";
 import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
 
 let obs = new OBS();
@@ -84,7 +84,7 @@ describe("create()", () => {
   });
 
   it("detects existing sources", async () => {
-    const existingSource = new Source({
+    const existingSource = new Input({
       name: "Existing Source",
       kind: "test",
       settings: {},

@@ -2,8 +2,8 @@ import ObsWebSocket from "obs-websocket-js";
 
 import { PatchedOBSRequestTypes, PatchedOBSResponseTypes } from "./types";
 import type { Scene } from "./Scene";
-import { Source } from "./Source";
-import { SourceRefs } from ".";
+import { Input } from "./Input";
+import { SourceRefs } from "./Source";
 
 export class OBS {
   /**
@@ -14,7 +14,7 @@ export class OBS {
   /**
    * All of the sources that this OBS instance has access to, excluding scenes
    */
-  sources = new Map<string, Source>();
+  inputs = new Map<string, Input>();
 
   /**
    * All of the scenes that this OBS instance has access to
@@ -25,6 +25,20 @@ export class OBS {
   rpcVersion!: number;
 
   /**
+   * A set of all names currently in use by scenes
+   *
+   * @internal
+   */
+  _sceneNames = new Set<string>();
+
+  /**
+   * A set of all names currently in use by scenes
+   *
+   * @internal
+   */
+  _inputNames = new Set<string>();
+
+  /**
    * Connect this OBS instance to a websocket
    */
   async connect(url: string, password?: string) {
@@ -32,21 +46,29 @@ export class OBS {
 
     this.rpcVersion = data.negotiatedRpcVersion;
 
-    this.sources.clear();
+    this.inputs.clear();
     this.scenes.clear();
+
+    // TODO: Subscribe for when both of these change
+    const { scenes } = await this.call("GetSceneList");
+    this._sceneNames = new Set(scenes.map((s) => s.sceneName));
+
+    const { inputs } = await this.call("GetInputList");
+    this._inputNames = new Set(inputs.map((i) => i.inputName));
   }
 
   /**
-   * Goes though each source in OBS and removes it if simple-obs owns it,
+   * Goes though each source in OBS and removes it if Simple OBS owns it,
    * and there are no references to the source in code.
    */
   async clean() {
     const { scenes } = await this.call("GetSceneList");
     const { inputs } = await this.call("GetInputList");
 
-    const inputsSettings = await Promise.all(
+    const sourcesSettings = await Promise.all(
       [
-        ...scenes.map((s) => s.sceneName),
+        // TODO: Retrieve refs and such for scenes
+        // ...scenes.map((s) => s.sceneName),
         ...inputs.map((i) => i.inputName),
       ].map(async (inputName) => {
         const { inputSettings } = await this.call("GetInputSettings", {
@@ -60,7 +82,7 @@ export class OBS {
       })
     );
 
-    const inputsRefs = inputsSettings.reduce(
+    const sourcesRefs = sourcesSettings.reduce(
       (acc, data) => ({
         ...acc,
         [data.inputName]:
@@ -77,11 +99,11 @@ export class OBS {
       for (let itemRef in scene.items) {
         let item = scene.items[itemRef];
 
-        delete inputsRefs[item.source.name]?.[scene.name]?.[itemRef];
+        delete sourcesRefs[item.source.name]?.[scene.name]?.[itemRef];
       }
     }
 
-    const danglingItems = Object.values(inputsRefs)
+    const danglingItems = Object.values(sourcesRefs)
       .filter((r) => r !== undefined)
       .reduce(
         (acc, inputRefs) => {
@@ -111,7 +133,7 @@ export class OBS {
 
     const danglingOBSScenes = scenes.filter(
       ({ sceneName }) =>
-        !this.scenes.has(sceneName) && inputsRefs[sceneName] !== undefined
+        !this.scenes.has(sceneName) && sourcesRefs[sceneName] !== undefined
     );
 
     await Promise.all(
@@ -125,14 +147,14 @@ export class OBS {
         this.scenes.delete(danglingCodeScene);
     }
 
-    for (let danglingCodeInputs of this.sources.keys()) {
+    for (let danglingCodeInputs of this.inputs.keys()) {
       if (inputs.some(({ inputName }) => inputName === danglingCodeInputs))
-        this.sources.delete(danglingCodeInputs);
+        this.inputs.delete(danglingCodeInputs);
     }
 
     // TODO: Refresh filters
     await Promise.all([
-      ...[...this.sources.values()].map((input) => input.pushRefs()),
+      ...[...this.inputs.values()].map((input) => input.pushRefs()),
       ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
     ]);
   }

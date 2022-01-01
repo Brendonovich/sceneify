@@ -10,5 +10,6 @@ lib
 dist
 coverage
 esm
+cjs
 dts
 .pnpm-debug.log
