@@ -19,7 +19,8 @@
     "type": "beemo typescript --build",
     "build-all": "pnpm build && pnpm type",
     "clean": "packemon clean",
-    "set-package-versions": "node scripts/setPackageVersions.js"
+    "set-package-versions": "node scripts/setPackageVersions.js",
+    "create-version-tag": "node scripts/createVersionTag.js"
   },
   "devDependencies": {
     "@beemo/cli": "^2.0.3",
