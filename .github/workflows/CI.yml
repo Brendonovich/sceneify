@@ -107,5 +107,5 @@ jobs:
         if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
         run: pnpm publish -r ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
         env:
-          TAG: ${{ ((contains(github.ref_name, '-beta.') && '--tag=beta') || '' )}}
+          TAG: ${{ (contains(github.ref_name, '-beta.') && '--tag=beta') || '' )}}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
