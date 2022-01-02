@@ -97,4 +97,4 @@ jobs:
         run: pnpm publish -r --tag ${TAG} --no-git-checks --filter "@simple-obs/*"
         env:
           TAG: ${{ github.ref == 'refs/heads/main' && '--tag=main' || ((contains(github.ref_name, '-rc.') && '--tag=dev') || '' )}}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
