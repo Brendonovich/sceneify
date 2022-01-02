@@ -16,6 +16,7 @@
     "coverage": "pnpm test -- --coverage",
     "build": "packemon build --addEngines",
     "type": "beemo typescript --build",
+    "build-all": "pnpm build && pnpm type",
     "clean": "packemon clean",
     "set-package-versions": "node scripts/setPackageVersions.js"
   },
