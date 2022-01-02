@@ -95,7 +95,7 @@ jobs:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
 
       - name: Publish main to npm
-        if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
+        if: github.ref == 'refs/heads/main'
         run: pnpm publish -r ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
         env:
           TAG: ${{ (github.ref == 'refs/heads/main' && '--tag=main') || '' }}

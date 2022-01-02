@@ -18,21 +18,21 @@ import TabItem from '@theme/TabItem';
 <TabItem value="npm" label="npm">
 
 ```
-npm i @simple-obs/core
+npm i @simple-obs/core@beta
 ```
 
 </TabItem>
 <TabItem value="yarn" label="Yarn">
 
 ```
-yarn add @simple-obs/core
+yarn add @simple-obs/core@beta
 ```
 
 </TabItem>
 <TabItem value="pnpm" label="pnpm">
 
 ```
-pnpm i @simple-obs/core
+pnpm i @simple-obs/core@beta
 ```
 
 </TabItem>
@@ -51,21 +51,21 @@ These can be installed in the same way as before:
 <TabItem value="npm" label="npm">
 
 ```
-npm i @simple-obs/sources @simple-obs/filters
+npm i @simple-obs/sources@beta @simple-obs/filters@beta
 ```
 
 </TabItem>
 <TabItem value="yarn" label="Yarn">
 
 ```
-yarn add @simple-obs/sources @simple-obs/filters
+yarn add @simple-obs/sources@beta @simple-obs/filters@beta
 ```
 
 </TabItem>
 <TabItem value="pnpm" label="pnpm">
 
 ```
-pnpm i @simple-obs/sources @simple-obs/filters
+pnpm i @simple-obs/sources@beta @simple-obs/filters@beta
 ```
 
 </TabItem>
