@@ -24,8 +24,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm i
+        run: pnpm i --frozen-lockfile
       - run: pnpm build
 
   test:
@@ -46,8 +47,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm i
+        run: pnpm i --frozen-lockfile
       - run: pnpm test
 
   publish:
@@ -57,24 +59,31 @@ jobs:
     needs: [build, test]
     steps:
       - uses: actions/checkout@v2
+      
       - uses: pnpm/action-setup@v2.0.1
         with:
           version: 6.0.2
+          
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
+          cache: 'pnpm'
+          
       - name: Install dependencies
-        run: pnpm i
+        run: pnpm i --frozen-lockfile
+        
       - name: Build
         run: pnpm build
+        
       - name: Set package versions
         if: github.ref == 'refs/heads/main'
         run: pnpm set-package-versions
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
+          
       - name: Publish to npm
         if: github.ref == 'refs/heads/main' || github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        run: pnpm publish -r --tag ${TAG}
+        run: pnpm publish -r --tag ${TAG} --no-git-checks
         env:
           TAG: ${{ github.ref == 'refs/heads/main' && '--tag=main' || ((contains(github.ref_name, '-rc.') && '--tag=dev') || '' )}}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
