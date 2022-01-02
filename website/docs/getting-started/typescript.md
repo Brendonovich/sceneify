@@ -10,7 +10,6 @@ While Simple OBS can be used directly from JavaScript, it is written in TypeScri
 - [Scene](/api/core/class/Scene): Items, filters and settings types
 - [Source](/api/core/class/Source): Filters and settings types
 - [SceneItem](/api/core/class/SceneItem): Base source and containing scene
-- [Filter](/api/core/class/Filter): Settings types and owning source
 
 All of this information can assist in using Simple OBS as your programming environment can be aware of most - if not all - of your OBS layout as you code, providing suggestions and type safety.
 
