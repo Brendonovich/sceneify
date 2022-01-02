@@ -6,7 +6,6 @@
   "browser": "./lib/index.js",
   "module": "./esm/index.js",
   "types": "./dts/index.d.ts",
-  "type": "commonjs",
   "author": "",
   "license": "ISC",
   "scripts": {
@@ -56,5 +55,6 @@
         "tsconfig": "<rootDir>/tests/tsconfig.json"
       }
     }
-  }
+  },
+  "type": "commonjs"
 }

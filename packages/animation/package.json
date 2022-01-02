@@ -6,7 +6,6 @@
   "types": "./dts/index.d.ts",
   "module": "./esm/index.js",
   "browser": "./lib/browser/index.js",
-  "type": "module",
   "author": "",
   "license": "ISC",
   "dependencies": {
