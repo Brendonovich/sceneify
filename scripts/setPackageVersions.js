@@ -24,10 +24,6 @@ const VERSION = RELEASE_COMMIT_SHA
 async function main() {
   const packages = await fs.readdir(path.join(__dirname, "../packages"));
 
-  if (!RELEASE_COMMIT_SHA) {
-    throw new Error("Expected the RELEASE_COMMIT_SHA env variable to be set.");
-  }
-
   for (const pkg of packages) {
     const pkgJsonPath = path.join(
       __dirname,

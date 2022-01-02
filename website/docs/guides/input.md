@@ -62,7 +62,6 @@ In addition to the two properties above, inputs have a number of other propertie
 
 - [name](/api/core/class/Input#name): The name of the input
 - [kind](/api/core/class/Input#kind): The kind of the input
-- [filters](/api/core/class/Input#filters): An array of filters corresponding to the filters on the input in OBS
 
 These properties can be set with their associated functions:
 

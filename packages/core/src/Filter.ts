@@ -1,6 +1,7 @@
 import { Source } from "./Source";
 import { DeepPartial, Settings } from "./types";
 
+/** @internal */
 export interface FilterArgs<TSettings extends Settings> {
   name: string;
   kind: string;
@@ -8,6 +9,7 @@ export interface FilterArgs<TSettings extends Settings> {
   enabled?: boolean;
 }
 
+/** @internal */
 export type CustomFilterArgs<TSettings extends Settings> = Omit<
   FilterArgs<TSettings>,
   "kind"

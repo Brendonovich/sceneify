@@ -2,11 +2,11 @@
   "folders": [
     {
       "name": "core",
-      "path": "../packages/core/"
+      "path": "../packages/core"
     },
     {
       "name": "animation",
-      "path": "../packages/animation/"
+      "path": "../packages/animation"
     },
     {
       "name": "website",
