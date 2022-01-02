@@ -94,7 +94,7 @@ jobs:
 
       - name: Publish to npm
         if: github.ref == 'refs/heads/main' || github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        run: pnpm publish -r --tag ${TAG} --no-git-checks --filter "@simple-obs/*"
+        run: pnpm publish -r --tag ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
         env:
           TAG: ${{ github.ref == 'refs/heads/main' && '--tag=main' || ((contains(github.ref_name, '-rc.') && '--tag=dev') || '' )}}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
