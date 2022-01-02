@@ -6,7 +6,7 @@ export type DisplayCaptureSourceSettings = {
 };
 
 export class DisplayCaptureSource<
-  Filters extends SourceFilters = SourceFilters
+  Filters extends SourceFilters = {}
 > extends Input<DisplayCaptureSourceSettings, Filters> {
   constructor(args: CustomInputArgs<DisplayCaptureSourceSettings, Filters>) {
     super({

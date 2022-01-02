@@ -1,5 +1,5 @@
 import { Alignment, OBS, Scene } from "@simple-obs/core";
-import { ColorCorrectionFilter } from "@simple-obs/filters";
+// import { ColorCorrectionFilter } from "@simple-obs/filters";
 import { ColorSource } from "@simple-obs/sources";
 
 // README
@@ -12,6 +12,9 @@ async function main() {
 
   // Connect to OBS before creating or linking any scenes
   await obs.connect("ws:localhost:4444");
+  
+  // verifies that the required linked scene exists
+  await verifyLinkedSceneExists(obs);
 
   // Requests can be made directly through the websocket using OBS.call
   const { baseWidth: OBS_WIDTH, baseHeight: OBS_HEIGHT } = await obs.call(
@@ -56,7 +59,7 @@ async function main() {
 
   await wait(1000);
 
-  // Color should change from red to green after 1 second
+  // Color should change from red to green
   await mainScene.item("red").source.setSettings({
     color: 0xff00ff00,
   });
@@ -142,3 +145,21 @@ main();
 
 // utility for setTimeout that is nice to use with async/await syntax
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function verifyLinkedSceneExists(obs: OBS) {
+  const { scenes } = await obs.call("GetSceneList");
+
+  if (!scenes.some((s) => s.sceneName === "Linked Scene")) {
+    throw new Error("Linked Scene does not exist. Please create it.");
+  }
+
+  const { sceneItems } = await obs.call("GetSceneItemList", {
+    sceneName: "Linked Scene",
+  });
+
+  if (!sceneItems.some((i) => i.sourceName === "Linked Color Source")) {
+    throw new Error(
+      "Linked Color Source does not exist. Please create it inside Linked Scene."
+    );
+  }
+}

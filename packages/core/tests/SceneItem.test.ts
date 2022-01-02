@@ -26,6 +26,8 @@ describe("setTransform()", () => {
 
     const item = scene.item("item");
 
+    item.source.setSettings({});
+
     expect(item.transform.rotation).toBe(0);
     expect(item.transform.positionX).toBe(0);
 

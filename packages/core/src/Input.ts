@@ -1,17 +1,24 @@
 import { Scene } from "./Scene";
-import { DeepPartial } from "./types";
-import { SourceSettings, SourceFilters, Source, SourceArgs } from "./Source";
+import { Settings } from "./types";
+import { SourceFilters, Source, SourceArgs } from "./Source";
 import { MonitoringType } from "./constants";
 
 export type CustomInputArgs<
-  Settings extends SourceSettings,
+  TSettings extends Settings,
   Filters extends SourceFilters
-> = Omit<SourceArgs<Settings, Filters>, "kind">;
+> = Omit<InputArgs<TSettings, Filters>, "kind">;
+
+export interface InputArgs<
+  TSettings extends Settings = {},
+  Filters extends SourceFilters = {}
+> extends SourceArgs<Filters> {
+  settings?: Partial<TSettings>;
+}
 
 export class Input<
-  Settings extends SourceSettings = {},
+  TSettings extends Settings = {},
   Filters extends SourceFilters = {}
-> extends Source<Settings, Filters> {
+> extends Source<Filters> {
   volume = {
     db: 0,
     mul: 0,
@@ -20,44 +27,49 @@ export class Input<
   audioSyncOffset = 0;
   muted = false;
 
-  protected async doInitialize() {
-    if (this.obs._sceneNames.has(this.name))
-      throw new Error(
-        `Failed to initialize input ${this.name}: A scene with this name already exists.`
-      );
+  settings: Partial<Settings>;
+
+  constructor(args: InputArgs<TSettings, Filters>) {
+    super(args);
+
+    this.settings = args.settings ?? {};
+  }
+
+  async setSettings(settings: Partial<TSettings>) {
+    await this.obs.call("SetInputSettings", {
+      inputName: this.name,
+      inputSettings: settings,
+    });
+
+    this.settings = {
+      ...this.settings,
+      settings,
+    };
+  }
+
+  protected async fetchExists() {
     try {
-      const { inputSettings, inputKind } = await this.obs.call(
-        "GetInputSettings",
-        {
-          inputName: this.name,
-        }
+      await this.obs.call("GetSourcePrivateSettings", {
+        sourceName: this.name,
+      });
+    } catch {
+      return false;
+    }
+
+    // Does exist, check if it's an input
+    const input = await this.obs
+      .call("GetInputSettings", {
+        inputName: this.name,
+      })
+      .then((input) => input)
+      .catch(() => undefined);
+
+    if (!input)
+      throw new Error(
+        `Failed to initiailze input ${this.name}: Scene with this name already exists.`
       );
 
-      // Exit if source exists but type doesn't match
-      if (inputKind !== this.kind) throw ["WRONG_KIND", inputKind];
-
-      // Assign refs from previous runs of code
-      if (inputSettings.SIMPLE_OBS_REFS)
-        this.refs = inputSettings.SIMPLE_OBS_REFS as any;
-
-      await this.saveRefs();
-
-      this.obs.inputs.set(this.name, this);
-
-      return {
-        exists: true,
-        settings: inputSettings as DeepPartial<Settings>,
-      };
-
-      // await this.initializeFilters();
-    } catch (e) {
-      if (Array.isArray(e) && e[0] === "WRONG_KIND")
-        throw new Error(
-          `Failed to initialize input ${this.name}: An input with the same name but of kind ${e[1]} already exists`
-        );
-
-      return { exists: false };
-    }
+    return true;
   }
 
   protected async createFirstSceneItem(scene: Scene) {

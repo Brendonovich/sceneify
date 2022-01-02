@@ -1,20 +1,20 @@
 import { Source } from "./Source";
-import { DeepPartial, FilterSettings } from "./types";
+import { DeepPartial, Settings } from "./types";
 
-export interface FilterArgs<Settings extends FilterSettings> {
+export interface FilterArgs<TSettings extends Settings> {
   name: string;
   kind: string;
   settings?: DeepPartial<Settings>;
   enabled?: boolean;
 }
 
-export type CustomFilterArgs<Settings extends FilterSettings> = Omit<
-  FilterArgs<Settings>,
+export type CustomFilterArgs<TSettings extends Settings> = Omit<
+  FilterArgs<TSettings>,
   "kind"
 >;
 
 export abstract class Filter<
-  Settings extends FilterSettings = FilterSettings,
+  TSettings extends Settings = Settings,
   TSource extends Source = Source
 > {
   constructor(args: FilterArgs<Settings>) {
@@ -27,16 +27,16 @@ export abstract class Filter<
   name: string;
   kind: string;
   enabled: boolean;
-  settings: DeepPartial<Settings> = {} as any;
+  settings: DeepPartial<TSettings> = {} as any;
 
   source?: TSource;
 
   /** @internal */
   _settingsType!: Settings;
   /** @internal */
-  initialSettings: DeepPartial<Settings> = {} as DeepPartial<Settings>;
+  initialSettings: DeepPartial<TSettings> = {} as DeepPartial<TSettings>;
 
-  async setSettings(settings: DeepPartial<Settings>) {
+  async setSettings(settings: DeepPartial<TSettings>) {
     this.checkSource();
 
     await this.source!.obs.call("SetSourceFilterSettings", {

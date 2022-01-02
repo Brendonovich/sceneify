@@ -55,6 +55,21 @@ importers:
       '@types/node': 16.11.16
       ts-node: 10.4.0_c2fa5ce635e4806a37d30f3dd57cf945
 
+  examples/test:
+    specifiers:
+      '@simple-obs/core': ^1.0.0
+      '@simple-obs/filters': ^1.0.0
+      '@simple-obs/sources': ^1.0.0
+      '@types/node': ^16.11.16
+      ts-node: ^10.2.1
+    dependencies:
+      '@simple-obs/core': link:../../packages/core
+      '@simple-obs/filters': link:../../packages/filters
+      '@simple-obs/sources': link:../../packages/sources
+    devDependencies:
+      '@types/node': 16.11.16
+      ts-node: 10.4.0_c2fa5ce635e4806a37d30f3dd57cf945
+
   packages/animation:
     specifiers:
       '@datastructures-js/queue': ^4.1.3

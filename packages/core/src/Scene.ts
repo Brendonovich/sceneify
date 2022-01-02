@@ -38,7 +38,7 @@ export interface SceneArgs<
 export class Scene<
   Items extends Record<string, Source> = {},
   Filters extends SourceFilters = {}
-> extends Source<{}, Filters> {
+> extends Source<Filters> {
   items: SceneItem[] = [];
 
   private itemsSchema: SceneItemSchemas<Items>;
@@ -69,7 +69,7 @@ export class Scene<
       await obs.call("CreateScene", {
         sceneName: this.name,
       });
-      await this.saveRefs();
+      await this.pushRefs();
     }
 
     await wait(50);
@@ -82,9 +82,9 @@ export class Scene<
       await this.createItem(ref, this.itemsSchema[ref]);
     }
 
-    // await this.setSettings({
-    //   SIMPLE_OBS_LINKED: false,
-    // } as any);
+    await this.setPrivateSettings({
+      SIMPLE_OBS_LINKED: false,
+    });
 
     return this;
   }
@@ -171,17 +171,17 @@ export class Scene<
           let optionRequests: Promise<any>[] = [];
           if (options?.setProperties)
             optionRequests.push(item.setTransform(transform));
-          if (options?.setSourceSettings)
-            optionRequests.push(source.setSettings(source.settings));
+          // if (options?.setSourceSettings)
+          //   optionRequests.push(source.setSettings(source.settings));
 
           return Promise.all(optionRequests);
         }
       )
     );
 
-    // await this.setSettings({
-    //   SIMPLE_OBS_LINKED: true,
-    // } as any);
+    await this.setPrivateSettings({
+      SIMPLE_OBS_LINKED: true,
+    } as any);
 
     // TODO: Ordering options
   }
@@ -222,11 +222,44 @@ export class Scene<
     return this.items.find((i) => i.ref === ref);
   }
 
-  /**
-   * UTILITIES
-   *
-   * Functions that wrap OBS calls to make them easier to use.
-   */
+  protected async createFirstSceneItem(scene: Scene): Promise<number> {
+    await this.create(scene.obs);
+
+    const { sceneItemId } = await this.obs.call("CreateSceneItem", {
+      sceneName: scene.name,
+      sourceName: this.name,
+    });
+
+    this.obs.scenes.set(this.name, this);
+
+    return sceneItemId;
+  }
+
+  protected async fetchExists() {
+    // Check if source exists
+    try {
+      await this.obs.call("GetSourcePrivateSettings", {
+        sourceName: this.name,
+      });
+    } catch {
+      return false;
+    }
+
+    // Does exist, check if it's an input
+    const input = await this.obs
+      .call("GetInputSettings", {
+        inputName: this.name,
+      })
+      .then((input) => input)
+      .catch(() => undefined);
+
+    if (input)
+      throw new Error(
+        `Failed to initiailze scene ${this.name}: Input of kind ${input.inputKind} with this name already exists.`
+      );
+
+    return true;
+  }
 
   /**
    * @param preview Whether to make the scene the current preview scene
@@ -237,65 +270,4 @@ export class Scene<
       { sceneName: this.name }
     );
   }
-
-  /**
-   * CREATE ITEM OVERRIDES
-   *
-   * These are necessary since Scenes are different from regular Sources in how they
-   * generate. They don't have a concept of an initial item as they can exist with 0 items.
-   * Thus as long as the scene is initialized, `createInitialItem` can just call regular `createItem`
-   */
-
-  /**
-   * @internal
-   * @override
-   */
-  override async createSceneItem(
-    ref: string,
-    scene: Scene
-  ): Promise<SceneItem<this>> {
-    if (!this.exists) await this.create(scene.obs);
-
-    return await super.createSceneItem(ref, scene);
-  }
-
-  /**
-   * @internal
-   * @override
-   */
-  createInitialItem(ref: string, scene: Scene) {
-    return this.createSceneItem(ref, scene);
-  }
-
-  protected async createFirstSceneItem(scene: Scene): Promise<number> {
-    await this.create(scene.obs);
-
-    const { sceneItemId } = await this.obs.call("CreateSceneItem", {
-      sceneName: scene.name,
-      sourceName: this.name,
-    });
-
-    this.obs.scenes.set;
-
-    return sceneItemId;
-  }
-
-  protected async doInitialize() {
-    if (this.obs._inputNames.has(this.name))
-      throw new Error(
-        `Failed to initialize scene ${this.name}: An input with this name already exists.`
-      );
-
-    return {
-      exists: this.obs._sceneNames.has(this.name),
-      settings: {},
-    };
-  }
-
-  protected async saveRefs() {
-    // TODO: Save scene refs
-  }
-
-  // here as a noop
-  override async setSettings(_: {}) {}
 }

@@ -1,4 +1,4 @@
-import { Source } from "../Source"
+import { Source } from "../Source";
 import {
   OBSRequestTypes as BaseRequestTypes,
   OBSResponseTypes as BaseResponseTypes,
@@ -21,17 +21,17 @@ export type FilterType<Base, Condition> = Pick<
 >;
 
 export type SourceItemType<S extends Source> = ReturnType<
-  S["createItemInstance"]
+  S["createSceneItemObject"]
 >;
 
-export type FilterSettings = Record<string, any>;
+export type Settings = Record<string, any>;
 
 export interface Filter {
   filterName: string;
   filterEnabled: boolean;
   filterIndex: number;
   filterKind: string;
-  filterSettings: FilterSettings;
+  filterSettings: Settings;
 }
 
 export interface SceneItemTransform {
@@ -135,7 +135,7 @@ export interface OBSRequestTypesOverrides {
     filterName: string;
     filterIndex?: number;
     filterKind: string;
-    filterSettings?: FilterSettings;
+    filterSettings?: Settings;
   };
 
   RemoveSourceFilter: {
@@ -161,13 +161,31 @@ export interface OBSRequestTypesOverrides {
   SetSourceFilterSettings: {
     sourceName: string;
     filterName: string;
-    filterSettings: FilterSettings;
+    filterSettings: Settings;
   };
 
   SetSourceFilterEnabled: {
     sourceName: string;
     filterName: string;
     filterEnabled: boolean;
+  };
+
+  SetSourcePrivateSettings: {
+    sourceName: string;
+    sourceSettings: Settings;
+  };
+
+  GetSourcePrivateSettings: {
+    sourceName: string;
+  };
+
+  GetInputSettings: {
+    inputName: string;
+  };
+
+  SetInputSettings: {
+    inputName: string;
+    inputSettings: Settings;
   };
 }
 
@@ -211,10 +229,12 @@ export interface OBSResponseTypesOverrides {
   };
 
   GetInputSettings: {
-    inputSettings: Record<any, any>;
+    inputSettings: Settings;
     inputName: string;
     inputKind: string;
   };
+
+  SetInputSettings: undefined;
 
   GetSceneItemEnabled: {
     sceneItemEnabled: boolean;
@@ -251,7 +271,7 @@ export interface OBSResponseTypesOverrides {
 
   RemoveSourceFilter: undefined;
 
-  GetSourceFilterDefaultSettings: { filterSettings: FilterSettings };
+  GetSourceFilterDefaultSettings: { filterSettings: Settings };
 
   GetSourceFilter: Filter;
 
@@ -260,6 +280,12 @@ export interface OBSResponseTypesOverrides {
   SetSourceFilterSettings: undefined;
 
   SetSourceFilterEnabled: undefined;
+
+  SetSourcePrivateSettings: undefined;
+
+  GetSourcePrivateSettings: {
+    sourceSettings: Settings;
+  };
 }
 
 export type PatchedOBSRequestTypes =

@@ -25,20 +25,6 @@ export class OBS {
   rpcVersion!: number;
 
   /**
-   * A set of all names currently in use by scenes
-   *
-   * @internal
-   */
-  _sceneNames = new Set<string>();
-
-  /**
-   * A set of all names currently in use by scenes
-   *
-   * @internal
-   */
-  _inputNames = new Set<string>();
-
-  /**
    * Connect this OBS instance to a websocket
    */
   async connect(url: string, password?: string) {
@@ -48,13 +34,6 @@ export class OBS {
 
     this.inputs.clear();
     this.scenes.clear();
-
-    // TODO: Subscribe for when both of these change
-    const { scenes } = await this.call("GetSceneList");
-    this._sceneNames = new Set(scenes.map((s) => s.sceneName));
-
-    const { inputs } = await this.call("GetInputList");
-    this._inputNames = new Set(inputs.map((i) => i.inputName));
   }
 
   /**
@@ -67,17 +46,16 @@ export class OBS {
 
     const sourcesSettings = await Promise.all(
       [
-        // TODO: Retrieve refs and such for scenes
-        // ...scenes.map((s) => s.sceneName),
+        ...scenes.map((s) => s.sceneName),
         ...inputs.map((i) => i.inputName),
-      ].map(async (inputName) => {
-        const { inputSettings } = await this.call("GetInputSettings", {
-          inputName,
+      ].map(async (sourceName) => {
+        const { sourceSettings } = await this.call("GetSourcePrivateSettings", {
+          sourceName,
         });
 
         return {
-          inputName,
-          inputSettings,
+          sourceName,
+          sourceSettings,
         };
       })
     );
@@ -85,9 +63,9 @@ export class OBS {
     const sourcesRefs = sourcesSettings.reduce(
       (acc, data) => ({
         ...acc,
-        [data.inputName]:
-          data.inputSettings.SIMPLE_OBS_LINKED !== undefined
-            ? data.inputSettings.SIMPLE_OBS_REFS
+        [data.sourceName]:
+          data.sourceSettings.SIMPLE_OBS_LINKED !== undefined
+            ? data.sourceSettings.SIMPLE_OBS_REFS
             : undefined,
       }),
       {} as Record<string, SourceRefs>
@@ -99,19 +77,19 @@ export class OBS {
       for (let itemRef in scene.items) {
         let item = scene.items[itemRef];
 
-        delete sourcesRefs[item.source.name]?.[scene.name]?.[itemRef];
+        delete sourcesRefs[item.source.name]?.[`${scene.name}:${itemRef}`];
       }
     }
 
     const danglingItems = Object.values(sourcesRefs)
       .filter((r) => r !== undefined)
       .reduce(
-        (acc, inputRefs) => {
+        (acc, sourceRefs) => {
           let danglingInputItems = [];
 
-          for (let [sceneName, refs] of Object.entries(inputRefs)) {
+          for (let [sceneName, refs] of Object.entries(sourceRefs)) {
             for (let sceneItemId of Object.values(refs)) {
-              if (inputRefs[sceneName] !== undefined)
+              if (sourceRefs[sceneName] !== undefined)
                 danglingInputItems.push({
                   sceneName,
                   sceneItemId,

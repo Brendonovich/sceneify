@@ -8,7 +8,7 @@ export type VideoCaptureSourceSettings = {
 };
 
 export class VideoCaptureSource<
-  Filters extends SourceFilters = SourceFilters
+  Filters extends SourceFilters = {}
 > extends Input<VideoCaptureSourceSettings, Filters> {
   constructor(args: CustomInputArgs<VideoCaptureSourceSettings, Filters>) {
     super({

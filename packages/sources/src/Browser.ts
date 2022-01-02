@@ -31,14 +31,15 @@ export class BrowserSourceItem<
  * item will have a width and height of 0 until item.getProperties is called,
  * or the source's width and height are updated.
  */
-export class BrowserSource<
-  Filters extends SourceFilters = SourceFilters
-> extends Input<BrowserSourceSettings, Filters> {
+export class BrowserSource<Filters extends SourceFilters = {}> extends Input<
+  BrowserSourceSettings,
+  Filters
+> {
   constructor(args: CustomInputArgs<BrowserSourceSettings, Filters>) {
     super({ ...args, kind: "browser_source" });
   }
 
-  override createItemInstance(
+  override createSceneItemObject(
     scene: Scene,
     id: number,
     ref: string

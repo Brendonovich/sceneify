@@ -22,7 +22,7 @@ const FeatureList = [
     ),
   },
   {
-    title: 'Incremental Migration',
+    title: 'Incremental Adoption',
     description: (
       <>
         Simple OBS allows you to link existing OBS items to objects in code,

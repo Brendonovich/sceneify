@@ -15,7 +15,8 @@
     "test": "beemo jest",
     "coverage": "pnpm test -- --coverage",
     "build": "packemon build --addEngines",
-    "type": "beemo typescript --build"
+    "type": "beemo typescript --build",
+    "clean": "packemon clean"
   },
   "devDependencies": {
     "@beemo/cli": "^2.0.3",

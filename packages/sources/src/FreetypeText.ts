@@ -14,7 +14,7 @@ export type FreetypeTextSourceSettings = {
 };
 
 export class FreetypeTextSource<
-  Filters extends SourceFilters = SourceFilters
+  Filters extends SourceFilters = {}
 > extends Input<FreetypeTextSourceSettings, Filters> {
   constructor(args: CustomInputArgs<FreetypeTextSourceSettings, Filters>) {
     super({

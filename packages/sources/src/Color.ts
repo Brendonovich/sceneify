@@ -11,9 +11,10 @@ export type ColorSourceSettings = {
   height: number;
 };
 
-export class ColorSource<
-  Filters extends SourceFilters = SourceFilters
-> extends Input<ColorSourceSettings, Filters> {
+export class ColorSource<Filters extends SourceFilters = {}> extends Input<
+  ColorSourceSettings,
+  Filters
+> {
   constructor(args: CustomInputArgs<ColorSourceSettings, Filters>) {
     super({ ...args, kind: "color_source_v3" });
   }

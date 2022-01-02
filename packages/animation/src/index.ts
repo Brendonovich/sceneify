@@ -2,7 +2,6 @@ export * from "./easing";
 
 import {
   Filter,
-  Scene,
   SceneItem,
   SceneItemTransform,
   Source,
