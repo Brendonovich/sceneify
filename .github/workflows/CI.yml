@@ -95,18 +95,18 @@ jobs:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
 
       - name: Publish main to npm
-        if: github.ref == 'refs/heads/main' || github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
         run: pnpm publish -r ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
         env:
           TAG: ${{ (github.ref == 'refs/heads/main' && '--tag=main') || '' }}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Configure release version
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        if: github.ref_type == 'tag'
         run: pnpm set-package-versions
 
       - name: Publish release to npm
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        if: github.ref_type == 'tag'
         run: pnpm publish -r ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
         env:
           TAG: ${{ (contains(github.ref_name, '-beta.') && '--tag=beta') || ''}}
