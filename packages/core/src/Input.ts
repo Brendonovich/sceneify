@@ -5,11 +5,13 @@ import { MonitoringType } from "./constants";
 
 export type CustomInputArgs<
   TSettings extends Settings,
+  /** @internal */
   Filters extends SourceFilters
 > = Omit<InputArgs<TSettings, Filters>, "kind">;
 
 export interface InputArgs<
   TSettings extends Settings = {},
+  /** @internal */
   Filters extends SourceFilters = {}
 > extends SourceArgs<Filters> {
   settings?: Partial<TSettings>;
@@ -17,6 +19,7 @@ export interface InputArgs<
 
 export class Input<
   TSettings extends Settings = {},
+  /** @internal */
   Filters extends SourceFilters = {}
 > extends Source<Filters> {
   volume = {
@@ -29,7 +32,7 @@ export class Input<
 
   settings: Partial<Settings>;
 
-  constructor(args: InputArgs<TSettings, Filters>) {
+  constructor(args: InputArgs<TSettings, /** @internal */ Filters>) {
     super(args);
 
     this.settings = args.settings ?? {};

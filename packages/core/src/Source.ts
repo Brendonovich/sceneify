@@ -16,6 +16,7 @@ export interface SourceArgs<Filters extends SourceFilters> {
 export abstract class Source<Filters extends SourceFilters = {}> {
   name: string;
   kind: string;
+  /** @internal */
   filters: Filter[] = [];
 
   /**
@@ -52,13 +53,13 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     this.filtersMap = args.filters ?? ({} as Filters);
   }
 
-  filter<R extends keyof Filters>(ref: R): Filters[R];
-  filter(ref: string): Filter | undefined;
+  private filter<R extends keyof Filters>(ref: R): Filters[R];
+  private filter(ref: string): Filter | undefined;
 
   /**
    * Gets a filter from the input by its ref
    */
-  filter(ref: string) {
+  private filter(ref: string) {
     return this.filtersMap[ref];
   }
 
@@ -66,11 +67,9 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * Adds a filter to this source, provided that 1. The filter has not already been applied
    * to another source, and 2. The source in OBS does not have a filter with a different type
    * but the same name as the filter being added.
-   *
-   * @internal
    */
   // TODO: Expose when filters requests are implemented
-  async addFilter(ref: string, filter: Filter, index?: number) {
+  private async addFilter(ref: string, filter: Filter, index?: number) {
     if (filter.source) {
       throw new Error(
         `Filter ${this.name} has already been applied to source ${filter.source.name}`
@@ -113,10 +112,8 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * This is done by removing filters that are present on the source in OBS but not on `this`, and adding filters that are present on `this` but not on the source.
    *
    * This shouldn't be required very often, probably only on source initialization.
-   *
-   * @internal
    */
-  async cleanFilters(updateSettings = true) {
+  private async cleanFilters(updateSettings = true) {
     if (!this.exists) return;
 
     const { filters } = await this.obs.call("GetSourceFilterList", {
