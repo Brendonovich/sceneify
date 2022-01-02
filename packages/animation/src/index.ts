@@ -1,11 +1,6 @@
 export * from "./easing";
 
-import {
-  Filter,
-  SceneItem,
-  SceneItemTransform,
-  Source,
-} from "@simple-obs/core";
+import { Filter, Input, SceneItem, SceneItemTransform } from "@simple-obs/core";
 import { Queue } from "@datastructures-js/queue";
 
 import { performance } from "./performance";
@@ -22,7 +17,7 @@ export type AnimatableProperties<
   KeyframeProperty
 >;
 
-export type AnimationSubject = SceneItem | Source | Filter;
+export type AnimationSubject = SceneItem | Input | Filter;
 export interface Keyframe<
   T extends number | string | boolean = number | string | boolean
 > {
@@ -56,13 +51,13 @@ export type KeyframesFromSchema<P extends KeyframeInputsMap> = {
     : never;
 };
 
-export type SubjectKeyframeValues<Subject extends SceneItem | Source | Filter> =
+export type SubjectKeyframeValues<Subject extends AnimationSubject> =
   Subject extends SceneItem
     ? KeyframesFromSchema<AnimatableProperties>
-    : Subject extends Source
-    ? KeyframesFromSchema<Subject["_settingsType"]>
-    : Subject extends Filter
-    ? KeyframesFromSchema<Subject["_settingsType"] & { visible?: boolean }>
+    : Subject extends Input<infer Settings>
+    ? KeyframesFromSchema<Settings>
+    : Subject extends Filter<infer Settings>
+    ? KeyframesFromSchema<Settings & { visible?: boolean }>
     : never;
 
 export interface Keyframes<Subject extends AnimationSubject> {
