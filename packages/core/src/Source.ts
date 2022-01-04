@@ -278,7 +278,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       }
 
       // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
-      await this.cleanFilters();
+      // await this.cleanFilters();
     }
 
     // As we have created a new scene item, set the corresponding ref.

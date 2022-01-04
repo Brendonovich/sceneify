@@ -10,10 +10,12 @@
   "author": "Brendan Allan",
   "license": "ISC",
   "devDependencies": {
-    "ts-node": "^10.2.1"
+    "ts-node": "^10.2.1",
+    "@types/node": "^16.9.3"
   },
   "dependencies": {
-    "@simple-obs/animation": "^1.0.0",
-    "@types/node": "^16.9.3"
+    "@simple-obs/animation": "*",
+    "@simple-obs/core": "*",
+    "@simple-obs/sources": "*"
   }
 }

@@ -12,7 +12,7 @@
     "test": "jest -i"
   },
   "dependencies": {
-    "@simple-obs/core": "^1.0.0"
+    "@simple-obs/core": "*"
   },
   "devDependencies": {
     "jest": "^27.4.5"

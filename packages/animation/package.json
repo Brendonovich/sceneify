@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@datastructures-js/queue": "^4.1.3",
-    "@simple-obs/core": "^1.0.0"
+    "@simple-obs/core": "*"
   },
   "devDependencies": {
     "jest": "^27.4.5"

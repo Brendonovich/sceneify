@@ -14,8 +14,8 @@
     "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "@simple-obs/core": "^1.0.0",
-    "@simple-obs/filters": "^1.0.0",
-    "@simple-obs/sources": "^1.0.0"
+    "@simple-obs/core": "*",
+    "@simple-obs/filters": "*",
+    "@simple-obs/sources": "*"
   }
 }
