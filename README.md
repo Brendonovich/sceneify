@@ -6,13 +6,13 @@
 
 <p align="center">
 <a href="https://www.npmjs.com/package/@sceneify/core">
-   <img src="https://img.shields.io/npm/dt/sceneify?style=flat&colorA=000000&colorB=000000" alt="Downloads">
+   <img src="https://img.shields.io/npm/dt/@sceneify/core/beta?colorB=blue&colorA=black&style=flat-square" alt="Downloads">
 </a>
 <a href="https://www.npmjs.com/package/@sceneify/core">
-   <img src="https://img.shields.io/npm/v/@sceneify/core?label=core&style=flat&colorA=000000&colorB=000000" alt="Core Version">
+   <img src="https://img.shields.io/npm/v/@sceneify/core/beta?colorB=blue&colorA=black&style=flat-square" alt="Core Version">
 </a>
 <a href="https://bundlephobia.com/result?p=@sceneify/core">
-   <img src="https://img.shields.io/bundlephobia/min/@sceneify/core?label=bundle%20size&style=flat&colorA=000000&colorB=000000" alt="Build Size">
+   <img src="https://img.shields.io/bundlephobia/min/@sceneify/core?style=flat-square&colorA=black&colorB=blue" alt="Build Size">
 </a>
 </p>
 
