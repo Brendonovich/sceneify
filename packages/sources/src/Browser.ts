@@ -5,7 +5,7 @@ import {
   SceneItem,
   Scene,
   CustomInputArgs,
-} from "@simple-obs/core";
+} from "@sceneify/core";
 
 export type BrowserSourceSettings = {
   url: string;

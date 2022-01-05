@@ -5,15 +5,15 @@ const path = require("path");
 // With JSDoc @type annotations, IDEs can provide config autocompletion
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: "Simple OBS",
-  tagline: "The simplest way to control OBS from JavaScript",
-  url: "https://simple-obs.brendonovich.dev",
+  title: "Sceneify",
+  tagline: "The easiest way to control OBS from JavaScript",
+  url: "https://sceneify.brendonovich.dev",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon.ico",
   organizationName: "Brendonovich",
-  projectName: "simple-obs",
+  projectName: "sceneify",
   presets: [
     [
       "@docusaurus/preset-classic",
@@ -22,7 +22,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl:
-            "https://github.com/Brendonovich/simple-obs/edit/master/website/",
+            "https://github.com/Brendonovich/sceneify/edit/master/website/",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -46,14 +46,14 @@ module.exports = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: "img/logo.png",
+      // image: "img/logo.png",
       metadata: [{ name: "twitter:card", content: "summary" }],
       navbar: {
-        title: "Simple OBS",
-        logo: {
-          alt: "Simple OBS Logo",
-          src: "img/logo.png",
-        },
+        title: "Sceneify",
+        // logo: {
+        //   alt: "Sceneify Logo",
+        //   src: "img/logo.png",
+        // },
         items: [
           {
             type: "doc",
@@ -67,7 +67,7 @@ module.exports = {
             position: "left",
           },
           {
-            href: "https://github.com/Brendonovich/simple-obs",
+            href: "https://github.com/Brendonovich/sceneify",
             label: "GitHub",
             position: "right",
           },
@@ -89,7 +89,7 @@ module.exports = {
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/Brendonovich/simple-obs",
+                href: "https://github.com/Brendonovich/sceneify",
               },
               {
                 label: "Twitter",
@@ -100,7 +100,7 @@ module.exports = {
         ],
         copyright: `
           Copyright © ${new Date().getFullYear()} Brendonovich <br>
-          Simple OBS is in no way affiliated with OBS Studio or the OBS Project
+          Sceneify is in no way affiliated with OBS Studio or the OBS Project
         `,
       },
       prism: {

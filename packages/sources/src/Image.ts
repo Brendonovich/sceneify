@@ -1,4 +1,4 @@
-import { CustomInputArgs, Input, SourceFilters } from "@simple-obs/core";
+import { CustomInputArgs, Input, SourceFilters } from "@sceneify/core";
 
 export type ImageSourceSettings = {
   file: string;

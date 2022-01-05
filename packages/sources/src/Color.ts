@@ -3,7 +3,7 @@ import {
   Input,
   SourceFilters,
   CustomInputArgs,
-} from "@simple-obs/core";
+} from "@sceneify/core";
 
 export type ColorSourceSettings = {
   color: number;

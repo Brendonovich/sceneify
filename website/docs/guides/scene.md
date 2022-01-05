@@ -24,7 +24,7 @@ await someScene.create(obs);
 
 Scenes accept an `items` property, which is a map that describes how each of the scene's items should be created.
 
-The keys of this map are what Simple OBS calls `refs`, and are used to uniquely identify each item of a scene.
+The keys of this map are what Sceneify calls `refs`, and are used to uniquely identify each item of a scene.
 
 The values of this map are [scene item schemas](/api/core#SceneItemSchema), which specify the properties that the items should be created with,
 as well as the source they are instances of.

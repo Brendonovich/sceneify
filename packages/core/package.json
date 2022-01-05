@@ -1,5 +1,5 @@
 {
-  "name": "@simple-obs/core",
+  "name": "@sceneify/core",
   "version": "1.0.0-beta.0",
   "description": "",
   "main": "./cjs/index.cjs",

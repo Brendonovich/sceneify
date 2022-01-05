@@ -1,4 +1,4 @@
-import { Input, SourceFilters, CustomInputArgs } from "@simple-obs/core";
+import { Input, SourceFilters, CustomInputArgs } from "@sceneify/core";
 
 export type GDIPlusTextSourceSettings = {
   text: string;

@@ -46,7 +46,7 @@ export class Scene<
   /**
    * MAIN METHODS
    *
-   * Methods that provide functionality specific to simple-obs.
+   * Methods that provide functionality specific to sceneify.
    */
 
   /**  */

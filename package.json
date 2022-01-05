@@ -1,10 +1,10 @@
 {
-  "name": "simple-obs-root",
+  "name": "sceneify-root",
   "version": "1.0.0-beta.2",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/Brendonovich/simple-obs"
+    "url": "https://github.com/Brendonovich/sceneify"
   },
   "workspaces": {
     "packages": [

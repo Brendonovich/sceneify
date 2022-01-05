@@ -9,7 +9,7 @@ First of all, you will need to install [OBS Websocket v5](https://github.com/obs
 
 ## Core
 
-Then, install [@simple-obs/core](/api/core) with your package manager of choice:
+Then, install [@sceneify/core](/api/core) with your package manager of choice:
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -18,21 +18,21 @@ import TabItem from '@theme/TabItem';
 <TabItem value="npm" label="npm">
 
 ```
-npm i @simple-obs/core@beta
+npm i @sceneify/core@beta
 ```
 
 </TabItem>
 <TabItem value="yarn" label="Yarn">
 
 ```
-yarn add @simple-obs/core@beta
+yarn add @sceneify/core@beta
 ```
 
 </TabItem>
 <TabItem value="pnpm" label="pnpm">
 
 ```
-pnpm i @simple-obs/core@beta
+pnpm i @sceneify/core@beta
 ```
 
 </TabItem>
@@ -40,10 +40,10 @@ pnpm i @simple-obs/core@beta
 
 ## Extra Packages
 
-Technically, [@simple-obs/core](/api/core) is all you need to use Simple OBS, but there are more packages that help to improve the experience:
+Technically, [@sceneify/core](/api/core) is all you need to use Sceneify, but there are more packages that help to improve the experience:
 
-- [@simple-obs/sources](/api/sources) : Types and implementations for all of OBS's default sources, including special implementations for [BrowserSource](/api/sources/class/BrowserSource)
-- [@simple-obs/filters](/api/filters): Types and implementations for all of OBS's default filters
+- [@sceneify/sources](/api/sources) : Types and implementations for all of OBS's default sources, including special implementations for [BrowserSource](/api/sources/class/BrowserSource)
+- [@sceneify/filters](/api/filters): Types and implementations for all of OBS's default filters
 
 These can be installed in the same way as before:
 
@@ -51,21 +51,21 @@ These can be installed in the same way as before:
 <TabItem value="npm" label="npm">
 
 ```
-npm i @simple-obs/sources@beta @simple-obs/filters@beta
+npm i @sceneify/sources@beta @sceneify/filters@beta
 ```
 
 </TabItem>
 <TabItem value="yarn" label="Yarn">
 
 ```
-yarn add @simple-obs/sources@beta @simple-obs/filters@beta
+yarn add @sceneify/sources@beta @sceneify/filters@beta
 ```
 
 </TabItem>
 <TabItem value="pnpm" label="pnpm">
 
 ```
-pnpm i @simple-obs/sources@beta @simple-obs/filters@beta
+pnpm i @sceneify/sources@beta @sceneify/filters@beta
 ```
 
 </TabItem>

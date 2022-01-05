@@ -1,4 +1,4 @@
-import { CustomFilterArgs, Filter, Source } from "@simple-obs/core";
+import { CustomFilterArgs, Filter, Source } from "@sceneify/core";
 
 export type ColorCorrectionFilterSettings = {
   brightness: number;

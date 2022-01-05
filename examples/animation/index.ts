@@ -1,5 +1,5 @@
-import { Alignment, ColorCorrectionFilter, ColorSource, OBS, Scene } from "@simple-obs/core";
-import { Easing, keyframe, animate } from "@simple-obs/animation";
+import { Alignment, ColorCorrectionFilter, ColorSource, OBS, Scene } from "@sceneify/core";
+import { Easing, keyframe, animate } from "@sceneify/animation";
 
 async function main() {
   const obs = new OBS();

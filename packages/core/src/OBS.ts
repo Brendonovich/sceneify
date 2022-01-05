@@ -37,7 +37,7 @@ export class OBS {
   }
 
   /**
-   * Goes though each source in OBS and removes it if Simple OBS owns it,
+   * Goes though each source in OBS and removes it if Sceneify owns it,
    * and there are no references to the source in code.
    */
   async clean() {

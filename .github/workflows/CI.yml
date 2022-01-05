@@ -68,7 +68,7 @@ jobs:
   publish:
     name: 'Publish to NPM'
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.repository == 'brendonovich/simple-obs'
+    if: github.event_name == 'push' && github.repository == 'brendonovich/sceneify'
     needs: [build, test]
     steps:
       - uses: actions/checkout@v2
@@ -96,7 +96,7 @@ jobs:
 
       - name: Publish main to npm
         if: github.ref == 'refs/heads/main'
-        run: pnpm publish -r ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
+        run: pnpm publish -r ${TAG} --no-git-checks --filter "@sceneify/*" --access public
         env:
           TAG: ${{ (github.ref == 'refs/heads/main' && '--tag=main') || '' }}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -107,7 +107,7 @@ jobs:
 
       - name: Publish release to npm
         if: github.ref_type == 'tag'
-        run: pnpm publish -r ${TAG} --no-git-checks --filter "@simple-obs/*" --access public
+        run: pnpm publish -r ${TAG} --no-git-checks --filter "@sceneify/*" --access public
         env:
           TAG: ${{ (contains(github.ref_name, '-beta.') && '--tag=beta') || ''}}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

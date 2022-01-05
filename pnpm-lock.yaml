@@ -31,30 +31,30 @@ importers:
 
   examples/animation:
     specifiers:
-      '@simple-obs/animation': '*'
-      '@simple-obs/core': '*'
-      '@simple-obs/sources': '*'
+      '@sceneify/animation': '*'
+      '@sceneify/core': '*'
+      '@sceneify/sources': '*'
       '@types/node': ^16.9.3
       ts-node: ^10.2.1
     dependencies:
-      '@simple-obs/animation': link:../../packages/animation
-      '@simple-obs/core': link:../../packages/core
-      '@simple-obs/sources': link:../../packages/sources
+      '@sceneify/animation': link:../../packages/animation
+      '@sceneify/core': link:../../packages/core
+      '@sceneify/sources': link:../../packages/sources
     devDependencies:
       '@types/node': 16.11.16
       ts-node: 10.4.0_c2fa5ce635e4806a37d30f3dd57cf945
 
   examples/basic:
     specifiers:
-      '@simple-obs/core': '*'
-      '@simple-obs/filters': '*'
-      '@simple-obs/sources': '*'
+      '@sceneify/core': '*'
+      '@sceneify/filters': '*'
+      '@sceneify/sources': '*'
       '@types/node': ^16.11.16
       ts-node: ^10.2.1
     dependencies:
-      '@simple-obs/core': link:../../packages/core
-      '@simple-obs/filters': link:../../packages/filters
-      '@simple-obs/sources': link:../../packages/sources
+      '@sceneify/core': link:../../packages/core
+      '@sceneify/filters': link:../../packages/filters
+      '@sceneify/sources': link:../../packages/sources
     devDependencies:
       '@types/node': 16.11.16
       ts-node: 10.4.0_c2fa5ce635e4806a37d30f3dd57cf945
@@ -62,11 +62,11 @@ importers:
   packages/animation:
     specifiers:
       '@datastructures-js/queue': ^4.1.3
-      '@simple-obs/core': '*'
+      '@sceneify/core': '*'
       jest: ^27.4.5
     dependencies:
       '@datastructures-js/queue': 4.1.3
-      '@simple-obs/core': link:../core
+      '@sceneify/core': link:../core
     devDependencies:
       jest: 27.4.5
 
@@ -91,19 +91,19 @@ importers:
 
   packages/filters:
     specifiers:
-      '@simple-obs/core': '*'
+      '@sceneify/core': '*'
       jest: ^27.4.5
     dependencies:
-      '@simple-obs/core': link:../core
+      '@sceneify/core': link:../core
     devDependencies:
       jest: 27.4.5
 
   packages/sources:
     specifiers:
-      '@simple-obs/core': '*'
+      '@sceneify/core': '*'
       jest: ^27.4.5
     dependencies:
-      '@simple-obs/core': link:../core
+      '@sceneify/core': link:../core
     devDependencies:
       jest: 27.4.5
 

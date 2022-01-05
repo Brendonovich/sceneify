@@ -14,8 +14,8 @@
     "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "@simple-obs/core": "*",
-    "@simple-obs/filters": "*",
-    "@simple-obs/sources": "*"
+    "@sceneify/core": "*",
+    "@sceneify/filters": "*",
+    "@sceneify/sources": "*"
   }
 }

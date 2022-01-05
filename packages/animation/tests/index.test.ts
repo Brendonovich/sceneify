@@ -1,5 +1,5 @@
 import { Queue } from "@datastructures-js/queue";
-import { CustomInputArgs, Input } from "@simple-obs/core";
+import { CustomInputArgs, Input } from "@sceneify/core";
 
 import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 

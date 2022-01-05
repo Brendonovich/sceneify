@@ -1,6 +1,6 @@
 export * from "./easing";
 
-import { Filter, Input, SceneItem, SceneItemTransform } from "@simple-obs/core";
+import { Filter, Input, SceneItem, SceneItemTransform } from "@sceneify/core";
 import { Queue } from "@datastructures-js/queue";
 
 import { performance } from "./performance";

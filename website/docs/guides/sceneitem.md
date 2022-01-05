@@ -40,7 +40,7 @@ await someItem.remove();
 - [scene](/api/core/class/SceneItem#scene) - The scene that the item exists in
 - [source](/api/core/class/SceneItem#source) - The source that the item is an instance of
 - [id](/api/core/class/SceneItem#id) - The id of the item in OBS
-- [ref](/api/core/class/SceneItem#ref) - The ref of the item used by Simple OBS
+- [ref](/api/core/class/SceneItem#ref) - The ref of the item used by Sceneify
 
 These properties can be set with their associated functions:
 

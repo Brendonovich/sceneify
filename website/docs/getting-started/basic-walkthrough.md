@@ -5,15 +5,15 @@ slug: /basic-walkthrough
 
 # Basic Walkthrough
 
-This page contains a walkthrough of how to create two scenes, one nested inside another, to demonstrate some of Simple OBS's functionality.
+This page contains a walkthrough of how to create two scenes, one nested inside another, to demonstrate some of Sceneify's functionality.
 
 ## Step 0: Create a new Scene Collection
 
-While you could use your existing scene collection in OBS, it is **highly** recommended to create a new one. Simple OBS won't alter what you don't tell it to interact with, but for safety's sake it is best to create a new scene collection.
+While you could use your existing scene collection in OBS, it is **highly** recommended to create a new one. Sceneify won't alter what you don't tell it to interact with, but for safety's sake it is best to create a new scene collection.
 
 ## Step 1: Setup
 
-Firstly, import the necessary classes from Simple OBS.
+Firstly, import the necessary classes from Sceneify.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -22,16 +22,16 @@ import TabItem from '@theme/TabItem';
 <TabItem value="commonjs" label="NodeJS">
 
 ```js
-const { OBS, Scene, Alignment } = require("@simple-obs/core");
-const { ColorSource } = require("@simple-obs/sources");
+const { OBS, Scene, Alignment } = require("@sceneify/core");
+const { ColorSource } = require("@sceneify/sources");
 ```
 
 </TabItem>
 <TabItem value="es6" label="Browser/TypeScript">
 
 ```ts
-import { OBS, Scene, Alignment } from "@simple-obs/core";
-import { ColorSource } from "@simple-obs/sources";
+import { OBS, Scene, Alignment } from "@sceneify/core";
+import { ColorSource } from "@sceneify/sources";
 ```
 
 </TabItem>
@@ -123,5 +123,5 @@ Making sure you have OBS running, run the script you just wrote. You should see 
 
 There are so many features that weren't touched on in this walkthrough, and you are likely confused about some things.
 
-- The [Guides](/docs/category/guides) explain most parts of Simple OBS and how to use them
-- The [API Reference](/api) contains detailed information on the types and uses of every aspect of Simple OBS.
+- The [Guides](/docs/category/guides) explain most parts of Sceneify and how to use them
+- The [API Reference](/api) contains detailed information on the types and uses of every aspect of Sceneify.

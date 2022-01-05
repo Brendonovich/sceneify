@@ -14,8 +14,8 @@
     "@types/node": "^16.9.3"
   },
   "dependencies": {
-    "@simple-obs/animation": "*",
-    "@simple-obs/core": "*",
-    "@simple-obs/sources": "*"
+    "@sceneify/animation": "*",
+    "@sceneify/core": "*",
+    "@sceneify/sources": "*"
   }
 }

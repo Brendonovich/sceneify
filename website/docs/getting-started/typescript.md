@@ -5,13 +5,13 @@ slug: /typescript
 
 # TypeScript Support
 
-While Simple OBS can be used directly from JavaScript, it is written in TypeScript and provides first-class TypeScript support. Each class provided by Simple OBS is capable of remembering extra information about how it was created when TypeScript is used:
+While Sceneify can be used directly from JavaScript, it is written in TypeScript and provides first-class TypeScript support. Each class provided by Sceneify is capable of remembering extra information about how it was created when TypeScript is used:
 
 - [Scene](/api/core/class/Scene): Items, filters and settings types
 - [Source](/api/core/class/Source): Filters and settings types
 - [SceneItem](/api/core/class/SceneItem): Base source and containing scene
 
-All of this information can assist in using Simple OBS as your programming environment can be aware of most - if not all - of your OBS layout as you code, providing suggestions and type safety.
+All of this information can assist in using Sceneify as your programming environment can be aware of most - if not all - of your OBS layout as you code, providing suggestions and type safety.
 
 ## Code Editor Integration
 

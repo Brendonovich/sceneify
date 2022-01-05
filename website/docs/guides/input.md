@@ -24,7 +24,7 @@ import TabItem from '@theme/TabItem';
 <TabItem value="commonjs" label="NodeJS">
 
 ```js
-const { ImageSource } = require("@simple-obs/sources");
+const { ImageSource } = require("@sceneify/sources");
 
 const imageSource = new ImageSource({
   name: "Image Source",
@@ -36,7 +36,7 @@ const imageSource = new ImageSource({
 <TabItem value="es6" label="Browser/TypeScript">
 
 ```ts
-import { ImageSource } from "@simple-obs/sources";
+import { ImageSource } from "@sceneify/sources";
 
 const imageSource = new ImageSource({
   name: "Image Source",

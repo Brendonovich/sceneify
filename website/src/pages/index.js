@@ -17,11 +17,11 @@ function HomepageHeader() {
             justifyContent: "center",
           }}
         >
-          <img
+          {/* <img
             style={{ width: "8rem" }}
             src={`${siteConfig.baseUrl}img/logo.png`}
             alt="logo"
-          />
+          /> */}
           <h1
             style={{
               marginLeft: "2rem",
@@ -51,7 +51,7 @@ function HomepageHeader() {
 export default function Home() {
   return (
     <Layout
-      description="The simplest way to control OBS from JavaScript"
+      description="The easiest way to control OBS from JavaScript"
     >
       <HomepageHeader />
       <main>

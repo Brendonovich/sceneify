@@ -1,6 +1,6 @@
-import { Alignment, OBS, Scene } from "@simple-obs/core";
-// import { ColorCorrectionFilter } from "@simple-obs/filters";
-import { ColorSource } from "@simple-obs/sources";
+import { Alignment, OBS, Scene } from "@sceneify/core";
+// import { ColorCorrectionFilter } from "@sceneify/filters";
+import { ColorSource } from "@sceneify/sources";
 
 // README
 // Running this code requies that you create a scene named "Linked Scene" with a single

@@ -7,7 +7,7 @@ const FeatureList = [
     title: 'Code-First Scene Collections',
     description: (
       <>
-        Simple OBS allows you to declare all of your scenes, sources, scene items,
+        Sceneify allows you to declare all of your scenes, sources, scene items,
         and filters in code.
       </>
     ),
@@ -16,7 +16,7 @@ const FeatureList = [
     title: 'Performant on Restarts',
     description: (
       <>
-        Simple OBS keeps track of everything in OBS, allowing it to know what to
+        Sceneify keeps track of everything in OBS, allowing it to know what to
         skip creating each time you run your code
       </>
     ),
@@ -25,7 +25,7 @@ const FeatureList = [
     title: 'Incremental Adoption',
     description: (
       <>
-        Simple OBS allows you to link existing OBS items to objects in code,
+        Sceneify allows you to link existing OBS items to objects in code,
         and will not modify anything you don't give it access to.
       </>
     ),
