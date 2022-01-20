@@ -46,7 +46,7 @@ module.exports = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // image: "img/logo.png",
+      image: "img/twitter.png",
       metadata: [{ name: "twitter:card", content: "summary" }],
       navbar: {
         title: "Sceneify",
