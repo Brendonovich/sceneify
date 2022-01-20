@@ -50,10 +50,6 @@ module.exports = {
       metadata: [{ name: "twitter:card", content: "summary" }],
       navbar: {
         title: "Sceneify",
-        // logo: {
-        //   alt: "Sceneify Logo",
-        //   src: "img/logo.png",
-        // },
         items: [
           {
             type: "doc",

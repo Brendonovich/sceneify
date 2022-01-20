@@ -17,11 +17,11 @@ function HomepageHeader() {
             justifyContent: "center",
           }}
         >
-          {/* <img
-            style={{ width: "8rem" }}
-            src={`${siteConfig.baseUrl}img/logo.png`}
+          <img
+            style={{ width: "10rem" }}
+            src={`${siteConfig.baseUrl}img/logo.svg`}
             alt="logo"
-          /> */}
+          />
           <h1
             style={{
               marginLeft: "2rem",
