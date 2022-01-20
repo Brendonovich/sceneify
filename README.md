@@ -1,4 +1,5 @@
 <p align="center">
+   <img src="website/static/img/logo.svg" alt="Sceneify logo" height="150"/>
 </p>
 
 <h1 align="center">Sceneify</h1>
@@ -31,7 +32,6 @@ This library is not well tested and is still under heavy development. Feel free 
 - Persistence across code reloads, so scenes and items aren't deleted and recreated each time you run your code
 - `Scene`, `Source` and `SceneItem` are designed to be overridden, allowing for complex layouts to be abstracted into subclasses
 - Easy integration into existing layouts with `Scene.link()`, allowing for incremental migration to Sceneify without handing over your entire layout to your code.
-
 
 ## Acknowledgements
 
