@@ -4,6 +4,7 @@ import { SceneItem, SceneItemTransform } from "./SceneItem";
 import { DeepPartial } from "./types";
 import { wait } from "./utils";
 import { SourceFilters, Source } from "./Source";
+import { Input } from ".";
 
 /**
  * Describes how a scene item should be created, including its base source and transform
@@ -126,9 +127,9 @@ export class Scene<
         (i) => i.sourceName === itemSchema.source.name
       );
 
-      if (sourceItems.length === 0) multipleItemSources.push(itemSchema.source);
-      else if (sourceItems.length > 1) noItemSources.push(itemSchema.source);
-      else continue;
+      if (sourceItems.length === 0) noItemSources.push(itemSchema.source);
+      else if (sourceItems.length > 1)
+        multipleItemSources.push(itemSchema.source);
     }
 
     // If multiple or none of any of the sources exist as items in the scene, fail
@@ -136,13 +137,13 @@ export class Scene<
       throw new Error(
         `Failed to link scene ${this.name}:${
           multipleItemSources.length !== 0
-            ? ` Scene contians multiple items of source${
+            ? ` Scene contains multiple items of source${
                 multipleItemSources.length > 1 ? "s" : ""
               } ${multipleItemSources.map((s) => `'${s.name}'`).join(", ")}.`
             : ``
         }${
           noItemSources.length !== 0
-            ? ` Scene contians no items of source${
+            ? ` Scene contains no items of source${
                 noItemSources.length > 1 ? "s" : ""
               } ${noItemSources.map((s) => `'${s.name}'`).join(", ")}.`
             : ``
@@ -171,8 +172,8 @@ export class Scene<
           let optionRequests: Promise<any>[] = [];
           if (options?.setProperties)
             optionRequests.push(item.setTransform(transform));
-          // if (options?.setSourceSettings)
-          //   optionRequests.push(source.setSettings(source.settings));
+          if (options?.setSourceSettings && source instanceof Input)
+            optionRequests.push(source.setSettings(source.settings));
 
           return Promise.all(optionRequests);
         }

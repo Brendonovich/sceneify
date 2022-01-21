@@ -53,13 +53,13 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     this.filtersMap = args.filters ?? ({} as Filters);
   }
 
-  private filter<R extends keyof Filters>(ref: R): Filters[R];
-  private filter(ref: string): Filter | undefined;
+  filter<R extends keyof Filters>(ref: R): Filters[R];
+  filter(ref: string): Filter | undefined;
 
   /**
    * Gets a filter from the input by its ref
    */
-  private filter(ref: string) {
+  filter(ref: string) {
     return this.filtersMap[ref];
   }
 
@@ -69,7 +69,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * but the same name as the filter being added.
    */
   // TODO: Expose when filters requests are implemented
-  private async addFilter(ref: string, filter: Filter, index?: number) {
+  async addFilter(ref: string, filter: Filter, index?: number) {
     if (filter.source) {
       throw new Error(
         `Filter ${this.name} has already been applied to source ${filter.source.name}`
@@ -210,7 +210,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * @returns A SceneItem created by `Source.createSceneItem`
    * @internal
    */
-  async createSceneItem(ref: string, scene: Scene): Promise<SceneItem<this>> {
+  async createSceneItem<S extends Scene>(ref: string, scene: S): Promise<SceneItem<this>> {
     if (!this.initalized)
       throw new Error(
         `Cannot create item of source ${this.name} as it is not initialized`
@@ -268,9 +268,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
 
       // Create a FilterInstance for each schema item. This allows for a filter schema to be
       // used multiple times, but exist in OBS as separate objects.
-      for (let ref in this.filters) {
-        let filter = this.filters[ref];
-
+      for (let filter of this.filters) {
         filter.source = this;
         // Necessary since this is usually done in this.addFilter(), and this.refreshFilters() operates on filter.settings
         // Could probably just do addFilter in a loop instead of all this
@@ -306,7 +304,9 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     id: number,
     ref: string
   ): SceneItem<this> {
-    return new SceneItem(this, scene, id, ref);
+    const item = new SceneItem(this, scene, id, ref);
+    this.itemInstances.add(item);
+    return item;
   }
 
   /**

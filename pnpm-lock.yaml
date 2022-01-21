@@ -33,12 +33,14 @@ importers:
     specifiers:
       '@sceneify/animation': '*'
       '@sceneify/core': '*'
+      '@sceneify/filters': '*'
       '@sceneify/sources': '*'
       '@types/node': ^16.9.3
       ts-node: ^10.2.1
     dependencies:
       '@sceneify/animation': link:../../packages/animation
       '@sceneify/core': link:../../packages/core
+      '@sceneify/filters': link:../../packages/filters
       '@sceneify/sources': link:../../packages/sources
     devDependencies:
       '@types/node': 16.11.16

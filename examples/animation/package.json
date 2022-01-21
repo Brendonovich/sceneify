@@ -16,6 +16,7 @@
   "dependencies": {
     "@sceneify/animation": "*",
     "@sceneify/core": "*",
-    "@sceneify/sources": "*"
+    "@sceneify/sources": "*",
+    "@sceneify/filters": "*"
   }
 }

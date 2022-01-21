@@ -1,7 +1,7 @@
-import ObsWebSocket from "obs-websocket-js";
+import ObsWebSocket, { EventSubscription } from "obs-websocket-js";
 
-import { PatchedOBSRequestTypes, PatchedOBSResponseTypes } from "./types";
-import type { Scene } from "./Scene";
+import { OBSEventTypes, OBSRequestTypes, OBSResponseTypes } from "./types";
+import { Scene } from "./Scene";
 import { Input } from "./Input";
 import { SourceRefs } from "./Source";
 
@@ -28,7 +28,13 @@ export class OBS {
    * Connect this OBS instance to a websocket
    */
   async connect(url: string, password?: string) {
-    const data = await this.socket.connect(url, password);
+    const data = await this.socket.connect(url, password, {
+      eventSubscriptions:
+        EventSubscription.Scenes |
+        EventSubscription.Inputs |
+        EventSubscription.Filters |
+        EventSubscription.SceneItems,
+    });
 
     this.rpcVersion = data.negotiatedRpcVersion;
 
@@ -137,15 +143,19 @@ export class OBS {
     ]);
   }
 
-  /** @internal */
-  call<T extends keyof PatchedOBSRequestTypes>(
+  call<T extends keyof OBSRequestTypes>(
     requestType: T,
-    requestData?: PatchedOBSRequestTypes[T]
-  ): Promise<PatchedOBSResponseTypes[T]>;
-  call(requestType: string, requestData?: object): Promise<any>;
-
-  call(requestType: string, requestData?: object): Promise<any> {
+    requestData?: OBSRequestTypes[T]
+  ): Promise<OBSResponseTypes[T]> {
     return this.socket.call(requestType as any, requestData as any);
+  }
+
+  on<T extends keyof OBSEventTypes>(
+    event: T,
+    callback: (data: OBSEventTypes[T]) => void
+  ) {
+    this.socket.on(event, callback as any);
+    return this;
   }
 
   /**

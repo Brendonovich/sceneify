@@ -2,6 +2,7 @@ import { Source } from "../Source";
 import {
   OBSRequestTypes as BaseRequestTypes,
   OBSResponseTypes as BaseResponseTypes,
+  OBSEventTypes as BaseEventTypes,
 } from "obs-websocket-js";
 
 /**
@@ -70,62 +71,12 @@ export interface SceneItemTransform {
 }
 
 export interface OBSRequestTypesOverrides {
-  GetSceneItemList: {
-    sceneName: string;
-  };
-
-  GetSceneItemTransform: {
-    sceneName: string;
-    sceneItemId: number;
-  };
-
   SetSceneItemTransform: {
     sceneName: string;
     sceneItemId: number;
-    transform: Partial<SceneItemTransform>;
+    sceneItemTransform: Partial<SceneItemTransform>;
   };
-
-  CreateSceneItem: {
-    sceneName: string;
-    sourceName: string;
-    sceneItemEnabled?: boolean;
-  };
-
-  RemoveSceneItem: {
-    sceneName: string;
-    sceneItemId: number;
-  };
-
-  GetSceneList: never;
-
-  GetSceneItemEnabled: {
-    sceneName: string;
-    sceneItemId: number;
-  };
-
-  SetSceneItemEnabled: {
-    sceneName: string;
-    sceneItemId: number;
-    sceneItemEnabled: boolean;
-  };
-
-  GetSceneItemLocked: {
-    sceneName: string;
-    sceneItemId: number;
-  };
-
-  SetSceneItemLocked: {
-    sceneName: string;
-    sceneItemId: number;
-    sceneItemLocked: boolean;
-  };
-
-  StartStream: never;
-
-  StopStream: never;
-
-  ToggleStream: never;
-
+  
   GetSourceFilterList: {
     sourceName: string;
   };
@@ -178,15 +129,6 @@ export interface OBSRequestTypesOverrides {
   GetSourcePrivateSettings: {
     sourceName: string;
   };
-
-  GetInputSettings: {
-    inputName: string;
-  };
-
-  SetInputSettings: {
-    inputName: string;
-    inputSettings: Settings;
-  };
 }
 
 export interface OBSResponseTypesOverrides {
@@ -202,14 +144,6 @@ export interface OBSResponseTypesOverrides {
   };
 
   GetSceneItemTransform: { sceneItemTransform: SceneItemTransform };
-
-  SetSceneItemTransform: undefined;
-
-  CreateSceneItem: {
-    sceneItemId: number;
-  };
-
-  RemoveSceneItem: undefined;
 
   GetSceneList: {
     scenes: {
@@ -233,29 +167,7 @@ export interface OBSResponseTypesOverrides {
     inputName: string;
     inputKind: string;
   };
-
-  SetInputSettings: undefined;
-
-  GetSceneItemEnabled: {
-    sceneItemEnabled: boolean;
-  };
-
-  SetSceneItemEnabled: undefined;
-
-  GetSceneItemLocked: {
-    sceneItemLocked: boolean;
-  };
-
-  SetSceneItemLocked: undefined;
-
-  StartStream: undefined;
-
-  StopStream: undefined;
-
-  ToggleStream: {
-    outputActive: boolean;
-  };
-
+  
   GetInputAudioMonitorType: {
     monitorType:
       | "OBS_MONITORING_TYPE_NONE"
@@ -288,10 +200,15 @@ export interface OBSResponseTypesOverrides {
   };
 }
 
-export type PatchedOBSRequestTypes =
+export interface OBSEventTypesOverrides {}
+
+export type OBSRequestTypes =
   | Omit<BaseRequestTypes, keyof OBSRequestTypesOverrides> &
       OBSRequestTypesOverrides;
 
-export type PatchedOBSResponseTypes =
+export type OBSResponseTypes =
   | Omit<BaseResponseTypes, keyof OBSResponseTypesOverrides> &
       OBSResponseTypesOverrides;
+
+export type OBSEventTypes =
+  | Omit<BaseEventTypes, keyof OBSEventTypesOverrides> & OBSEventTypesOverrides;

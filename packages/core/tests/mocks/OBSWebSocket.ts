@@ -256,7 +256,7 @@ export class MockOBSWebSocket {
 
         if (!item) throw new Error("Scene item not found");
 
-        item.transform = mergeDeep(item.transform, data.transform);
+        item.transform = mergeDeep(item.transform, data.sceneItemTransform);
 
         break;
       }

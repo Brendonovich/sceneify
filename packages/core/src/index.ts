@@ -8,7 +8,11 @@ export * from "./OBS";
 export * from "./constants";
 
 export type {
-  PatchedOBSRequestTypes as OBSRequestTypes,
-  PatchedOBSResponseTypes as OBSResponseTypes,
+  OBSRequestTypes,
+  OBSResponseTypes,
+  OBSEventTypes,
   DeepPartial,
+  OBSEventTypesOverrides,
+  OBSRequestTypesOverrides,
+  OBSResponseTypesOverrides,
 } from "./types";

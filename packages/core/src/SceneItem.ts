@@ -2,6 +2,7 @@ import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
 import { Scene } from "./Scene";
 import { Source } from "./Source";
 import { mergeDeep } from "./utils";
+import { SceneItemTransform as RawSceneItemTransform } from "./types";
 import { Alignment, BoundsType } from ".";
 
 export interface SceneItemTransform {
@@ -47,13 +48,11 @@ export class SceneItem<
     public scene: TScene,
     public id: number,
     public ref: string
-  ) {
-    source.itemInstances.add(this);
-  }
+  ) {}
 
   transform: SceneItemTransform = { ...DEFAULT_SCENE_ITEM_TRANSFORM };
   enabled = true;
-  locked = false;
+  locked = false; 
 
   /**
    *
@@ -85,10 +84,11 @@ export class SceneItem<
     await this.source.obs.call("SetSceneItemTransform", {
       sceneName: this.scene.name,
       sceneItemId: this.id,
-      sceneItemTransform: transform,
+      sceneItemTransform: transform as RawSceneItemTransform,
     });
 
     // Merge deep to ignore undefined
+    // TODO: should probably be shallow merge
     mergeDeep(this.transform, transform);
 
     this.updateSizeFromSource();
