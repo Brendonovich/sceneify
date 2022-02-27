@@ -3,6 +3,7 @@
     "declarationDir": "dts",
     "outDir": "dts",
     "rootDir": "src",
+    "declarationMap": false,
     "emitDeclarationOnly": true
   },
   "exclude": ["dts", "tests"],
