@@ -1,7 +1,7 @@
 /**
  * Updates the package.json files with a version to release to npm under
  * the main tag.
- * 
+ *
  * Based on https://github.com/facebook/relay/blob/main/gulpfile.js
  */
 
@@ -20,18 +20,32 @@ if (RELEASE_COMMIT_SHA && RELEASE_COMMIT_SHA.length !== 40) {
 const VERSION = RELEASE_COMMIT_SHA
   ? `0.0.0-main-${RELEASE_COMMIT_SHA.substring(0, 8)}`
   : process.env.npm_package_version;
+  
+  console.log(RELEASE_COMMIT_SHA)
 
 async function main() {
   const packages = await fs.readdir(path.join(__dirname, "../packages"));
+  const pkgJsons = {};
+  const pkgJsonPaths = {};
 
-  for (const pkg of packages) {
+  for (pkg of packages) {
     const pkgJsonPath = path.join(
       __dirname,
       "../packages",
       pkg,
       "package.json"
     );
+    pkgJsonPaths[pkg] = pkgJsonPath;
     const packageJson = JSON.parse(await fs.readFile(pkgJsonPath, "utf8"));
+
+    pkgJsons[pkg] = packageJson;
+  }
+
+  const packageNames = Object.values(pkgJsons).map((pkg) => pkg.name);
+
+  for (const pkg of packages) {
+    let packageJson = pkgJsons[pkg];
+
     packageJson.version = VERSION;
     for (const depKind of [
       "dependencies",
@@ -40,13 +54,13 @@ async function main() {
     ]) {
       const deps = packageJson[depKind];
       for (const dep in deps) {
-        if (packages.includes(dep)) {
+        if (packageNames.includes(dep)) {
           deps[dep] = VERSION;
         }
       }
     }
     await fs.writeFile(
-      pkgJsonPath,
+      pkgJsonPaths[pkg],
       JSON.stringify(packageJson, null, 2) + "\n",
       "utf8"
     );
