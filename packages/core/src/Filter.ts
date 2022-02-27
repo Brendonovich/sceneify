@@ -72,4 +72,16 @@ export abstract class Filter<
     if (!this.source)
       throw new Error(`Filter ${this.name} does not have source.`);
   }
+
+  async remove() {
+    this.checkSource();
+
+    await this.source!.obs.call("RemoveSourceFilter", {
+      sourceName: this.source!.name,
+      filterName: this.name,
+    });
+
+    this.source!.filters.splice(this.index, 1);
+    this.source = undefined;
+  }
 }

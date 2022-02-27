@@ -165,4 +165,18 @@ export class Input<
 
     this.audioMonitorType = type;
   }
+
+  async remove() {
+    await this.obs.call("RemoveInput", {
+      inputName: this.name,
+    });
+
+    this._initialized = false;
+    this._exists = false;
+
+    this.obs.inputs.delete(this.name);
+    this.itemInstances.forEach((i) => {
+      i.scene.items.splice(i.scene.items.indexOf(i), 1);
+    });
+  }
 }

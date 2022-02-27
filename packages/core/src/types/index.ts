@@ -76,7 +76,7 @@ export interface OBSRequestTypesOverrides {
     sceneItemId: number;
     sceneItemTransform: Partial<SceneItemTransform>;
   };
-  
+
   GetSourceFilterList: {
     sourceName: string;
   };
@@ -167,7 +167,7 @@ export interface OBSResponseTypesOverrides {
     inputName: string;
     inputKind: string;
   };
-  
+
   GetInputAudioMonitorType: {
     monitorType:
       | "OBS_MONITORING_TYPE_NONE"

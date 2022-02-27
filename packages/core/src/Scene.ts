@@ -11,6 +11,7 @@ import { Input } from ".";
  */
 export type SceneItemSchema<T extends Source = Source> = {
   source: T;
+  enabled?: boolean;
 } & DeepPartial<SceneItemTransform>;
 
 /**
@@ -190,15 +191,15 @@ export class Scene<
   async createItem<T extends Source>(
     ref: string,
     itemSchema: SceneItemSchema<T>
-  ) {
-    const { source, ...transform } = itemSchema;
+  ): Promise<SourceItemType<T>> {
+    const { source, enabled, ...transform } = itemSchema;
 
     // Check if the source is initialized to ensure that `source.exists` is accurate
     await source.initialize(this.obs);
 
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required
-    const item = await source.createSceneItem(ref, this);
+    const item = await source.createSceneItem(ref, this, enabled);
 
     if (Object.keys(transform).length !== 0)
       await item.setTransform(transform as SceneItemTransform);
@@ -210,7 +211,7 @@ export class Scene<
 
     this.items.push(item);
 
-    return item;
+    return item as any;
   }
 
   item<R extends keyof Items>(ref: R): SourceItemType<Items[R]>;

@@ -52,7 +52,7 @@ export class SceneItem<
 
   transform: SceneItemTransform = { ...DEFAULT_SCENE_ITEM_TRANSFORM };
   enabled = true;
-  locked = false; 
+  locked = false;
 
   /**
    *

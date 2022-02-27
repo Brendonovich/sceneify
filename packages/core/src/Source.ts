@@ -210,7 +210,11 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * @returns A SceneItem created by `Source.createSceneItem`
    * @internal
    */
-  async createSceneItem<S extends Scene>(ref: string, scene: S): Promise<SceneItem<this>> {
+  async createSceneItem<S extends Scene>(
+    ref: string,
+    scene: S,
+    enabled?: boolean
+  ) {
     if (!this.initalized)
       throw new Error(
         `Cannot create item of source ${this.name} as it is not initialized`
@@ -241,6 +245,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
           const { sceneItemId } = await this.obs.call("CreateSceneItem", {
             sceneName: scene.name,
             sourceName: this.name,
+            sceneItemEnabled: enabled,
           });
 
           itemId = sceneItemId;
