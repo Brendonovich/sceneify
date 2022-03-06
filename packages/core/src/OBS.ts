@@ -157,6 +157,13 @@ export class OBS {
     this.socket.on(event, callback as any);
     return this;
   }
+  
+  off<T extends keyof OBSEventTypes>(
+    event: T,
+    callback: (data: OBSEventTypes[T]) => void
+  ) {
+    this.socket.off(event, callback as any);
+  }
 
   /**
    * Streaming state
