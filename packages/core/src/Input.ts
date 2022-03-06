@@ -2,6 +2,7 @@ import { Scene } from "./Scene";
 import { Settings } from "./types";
 import { SourceFilters, Source, SourceArgs } from "./Source";
 import { MonitoringType } from "./constants";
+import { SceneItem } from "./SceneItem";
 
 export type CustomInputArgs<
   TSettings extends Settings,
@@ -98,7 +99,7 @@ export class Input<
     let promises: Promise<any>[] = [];
 
     // TODO: batch
-    
+
     if (audioMonitorType)
       promises.push(this.setAudioMonitorType(audioMonitorType));
     if (audioSyncOffset)
@@ -199,12 +200,19 @@ export class Input<
       inputName: this.name,
     });
 
-    this._initialized = false;
     this._exists = false;
 
     this.obs.inputs.delete(this.name);
     this.itemInstances.forEach((i) => {
       i.scene.items.splice(i.scene.items.indexOf(i), 1);
     });
+  }
+
+  removeItemInstance(item: SceneItem<this>) {
+    this.itemInstances.delete(item);
+
+    if (this.itemInstances.size === 0) {
+      this._exists = false;
+    }
   }
 }

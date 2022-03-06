@@ -134,7 +134,7 @@ export class SceneItem<
       sceneItemId: this.id,
     });
 
-    this.source.itemInstances.delete(this);
+    this.source.removeItemInstance(this);
     this.scene.items.splice(this.scene.items.indexOf(this), 1);
   }
 }

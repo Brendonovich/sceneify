@@ -288,4 +288,8 @@ export class Scene<
     });
     this.items = [];
   }
+
+  removeItemInstance(item: SceneItem<this>) {
+    this.itemInstances.delete(item);
+  }
 }

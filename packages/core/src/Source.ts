@@ -404,12 +404,5 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   }
 
   /** @internal */
-  removeItemInstance(item: SceneItem<this>) {
-    this.itemInstances.delete(item);
-
-    if (this.itemInstances.size === 0) {
-      this._exists = false;
-      this.filters = [];
-    }
-  }
+  abstract removeItemInstance(item: SceneItem<this>): void;
 }
