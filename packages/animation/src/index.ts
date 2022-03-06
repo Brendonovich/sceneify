@@ -39,16 +39,8 @@ export function keyframe<T extends number | string | boolean>(
 
 export type KeyframeProperty = number | string | boolean;
 
-export type KeyframeInputsMap = {
-  [key: string]: KeyframeProperty | KeyframeInputsMap;
-};
-
-export type KeyframesFromSchema<P extends KeyframeInputsMap> = {
-  [K in keyof P]?: P[K] extends KeyframeInputsMap
-    ? KeyframesFromSchema<P[K]>
-    : P[K] extends KeyframeProperty
-    ? Record<number, P[K] | KeyframeInput<P[K]>>
-    : never;
+export type KeyframesFromSchema<P extends Record<string, KeyframeProperty>> = {
+  [K in keyof P]?: Record<number, P[K] | KeyframeInput<P[K]>>;
 };
 
 export type SubjectKeyframeValues<Subject extends AnimationSubject> =
@@ -57,7 +49,7 @@ export type SubjectKeyframeValues<Subject extends AnimationSubject> =
     : Subject extends Input<infer Settings>
     ? KeyframesFromSchema<Settings>
     : Subject extends Filter<infer Settings>
-    ? KeyframesFromSchema<Settings & { visible?: boolean }>
+    ? KeyframesFromSchema<Settings | { visible?: boolean }>
     : never;
 
 export interface Keyframes<Subject extends AnimationSubject> {

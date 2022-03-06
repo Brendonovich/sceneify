@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
         "core",
-        "sources"
+        "sources",
+        "animation"
     ]
 }

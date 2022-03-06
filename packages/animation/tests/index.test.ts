@@ -1,5 +1,5 @@
 import { Queue } from "@datastructures-js/queue";
-import { CustomInputArgs, Input } from "@sceneify/core";
+import { Input } from "@sceneify/core";
 
 import { Keyframe, processTimeline, subjectKeyframes, Easing } from "../src";
 
@@ -41,63 +41,6 @@ describe("processTimeline()", () => {
     });
 
     expect(widthQueue.dequeue()).toMatchObject({
-      beginTimestamp: 0,
-      endTimestamp: 1000,
-      easing: Easing.Linear,
-      from: 0,
-      to: 10,
-    });
-  });
-
-  test("Nested", () => {
-    class NestedSettingsSource extends Input<{
-      property: {
-        nested: {
-          value: number;
-        };
-      };
-    }> {
-      constructor(args: CustomInputArgs<any, any>) {
-        super({
-          ...args,
-          kind: "test",
-        });
-      }
-    }
-
-    let source = new NestedSettingsSource({
-      name: "Test Source",
-    });
-
-    const result: any = processTimeline({
-      subjects: { source },
-      keyframes: {
-        source: {
-          property: {
-            nested: {
-              value: {
-                0: 0,
-                1000: 10,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const valueQueue = result.source.property.nested.value as Queue<Keyframe>;
-
-    expect(valueQueue.size()).toBe(2);
-
-    expect(valueQueue.dequeue()).toMatchObject({
-      beginTimestamp: 0,
-      endTimestamp: 0,
-      easing: Easing.Linear,
-      from: undefined,
-      to: 0,
-    });
-
-    expect(valueQueue.dequeue()).toMatchObject({
       beginTimestamp: 0,
       endTimestamp: 1000,
       easing: Easing.Linear,
