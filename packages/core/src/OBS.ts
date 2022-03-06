@@ -70,7 +70,7 @@ export class OBS {
       (acc, data) => ({
         ...acc,
         [data.sourceName]:
-          data.sourceSettings.SIMPLE_OBS_LINKED === true
+          data.sourceSettings.SIMPLE_OBS_LINKED === false
             ? data.sourceSettings.SIMPLE_OBS_REFS
             : undefined,
       }),
