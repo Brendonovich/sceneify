@@ -206,7 +206,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   async createSceneItem<S extends Scene>(
     ref: string,
     scene: S,
-    enabled?: boolean
+    enabled: boolean = true
   ) {
     if (!this.initalized)
       throw new Error(
@@ -260,7 +260,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
         itemId = sceneItemId;
       }
     } else {
-      itemId = await this.createFirstSceneItem(scene);
+      itemId = await this.createFirstSceneItem(scene, enabled);
 
       this._exists = true;
 
@@ -313,7 +313,10 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * but inputs start with 1, and scenes have to create
    * their items before creating scene items of themselves
    */
-  protected abstract createFirstSceneItem(scene: Scene): Promise<number>;
+  protected abstract createFirstSceneItem(
+    scene: Scene,
+    enabled: boolean
+  ): Promise<number>;
 
   /**
    * Fetches whether the source exists in OBS,

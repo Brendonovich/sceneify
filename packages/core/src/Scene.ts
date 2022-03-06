@@ -24,7 +24,7 @@ export type SceneItemSchemas<Items extends Record<string, Source>> = {
 interface LinkOptions {
   // requireItemOrder: boolean;
   // requireFilterOrder: boolean;
-  setProperties: boolean;
+  setTransform: boolean;
   setSourceSettings: boolean;
 }
 
@@ -171,7 +171,7 @@ export class Scene<
           await item.fetchProperties();
 
           let optionRequests: Promise<any>[] = [];
-          if (options?.setProperties)
+          if (options?.setTransform)
             optionRequests.push(item.setTransform(transform));
           if (options?.setSourceSettings && source instanceof Input)
             optionRequests.push(source.setSettings(source.settings));
@@ -224,12 +224,16 @@ export class Scene<
     return this.items.find((i) => i.ref === ref);
   }
 
-  protected async createFirstSceneItem(scene: Scene): Promise<number> {
+  protected override async createFirstSceneItem(
+    scene: Scene,
+    enabled: boolean
+  ): Promise<number> {
     await this.create(scene.obs);
 
     const { sceneItemId } = await this.obs.call("CreateSceneItem", {
       sceneName: scene.name,
       sourceName: this.name,
+      sceneItemEnabled: enabled,
     });
 
     this.obs.scenes.set(this.name, this);
