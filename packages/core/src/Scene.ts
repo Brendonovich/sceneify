@@ -272,4 +272,16 @@ export class Scene<
       { sceneName: this.name }
     );
   }
+
+  async remove() {
+    await this.obs.call("RemoveScene", {
+      sceneName: this.name,
+    });
+
+    this.obs.scenes.delete(this.name);
+    this.items.forEach((item) => {
+      item.source.removeItemInstance(item);
+    });
+    this.items = [];
+  }
 }

@@ -31,9 +31,6 @@ export abstract class Filter<
 
   source?: TSource;
 
-  /** @internal */
-  _settingsType!: Settings;
-  /** @internal */
   initialSettings: DeepPartial<TSettings> = {} as DeepPartial<TSettings>;
 
   async setSettings(settings: DeepPartial<TSettings>) {

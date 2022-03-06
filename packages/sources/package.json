@@ -12,7 +12,8 @@
     "test": "jest -i"
   },
   "dependencies": {
-    "@sceneify/core": "*"
+    "@sceneify/core": "*",
+    "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
     "jest": "^27.4.5"

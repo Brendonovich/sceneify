@@ -34,7 +34,6 @@ export enum MonitoringType {
   MonitorAndOutput = "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
 }
 
-/** @internal */
 export const DEFAULT_SCENE_ITEM_TRANSFORM: SceneItemTransform = {
   positionX: 0,
   positionY: 0,

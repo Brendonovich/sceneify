@@ -24,6 +24,7 @@
     "target": "es2020",
     "composite": true,
     "declarationMap": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "stripInternal": true
   }
 }

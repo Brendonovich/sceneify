@@ -16,7 +16,6 @@ export interface SourceArgs<Filters extends SourceFilters> {
 export abstract class Source<Filters extends SourceFilters = {}> {
   name: string;
   kind: string;
-  /** @internal */
   filters: Filter[] = [];
 
   /**
@@ -35,16 +34,10 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   }
   protected _initialized = false;
 
-  /** @internal */
   private filtersMap: Filters & Record<string, Filter> = {} as Filters;
-  /** @internal */
   obs!: OBS;
-  /** @internal */
   linked = false;
-  /** @internal */
   itemInstances = new Set<SceneItem>();
-  /** @internal */
-  _settingsType!: Settings;
   protected refs: SourceRefs = {};
 
   constructor(args: SourceArgs<Filters>) {
@@ -331,17 +324,27 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    */
   protected abstract fetchExists(): Promise<boolean>;
 
-  protected async setPrivateSettings(settings: Settings) {
+  async getPrivateSettings(): Promise<Settings> {
+    const { sourceSettings } = await this.obs.call("GetSourcePrivateSettings", {
+      sourceName: this.name,
+    });
+
+    return sourceSettings;
+  }
+
+  async setPrivateSettings(settings: Settings) {
     await this.obs.call("SetSourcePrivateSettings", {
       sourceName: this.name,
       sourceSettings: settings,
     });
   }
 
+  /** @internal */
   protected getRef(scene: string, ref: string): number | undefined {
     return this.refs[scene]?.[ref];
   }
 
+  /** @internal */
   protected async addRef(scene: string, ref: string, id: number) {
     (this.refs[scene] ||= {})[ref] = id;
 
@@ -350,6 +353,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     );
   }
 
+  /** @internal */
   protected async removeRef(scene: string, ref: string) {
     delete this.refs[scene]?.[ref];
 
@@ -358,6 +362,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     );
   }
 
+  /** @internal */
   private async sendRefs() {
     await this.obs.call("SetSourcePrivateSettings", {
       sourceName: this.name,
@@ -367,6 +372,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     });
   }
 
+  /** @internal */
   private async fetchRefs() {
     const { sourceSettings } = await this.obs.call("GetSourcePrivateSettings", {
       sourceName: this.name,
@@ -392,5 +398,15 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     this.refs = refs;
 
     return this.sendRefs();
+  }
+
+  /** @internal */
+  removeItemInstance(item: SceneItem<this>) {
+    this.itemInstances.delete(item);
+
+    if (this.itemInstances.size === 0) {
+      this._exists = false;
+      this.filters = [];
+    }
   }
 }
