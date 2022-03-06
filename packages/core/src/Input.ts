@@ -1,5 +1,5 @@
 import { Scene } from "./Scene";
-import { Settings } from "./types";
+import { DeepPartial, Settings } from "./types";
 import { SourceFilters, Source, SourceArgs } from "./Source";
 import { MonitoringType } from "./constants";
 import { SceneItem } from "./SceneItem";
@@ -35,7 +35,7 @@ export class Input<
   audioSyncOffset = 0;
   muted = false;
 
-  settings: Partial<Settings> = {};
+  settings: DeepPartial<Settings> = {};
 
   private creationArgs: InputArgs<TSettings, Filters>;
 
@@ -45,7 +45,7 @@ export class Input<
     this.creationArgs = args;
   }
 
-  async setSettings(settings: Partial<TSettings>) {
+  async setSettings(settings: DeepPartial<TSettings>) {
     await this.obs.call("SetInputSettings", {
       inputName: this.name,
       inputSettings: settings,
