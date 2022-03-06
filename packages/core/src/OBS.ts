@@ -70,7 +70,7 @@ export class OBS {
       (acc, data) => ({
         ...acc,
         [data.sourceName]:
-          data.sourceSettings.SIMPLE_OBS_LINKED !== undefined
+          data.sourceSettings.SIMPLE_OBS_LINKED === true
             ? data.sourceSettings.SIMPLE_OBS_REFS
             : undefined,
       }),
@@ -157,7 +157,7 @@ export class OBS {
     this.socket.on(event, callback as any);
     return this;
   }
-  
+
   off<T extends keyof OBSEventTypes>(
     event: T,
     callback: (data: OBSEventTypes[T]) => void
