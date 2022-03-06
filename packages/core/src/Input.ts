@@ -13,6 +13,13 @@ export interface InputArgs<
   Filters extends SourceFilters = {}
 > extends SourceArgs<Filters> {
   settings?: Partial<TSettings>;
+  volume?: {
+    db?: number;
+    mul?: number;
+  };
+  audioMonitorType?: MonitoringType;
+  audioSyncOffset?: number;
+  muted?: boolean;
 }
 
 export class Input<
@@ -27,12 +34,14 @@ export class Input<
   audioSyncOffset = 0;
   muted = false;
 
-  settings: Partial<Settings>;
+  settings: Partial<Settings> = {};
+
+  private creationArgs: InputArgs<TSettings, Filters>;
 
   constructor(args: InputArgs<TSettings, Filters>) {
     super(args);
 
-    this.settings = args.settings ?? {};
+    this.creationArgs = args;
   }
 
   async setSettings(settings: Partial<TSettings>) {
@@ -72,13 +81,32 @@ export class Input<
     return true;
   }
 
-  protected async createFirstSceneItem(scene: Scene) {
+  protected async createFirstSceneItem(scene: Scene, enabled?: boolean) {
+    const { settings, audioMonitorType, audioSyncOffset, muted, volume } =
+      this.creationArgs;
+
     const { sceneItemId } = await this.obs.call("CreateInput", {
       inputName: this.name,
       inputKind: this.kind,
       sceneName: scene.name,
       inputSettings: this.settings,
+      sceneItemEnabled: enabled,
     });
+
+    this.settings = settings ?? {};
+
+    let promises: Promise<any>[] = [];
+
+    // TODO: batch
+    
+    if (audioMonitorType)
+      promises.push(this.setAudioMonitorType(audioMonitorType));
+    if (audioSyncOffset)
+      promises.push(this.setAudioSyncOffset(audioSyncOffset));
+    if (muted) promises.push(this.setMuted(muted));
+    if (volume) promises.push(this.setVolume(volume));
+
+    Promise.all(promises);
 
     this.obs.inputs.set(this.name, this);
 
