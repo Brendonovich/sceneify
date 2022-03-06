@@ -3,6 +3,7 @@ import {
   SourceFilters,
   CustomInputArgs,
   OBSEventTypes,
+  OBS,
 } from "@sceneify/core";
 import { EventEmitter } from "eventemitter3";
 
@@ -59,9 +60,12 @@ export class MediaSource<Filters extends SourceFilters = {}> extends Input<
 
   constructor(args: CustomInputArgs<MediaSourceSettings, Filters>) {
     super({ ...args, kind: "ffmpeg_source" });
+  }
 
-    this.obs.on("MediaInputPlaybackStarted", this.startedListener);
-    this.obs.on("MediaInputPlaybackEnded", this.endedListener);
+  override async initialize(obs: OBS) {
+    await super.initialize(obs);
+    obs.on("MediaInputPlaybackStarted", this.startedListener);
+    obs.on("MediaInputPlaybackEnded", this.endedListener);
   }
 
   override async remove() {

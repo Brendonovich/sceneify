@@ -166,7 +166,6 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       );
   }
 
-  /** @internal */
   async initialize(obs: OBS) {
     if (this.initalized) return;
 
