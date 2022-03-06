@@ -234,8 +234,14 @@ async function animateTick(): Promise<any> {
       continue;
     }
 
-    if (subject instanceof SceneItem) subject.setTransform(interpolatedData);
-    else {
+    if (subject instanceof SceneItem) {
+      subject.setTransform({
+        ...interpolatedData,
+        ...(interpolatedData.rotation
+          ? { rotation: clipRotation(interpolatedData.rotation) }
+          : undefined),
+      });
+    } else {
       subject.setSettings(interpolatedData);
       // if (interpolatedData.visible !== undefined && subject instanceof Filter)
       //   subject.setVisible(interpolatedData.visible);
@@ -302,4 +308,7 @@ export function recursiveInterpolateKeyframes(
   }
 
   return ret;
+}
+function clipRotation(rotation: number): number {
+  return rotation % 360;
 }
