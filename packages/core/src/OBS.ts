@@ -78,12 +78,11 @@ export class OBS {
     );
 
     // Delete refs that are actually in use
-
     for (let [_, scene] of this.scenes) {
-      for (let itemRef in scene.items) {
-        let item = scene.items[itemRef];
+      for (let item of scene.items) {
+        // let item = scene.items[itemRef];
 
-        delete sourcesRefs[item.source.name]?.[`${scene.name}:${itemRef}`];
+        delete sourcesRefs[item.source.name]?.[scene.name]?.[item.ref];
       }
     }
 

@@ -114,4 +114,51 @@ describe("clean()", () => {
     expect(scenesAfterClean.length).toBe(2);
     expect(scene.item("item").id).toBe(sceneItemId);
   });
+
+  it("doesn't remove nested scenes", async () => {
+    let doubleNested = new Scene({
+      name: "Double Nested",
+      items: {},
+    });
+
+    let nested = new Scene({
+      name: "Nested",
+      items: {
+        doubleNested: {
+          source: doubleNested,
+        },
+      },
+    });
+
+    let parent = new Scene({
+      name: "Parent",
+      items: {
+        nested: {
+          source: nested,
+        },
+      },
+    });
+
+    await parent.create(obs);
+
+    await obs.clean();
+    
+    const { sceneItems: parentItemsAfter } = await obs.call("GetSceneItemList", {
+      sceneName: parent.name,
+    });
+    expect(parentItemsAfter.length).toBe(1);
+
+    const { sceneItems: nestedItemsAfter } = await obs.call("GetSceneItemList", {
+      sceneName: nested.name,
+    });
+    expect(nestedItemsAfter.length).toBe(1);
+
+    const { sceneItems: doubleNestedItemsAfter } = await obs.call(
+      "GetSceneItemList",
+      {
+        sceneName: doubleNested.name,
+      }
+    );
+    expect(doubleNestedItemsAfter.length).toBe(0);
+  });
 });
