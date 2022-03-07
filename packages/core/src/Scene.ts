@@ -185,6 +185,8 @@ export class Scene<
       SIMPLE_OBS_LINKED: true,
     } as any);
 
+    this.obs.scenes.set(this.name, this);
+
     // TODO: Ordering options
   }
 

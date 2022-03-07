@@ -3,5 +3,6 @@
         "core",
         "sources",
         "animation"
-    ]
+    ],
+    "jest.jestCommandLine": "pnpm jest"
 }

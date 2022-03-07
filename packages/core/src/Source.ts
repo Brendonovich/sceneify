@@ -381,7 +381,6 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     });
 
     this.refs = sourceSettings.SIMPLE_OBS_REFS || {};
-    console.log(this.name, this.refs);
   }
 
   /**

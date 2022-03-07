@@ -127,12 +127,12 @@ export class OBS {
     );
 
     for (let danglingCodeScene of this.scenes.keys()) {
-      if (scenes.some(({ sceneName }) => sceneName === danglingCodeScene))
+      if (scenes.every(({ sceneName }) => sceneName !== danglingCodeScene))
         this.scenes.delete(danglingCodeScene);
     }
 
     for (let danglingCodeInputs of this.inputs.keys()) {
-      if (inputs.some(({ inputName }) => inputName === danglingCodeInputs))
+      if (inputs.every(({ inputName }) => inputName !== danglingCodeInputs))
         this.inputs.delete(danglingCodeInputs);
     }
 
