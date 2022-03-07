@@ -90,7 +90,7 @@ export class Input<
       inputName: this.name,
       inputKind: this.kind,
       sceneName: scene.name,
-      inputSettings: this.settings,
+      inputSettings: settings,
       sceneItemEnabled: enabled,
     });
 
