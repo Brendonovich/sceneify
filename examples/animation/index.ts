@@ -1,10 +1,12 @@
-import { Alignment, ColorCorrectionFilter, ColorSource, OBS, Scene } from "@sceneify/core";
+import { Alignment, OBS, Scene } from "@sceneify/core";
 import { Easing, keyframe, animate } from "@sceneify/animation";
+import { ColorSource } from "@sceneify/sources";
+import { ColorCorrectionFilter } from "@sceneify/filters";
 
 async function main() {
   const obs = new OBS();
 
-  await obs.connect("localhost:4444");
+  await obs.connect("ws:localhost:4455");
 
   const mainScene = new Scene({
     name: "Main",

@@ -11,7 +11,7 @@ async function main() {
   const obs = new OBS();
 
   // Connect to OBS before creating or linking any scenes
-  await obs.connect("ws:localhost:4444");
+  await obs.connect("ws:localhost:4455");
   
   // verifies that the required linked scene exists
   await verifyLinkedSceneExists(obs);

@@ -128,8 +128,6 @@ export class OBS {
         !this.scenes.has(sceneName) && sourcesRefs[sceneName] !== undefined
     );
 
-    console.log(danglingOBSScenes);
-
     await Promise.all(
       danglingOBSScenes.map(({ sceneName }) =>
         this.call("RemoveScene", { sceneName })

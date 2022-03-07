@@ -118,3 +118,52 @@ describe("create()", () => {
     expect(existingSource.itemInstances.size).toBe(2);
   });
 });
+
+describe("link()", () => {
+  it("doesn't duplicate scene items when nested", async () => {
+    const testInput = new Input({
+      name: "Colour Source",
+      kind: "test",
+    });
+
+    const linkedScene = new Scene({
+      name: "linked",
+      items: {
+        colour: {
+          source: testInput,
+        },
+      },
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: linkedScene.name,
+    });
+
+    let res = await obs.call("CreateInput", {
+      sceneName: linkedScene.name,
+      inputName: testInput.name,
+      inputKind: testInput.kind,
+    });
+
+    await linkedScene.link(obs);
+
+    expect(res.sceneItemId).toBe(linkedScene.item("colour").id);
+
+    const parentScene = new Scene({
+      name: "Parent",
+      items: {
+        linked: {
+          source: linkedScene,
+        },
+      },
+    });
+
+    await parentScene.create(obs);
+
+    const { sceneItems } = await obs.call("GetSceneItemList", {
+      sceneName: linkedScene.name,
+    });
+
+    expect(sceneItems.length).toBe(1);
+  });
+});

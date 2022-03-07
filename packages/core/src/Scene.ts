@@ -61,9 +61,7 @@ export class Scene<
    * Creates a scene in OBS and populates it with items as defined by the scene's items schema.
    */
   async create(obs: OBS): Promise<this> {
-    console.log(`Creating scene ${this.name}`);
     // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
-
     await this.initialize(obs);
 
     if (!this.exists) {
@@ -101,6 +99,8 @@ export class Scene<
         `Failed to link scene ${this.name}: Scene is already initialized`
       );
 
+    await this.initialize(obs);
+
     // First, check if the scene exists by fetching its scene item list. Fail if scene isn't found
     const { sceneItems } = await obs
       .call("GetSceneItemList", {
@@ -111,8 +111,6 @@ export class Scene<
           `Failed to link scene ${this.name}: Scene does not exist`
         );
       });
-
-    this._exists = true;
 
     let multipleItemSources = [],
       noItemSources = [];
@@ -196,10 +194,9 @@ export class Scene<
   ): Promise<SourceItemType<T>> {
     const { source, enabled, ...transform } = itemSchema;
 
-    // Check if the source is initialized to ensure that `source.exists` is accurate
-    await source.initialize(this.obs);
-
-    if (source instanceof Scene) await source.create(this.obs);
+    if (source instanceof Scene && source.initialized === false)
+      await source.create(this.obs);
+    else await source.initialize(this.obs);
 
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required

@@ -8,10 +8,6 @@ import {
 import { ImageSource } from "@sceneify/sources";
 
 export class WindowItem<W extends Window> extends SceneItem<W> {
-  lastPosition?: { x: number; y: number };
-  lastScale?: { x: number; y: number };
-  minimised: boolean = false;
-
   constructor(source: W, scene: Scene, id: number, ref: string) {
     super(source, scene, id, ref);
   }
@@ -50,7 +46,7 @@ async function main() {
   const obs = new OBS();
 
   // Connect to OBS before creating or linking any scenes
-  await obs.connect("ws:localhost:4444");
+  await obs.connect("ws:localhost:4455");
 
   let a = new Window({
     name: "A",
