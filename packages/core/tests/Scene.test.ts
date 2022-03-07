@@ -13,7 +13,7 @@ describe("create()", () => {
 
     await scene.create(obs);
 
-    expect(scene.initalized).toBe(true);
+    expect(scene.initialized).toBe(true);
     expect(scene.exists).toBe(true);
 
     const obsScenes = await obs.call("GetSceneList");
@@ -32,7 +32,7 @@ describe("create()", () => {
 
     await scene.create(obs);
 
-    expect(scene.initalized).toBe(true);
+    expect(scene.initialized).toBe(true);
     expect(scene.exists).toBe(true);
   });
 

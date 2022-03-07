@@ -24,6 +24,14 @@
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
       "cwd": "${workspaceFolder}",
       "args": ["jest", "--runInBand", "--watchAll=false"]
+    },
+    {
+      "name": "Launch selected example",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${fileDirname}",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start"]
     }
   ]
 }

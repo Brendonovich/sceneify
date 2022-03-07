@@ -2,9 +2,8 @@ import { SourceItemType } from "./types";
 import { OBS } from "./OBS";
 import { SceneItem, SceneItemTransform } from "./SceneItem";
 import { DeepPartial } from "./types";
-import { wait } from "./utils";
 import { SourceFilters, Source } from "./Source";
-import { Input } from ".";
+import { Input } from "./Input";
 
 /**
  * Describes how a scene item should be created, including its base source and transform
@@ -62,8 +61,8 @@ export class Scene<
    * Creates a scene in OBS and populates it with items as defined by the scene's items schema.
    */
   async create(obs: OBS): Promise<this> {
+    console.log(`Creating scene ${this.name}`);
     // If scene exists, it is initialized. Thus, no need to throw an error if it's already initialized
-    if (this.exists) return this;
 
     await this.initialize(obs);
 
@@ -71,10 +70,9 @@ export class Scene<
       await obs.call("CreateScene", {
         sceneName: this.name,
       });
+
       await this.pushRefs();
     }
-
-    await wait(50);
 
     this._exists = true;
 
@@ -85,7 +83,7 @@ export class Scene<
     }
 
     await this.setPrivateSettings({
-      SIMPLE_OBS_LINKED: false,
+      SCENEIFY_LINKED: false,
     });
 
     return this;
@@ -98,7 +96,7 @@ export class Scene<
   async link(obs: OBS, options?: Partial<LinkOptions>) {
     this.obs = obs;
 
-    if (this.initalized)
+    if (this.initialized)
       throw new Error(
         `Failed to link scene ${this.name}: Scene is already initialized`
       );
@@ -155,6 +153,8 @@ export class Scene<
     await Promise.all(
       Object.entries(this.itemsSchema).map(
         async ([ref, { source, ...transform }]: [string, SceneItemSchema]) => {
+          if (source instanceof Scene) await source.link(obs);
+
           const schemaItem = sceneItems.find(
             (i) => i.sourceName === source.name
           )!;
@@ -182,7 +182,7 @@ export class Scene<
     );
 
     await this.setPrivateSettings({
-      SIMPLE_OBS_LINKED: true,
+      SCENEIFY_LINKED: true,
     } as any);
 
     this.obs.scenes.set(this.name, this);
@@ -198,6 +198,8 @@ export class Scene<
 
     // Check if the source is initialized to ensure that `source.exists` is accurate
     await source.initialize(this.obs);
+
+    if (source instanceof Scene) await source.create(this.obs);
 
     // Source is initialized, try to create an item of it, letting the source be
     // responsible for creating itself if required
@@ -230,15 +232,11 @@ export class Scene<
     scene: Scene,
     enabled: boolean
   ): Promise<number> {
-    await this.create(scene.obs);
-
     const { sceneItemId } = await this.obs.call("CreateSceneItem", {
       sceneName: scene.name,
       sourceName: this.name,
       sceneItemEnabled: enabled,
     });
-
-    this.obs.scenes.set(this.name, this);
 
     return sceneItemId;
   }

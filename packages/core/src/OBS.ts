@@ -69,10 +69,10 @@ export class OBS {
     const sourcesRefs = sourcesSettings.reduce(
       (acc, data) => ({
         ...acc,
-        [data.sourceName]:
-          data.sourceSettings.SIMPLE_OBS_LINKED === false
-            ? data.sourceSettings.SIMPLE_OBS_REFS
-            : undefined,
+        ...(data.sourceSettings.SCENEIFY_LINKED === false &&
+        data.sourceSettings.SCENEIFY_REFS
+          ? { [data.sourceName]: data.sourceSettings.SCENEIFY_REFS }
+          : {}),
       }),
       {} as Record<string, SourceRefs>
     );
@@ -80,12 +80,21 @@ export class OBS {
     // Delete refs that are actually in use
     for (let [_, scene] of this.scenes) {
       for (let item of scene.items) {
-        // let item = scene.items[itemRef];
-
         delete sourcesRefs[item.source.name]?.[scene.name]?.[item.ref];
+
+        if (
+          Object.keys(sourcesRefs[item.source.name]?.[scene.name] ?? {})
+            .length === 0
+        ) {
+          delete sourcesRefs[item.source.name]?.[scene.name];
+        }
+
+        if (Object.keys(sourcesRefs[item.source.name] ?? {}).length === 0) {
+          delete sourcesRefs[item.source.name];
+        }
       }
     }
-
+    
     const danglingItems = Object.values(sourcesRefs)
       .filter((r) => r !== undefined)
       .reduce(
@@ -118,6 +127,8 @@ export class OBS {
       ({ sceneName }) =>
         !this.scenes.has(sceneName) && sourcesRefs[sceneName] !== undefined
     );
+
+    console.log(danglingOBSScenes);
 
     await Promise.all(
       danglingOBSScenes.map(({ sceneName }) =>

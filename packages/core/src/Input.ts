@@ -3,6 +3,7 @@ import { DeepPartial, Settings } from "./types";
 import { SourceFilters, Source, SourceArgs } from "./Source";
 import { MonitoringType } from "./constants";
 import { SceneItem } from "./SceneItem";
+import { OBS } from "./OBS";
 
 export type CustomInputArgs<
   TSettings extends Settings,
@@ -109,9 +110,13 @@ export class Input<
 
     Promise.all(promises);
 
-    this.obs.inputs.set(this.name, this);
-
     return sceneItemId;
+  }
+
+  override async initialize(obs: OBS) {
+    await super.initialize(obs);
+
+    if (this.exists) this.obs.inputs.set(this.name, this);
   }
 
   /**

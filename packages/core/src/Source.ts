@@ -29,7 +29,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   /**
    * Whether `initialize` has been called on this source yet
    */
-  get initalized() {
+  get initialized() {
     return this._initialized;
   }
   protected _initialized = false;
@@ -167,7 +167,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   }
 
   async initialize(obs: OBS) {
-    if (this.initalized) return;
+    if (this.initialized) return;
 
     this.obs = obs;
 
@@ -207,7 +207,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     scene: S,
     enabled: boolean = true
   ) {
-    if (!this.initalized)
+    if (!this.initialized)
       throw new Error(
         `Cannot create item of source ${this.name} as it is not initialized`
       );
@@ -369,7 +369,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     await this.obs.call("SetSourcePrivateSettings", {
       sourceName: this.name,
       sourceSettings: {
-        SIMPLE_OBS_REFS: this.refs,
+        SCENEIFY_REFS: this.refs,
       },
     });
   }
@@ -380,7 +380,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       sourceName: this.name,
     });
 
-    this.refs = sourceSettings.SIMPLE_OBS_REFS || {};
+    this.refs = sourceSettings.SCENEIFY_REFS || {};
   }
 
   /**
