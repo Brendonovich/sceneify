@@ -114,7 +114,7 @@ describe("clean()", () => {
     expect(scenesAfterClean.length).toBe(2);
     expect(scene.item("item").id).toBe(sceneItemId);
   });
-
+  
   // Similar to create/destroy toggling bug JDude experienced a few times
   it("doesn't remove nested scenes", async () => {
     const doubleNested = new Scene({

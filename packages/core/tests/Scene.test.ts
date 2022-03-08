@@ -117,10 +117,8 @@ describe("create()", () => {
     );
     expect(existingSource.itemInstances.size).toBe(2);
   });
-});
 
-describe("link()", () => {
-  it("doesn't duplicate scene items when nested", async () => {
+  it("doesn't duplicate scene items of nested scenes", async () => {
     const testInput = new Input({
       name: "Colour Source",
       kind: "test",
