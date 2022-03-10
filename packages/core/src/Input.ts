@@ -95,6 +95,10 @@ export class Input<
       sceneItemEnabled: enabled,
     });
 
+    await this.setPrivateSettings({
+      SCENEIFY_LINKED: false,
+    });
+
     this.settings = settings ?? {};
 
     let promises: Promise<any>[] = [];

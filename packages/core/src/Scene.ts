@@ -164,6 +164,10 @@ export class Scene<
             ref
           );
 
+          await source.setPrivateSettings({
+            SCENEIFY_LINKED: true,
+          });
+
           this.items.push(item);
 
           await item.fetchProperties();

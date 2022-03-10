@@ -94,7 +94,7 @@ export class OBS {
         }
       }
     }
-    
+
     const danglingItems = Object.values(sourcesRefs)
       .filter((r) => r !== undefined)
       .reduce(

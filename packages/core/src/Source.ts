@@ -277,10 +277,12 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     }
 
     // As we have created a new scene item, set the corresponding ref.
-    this.addRef(scene.name, ref, itemId);
+    await this.addRef(scene.name, ref, itemId);
 
     // Item for sure exists in OBS, so we create an object to interact with it
     const item = this.createSceneItemObject(scene, itemId, ref);
+
+    this.itemInstances.add(item);
 
     // If we found an existing item and got its properties, assign them
     if (transform !== null) item.transform = transform;
@@ -301,9 +303,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     id: number,
     ref: string
   ): SceneItem<this> {
-    const item = new SceneItem(this, scene, id, ref);
-    this.itemInstances.add(item);
-    return item;
+    return new SceneItem(this, scene, id, ref);
   }
 
   /**
