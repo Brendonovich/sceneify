@@ -1,11 +1,5 @@
-import { Input, OBS, Scene } from "../src";
-import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
-
-let obs = new OBS();
-
-beforeEach(() => {
-  obs.socket = new MockOBSWebSocket() as any;
-});
+import { Input, Scene } from "../src";
+import { obs } from "./utils";
 
 describe("clean()", () => {
   it("removes spare scenes from OBS", async () => {
@@ -114,7 +108,7 @@ describe("clean()", () => {
     expect(scenesAfterClean.length).toBe(2);
     expect(scene.item("item").id).toBe(sceneItemId);
   });
-  
+
   // Similar to create/destroy toggling bug JDude experienced a few times
   it("doesn't remove nested scenes", async () => {
     const doubleNested = new Scene({

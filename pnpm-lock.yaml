@@ -76,21 +76,6 @@ importers:
       '@types/node': 16.11.16
       ts-node: 10.4.0_07f6f3e9330e5362786e0e2b6faeafa0
 
-  examples/test:
-    specifiers:
-      '@sceneify/core': '*'
-      '@sceneify/filters': '*'
-      '@sceneify/sources': '*'
-      '@types/node': ^16.11.16
-      ts-node: ^10.2.1
-    dependencies:
-      '@sceneify/core': link:../../packages/core
-      '@sceneify/filters': link:../../packages/filters
-      '@sceneify/sources': link:../../packages/sources
-    devDependencies:
-      '@types/node': 16.11.16
-      ts-node: 10.4.0_07f6f3e9330e5362786e0e2b6faeafa0
-
   packages/animation:
     specifiers:
       '@datastructures-js/queue': ^4.1.3

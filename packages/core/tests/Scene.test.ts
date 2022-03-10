@@ -1,11 +1,5 @@
-import { OBS, Scene, Input } from "../src";
-import { MockOBSWebSocket } from "./mocks/OBSWebSocket";
-
-let obs = new OBS();
-
-beforeEach(() => {
-  obs.socket = new MockOBSWebSocket() as any;
-});
+import { Scene, Input } from "../src";
+import { obs } from "./utils";
 
 describe("create()", () => {
   it("creates new scenes", async () => {

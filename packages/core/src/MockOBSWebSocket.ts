@@ -1,12 +1,6 @@
-import {
-  DEFAULT_SCENE_ITEM_TRANSFORM,
-  OBSRequestTypes,
-  OBSResponseTypes,
-  SceneItemTransform,
-  DeepPartial,
-} from "../../";
-import { Settings } from "../../src/types";
-import { mergeDeep } from "../../src/utils";
+import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
+import { DeepPartial, OBSRequestTypes, OBSResponseTypes, SceneItemTransform, Settings } from "./types";
+import { mergeDeep } from "./utils";
 
 class Filter {
   constructor(
