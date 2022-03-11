@@ -33,7 +33,8 @@ export class OBS {
         EventSubscription.Scenes |
         EventSubscription.Inputs |
         EventSubscription.Filters |
-        EventSubscription.SceneItems,
+        EventSubscription.SceneItems |
+        EventSubscription.MediaInputs,
     });
 
     this.rpcVersion = data.negotiatedRpcVersion;
