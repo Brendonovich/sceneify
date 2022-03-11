@@ -1,6 +1,6 @@
 import ObsWebSocket, { EventSubscription } from "obs-websocket-js";
 
-import { OBSEventTypes, OBSRequestTypes, OBSResponseTypes } from "./types";
+import { OBSEventTypes, OBSRequestTypes, OBSResponseTypes, Settings } from "./types";
 import { Scene } from "./Scene";
 import { Input } from "./Input";
 import { SourceRefs } from "./Source";
@@ -58,7 +58,10 @@ export class OBS {
       ].map(async (sourceName) => {
         const { sourceSettings } = await this.call("GetSourcePrivateSettings", {
           sourceName,
-        });
+        }).catch(() => ({
+          sourceName,
+          sourceSettings: {} as Settings
+        }));
 
         return {
           sourceName,
@@ -121,7 +124,7 @@ export class OBS {
       );
 
     await Promise.all(
-      danglingItems.map((data) => this.call("RemoveSceneItem", data))
+      danglingItems.map((data) => this.call("RemoveSceneItem", data).catch())
     );
 
     const danglingOBSScenes = scenes.filter(
@@ -131,7 +134,7 @@ export class OBS {
 
     await Promise.all(
       danglingOBSScenes.map(({ sceneName }) =>
-        this.call("RemoveScene", { sceneName })
+        this.call("RemoveScene", { sceneName }).catch()
       )
     );
 
@@ -147,8 +150,8 @@ export class OBS {
 
     // TODO: Refresh filters
     await Promise.all([
-      ...[...this.inputs.values()].map((input) => input.pushRefs()),
-      ...[...this.scenes.values()].map((scene) => scene.pushRefs()),
+      ...[...this.inputs.values()].map((input) => input.pushRefs().catch()),
+      ...[...this.scenes.values()].map((scene) => scene.pushRefs().catch()),
     ]);
   }
 
