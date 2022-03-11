@@ -124,7 +124,7 @@ export class OBS {
       );
 
     await Promise.all(
-      danglingItems.map((data) => this.call("RemoveSceneItem", data).catch())
+      danglingItems.map((data) => this.call("RemoveSceneItem", data).catch(() => {}))
     );
 
     const danglingOBSScenes = scenes.filter(
@@ -134,7 +134,7 @@ export class OBS {
 
     await Promise.all(
       danglingOBSScenes.map(({ sceneName }) =>
-        this.call("RemoveScene", { sceneName }).catch()
+        this.call("RemoveScene", { sceneName }).catch(() => {})
       )
     );
 
@@ -150,8 +150,8 @@ export class OBS {
 
     // TODO: Refresh filters
     await Promise.all([
-      ...[...this.inputs.values()].map((input) => input.pushRefs().catch()),
-      ...[...this.scenes.values()].map((scene) => scene.pushRefs().catch()),
+      ...[...this.inputs.values()].map((input) => input.pushRefs().catch(() => {})),
+      ...[...this.scenes.values()].map((scene) => scene.pushRefs().catch(() => {})),
     ]);
   }
 
