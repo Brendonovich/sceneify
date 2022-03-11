@@ -1,5 +1,11 @@
 import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
-import { DeepPartial, OBSRequestTypes, OBSResponseTypes, SceneItemTransform, Settings } from "./types";
+import {
+  DeepPartial,
+  OBSRequestTypes,
+  OBSResponseTypes,
+  SceneItemTransform,
+  Settings,
+} from "./types";
 import { mergeDeep } from "./utils";
 
 class Filter {
@@ -40,22 +46,30 @@ abstract class Source {
 
   removeInstance(instance: SceneItem) {
     this.instances.splice(this.instances.indexOf(instance), 1);
-
-    this.handleInstanceRemoved();
   }
-
-  abstract handleInstanceRemoved(): void;
 
   setPrivateSettings(settings: Settings) {
     for (let setting in settings) {
       this.privateSettings[setting] = settings[setting];
     }
   }
+
+  remove() {
+    this.instances.forEach((i) => i.remove());
+  }
 }
 
 class Input extends Source {
-  handleInstanceRemoved() {
+  override removeInstance(instance: SceneItem) {
+    super.removeInstance(instance);
+
     if (this.instances.length === 0) this.obs.removeInput(this.name);
+  }
+
+  override remove() {
+    super.remove();
+
+    this.obs.removeInput(this.name);
   }
 }
 
@@ -73,7 +87,7 @@ class Scene extends Source {
   }
 
   destroy() {
-    this.items.forEach((i) => i.destroy());
+    this.items.forEach((i) => i.remove());
   }
 
   handleInstanceRemoved() {}
@@ -98,7 +112,7 @@ class SceneItem {
     source.instances.push(this);
   }
 
-  destroy() {
+  remove() {
     this.scene.removeInstance(this);
     this.scene.items.splice(this.scene.items.indexOf(this), 1);
   }
@@ -190,6 +204,18 @@ export class MockOBSWebSocket {
         new SceneItem(sceneItemId, input, scene);
 
         ret = { sceneItemId } as OBSResponseTypes["CreateInput"];
+
+        break;
+      }
+
+      case "RemoveInput": {
+        const data = requestData as OBSRequestTypes["RemoveInput"];
+
+        const input = obs.inputs.get(data.inputName);
+
+        if (!input) throw new Error("Input not found");
+
+        this.obs.removeInput(data.inputName);
 
         break;
       }
@@ -286,7 +312,7 @@ export class MockOBSWebSocket {
 
         if (!item) throw new Error("Item not found");
 
-        item.destroy();
+        item.remove();
 
         break;
       }

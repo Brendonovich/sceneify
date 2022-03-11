@@ -1,7 +1,6 @@
 import { SourceItemType } from "./types";
 import { OBS } from "./OBS";
 import { SceneItem, SceneItemTransform } from "./SceneItem";
-import { DeepPartial } from "./types";
 import { SourceFilters, Source } from "./Source";
 import { Input } from "./Input";
 
@@ -11,7 +10,7 @@ import { Input } from "./Input";
 export type SceneItemSchema<T extends Source = Source> = {
   source: T;
   enabled?: boolean;
-} & DeepPartial<SceneItemTransform>;
+} & Partial<SceneItemTransform>;
 
 /**
  * Describes a scene's map of scene items with {@link SceneItemSchema ItemSchemaInputs}
@@ -23,8 +22,8 @@ export type SceneItemSchemas<Items extends Record<string, Source>> = {
 interface LinkOptions {
   // requireItemOrder: boolean;
   // requireFilterOrder: boolean;
-  setTransform: boolean;
-  setSourceSettings: boolean;
+  setItemTransforms: boolean;
+  setInputSettings: boolean;
 }
 
 export interface SceneArgs<
@@ -84,6 +83,8 @@ export class Scene<
       SCENEIFY_LINKED: false,
     });
 
+    // TODO: await this.refreshFilters();
+
     return this;
   }
 
@@ -119,7 +120,7 @@ export class Scene<
     for (let ref in this.itemsSchema) {
       let itemSchema = this.itemsSchema[ref];
 
-      // Get all items in scene with current item's source type
+      // Get all items in scene with current item's source name
       const sourceItems = sceneItems.filter(
         (i) => i.sourceName === itemSchema.source.name
       );
@@ -151,7 +152,7 @@ export class Scene<
     await Promise.all(
       Object.entries(this.itemsSchema).map(
         async ([ref, { source, ...transform }]: [string, SceneItemSchema]) => {
-          if (source instanceof Scene) await source.link(obs);
+          if (source instanceof Scene) await source.link(obs, options);
 
           const schemaItem = sceneItems.find(
             (i) => i.sourceName === source.name
@@ -173,10 +174,12 @@ export class Scene<
           await item.fetchProperties();
 
           let optionRequests: Promise<any>[] = [];
-          if (options?.setTransform)
+          if (options?.setItemTransforms)
             optionRequests.push(item.setTransform(transform));
-          if (options?.setSourceSettings && source instanceof Input)
-            optionRequests.push(source.setSettings(source.settings));
+          if (options?.setInputSettings && source instanceof Input)
+            optionRequests.push(
+              source.setSettings(source.creationArgs.settings)
+            );
 
           return Promise.all(optionRequests);
         }
@@ -231,15 +234,11 @@ export class Scene<
 
   protected override async createFirstSceneItem(
     scene: Scene,
-    enabled: boolean
+    _: boolean
   ): Promise<number> {
-    const { sceneItemId } = await this.obs.call("CreateSceneItem", {
-      sceneName: scene.name,
-      sourceName: this.name,
-      sceneItemEnabled: enabled,
-    });
-
-    return sceneItemId;
+    throw new Error(
+      `Attempted to create item of scene ${scene.name} without creating the scene first!`
+    );
   }
 
   protected async fetchExists() {

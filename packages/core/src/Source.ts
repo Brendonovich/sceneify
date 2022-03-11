@@ -106,7 +106,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    *
    * This shouldn't be required very often, probably only on source initialization.
    */
-  private async cleanFilters(updateSettings = true) {
+  protected async refreshFilters(updateSettings = true) {
     if (!this.exists) return;
 
     const { filters } = await this.obs.call("GetSourceFilterList", {
@@ -273,7 +273,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       }
 
       // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
-      // await this.cleanFilters();
+      // TODO: await this.refreshFilters();
     }
 
     // As we have created a new scene item, set the corresponding ref.
@@ -311,6 +311,8 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * This is abstract since scenes start with 0 items,
    * but inputs start with 1, and scenes have to create
    * their items before creating scene items of themselves
+   *
+   * @internal
    */
   protected abstract createFirstSceneItem(
     scene: Scene,
@@ -334,6 +336,11 @@ export abstract class Source<Filters extends SourceFilters = {}> {
     return sourceSettings;
   }
 
+  /**
+   * Set a source's private settings.
+   * This is an UNDOCUMENTED request of obs-websocket,
+   * and SHOULD NOT be used unless you know what you're doing.
+   */
   async setPrivateSettings(settings: Settings) {
     await this.obs.call("SetSourcePrivateSettings", {
       sourceName: this.name,

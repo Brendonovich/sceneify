@@ -38,7 +38,8 @@ export class Input<
 
   settings: DeepPartial<Settings> = {};
 
-  private creationArgs: InputArgs<TSettings, Filters>;
+  /** @internal */
+  creationArgs: InputArgs<TSettings, Filters>;
 
   constructor(args: InputArgs<TSettings, Filters>) {
     super(args);

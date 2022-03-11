@@ -165,4 +165,27 @@ describe("clean()", () => {
     );
     expect(doubleNestedItemsAfter.length).toBe(0);
   });
+
+  it("fails silently when sources/items are missing", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {
+        item: {
+          source: new Input({
+            name: "Source",
+            kind: "test",
+            settings: {},
+          }),
+        },
+      },
+    });
+
+    await scene.create(obs);
+
+    await obs.call("RemoveInput", {
+      inputName: scene.item("item").source.name,
+    });
+
+    expect(() => obs.clean()).not.toThrow();
+  });
 });

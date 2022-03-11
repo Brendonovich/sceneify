@@ -1,7 +1,7 @@
 import { Scene, Input } from "../src";
 import { obs } from "./utils";
 
-describe("create()", () => {
+describe("create", () => {
   it("creates new scenes", async () => {
     const scene = new Scene({ name: "Test", items: {} });
 
@@ -111,51 +111,345 @@ describe("create()", () => {
     );
     expect(existingSource.itemInstances.size).toBe(2);
   });
+});
 
-  it("doesn't duplicate scene items of nested scenes", async () => {
+describe("createItem", () => {
+  it("can create multiple items of a single source", async () => {
+    const scene = await new Scene({
+      name: "Test",
+      items: {},
+    }).create(obs);
+
     const testInput = new Input({
       name: "Colour Source",
       kind: "test",
     });
 
-    const linkedScene = new Scene({
-      name: "linked",
+    const item1 = await scene.createItem("item1", {
+      source: testInput,
+    });
+
+    const item2 = await scene.createItem("item2", {
+      source: testInput,
+    });
+
+    expect(item1.id).not.toBe(item2.id);
+    expect(item1.source).toBe(item2.source);
+
+    const { sceneItems } = await obs.call("GetSceneItemList", {
+      sceneName: scene.name,
+    });
+
+    expect(sceneItems.length).toBe(2);
+  });
+
+  it("sets item transforms", async () => {
+    const scene = await new Scene({
+      name: "Test",
+      items: {},
+    }).create(obs);
+
+    const item = await scene.createItem("item", {
+      source: new Input({
+        name: "Colour Source",
+        kind: "test",
+      }),
+      positionX: 100,
+      positionY: 100,
+      rotation: 90,
+      scaleX: 1.5,
+      scaleY: 0.5,
+    });
+
+    const { sceneItemTransform } = await obs.call("GetSceneItemTransform", {
+      sceneName: scene.name,
+      sceneItemId: item.id,
+    });
+
+    expect(sceneItemTransform).toEqual(
+      expect.objectContaining({
+        positionX: 100,
+        positionY: 100,
+        rotation: 90,
+        scaleX: 1.5,
+        scaleY: 0.5,
+      })
+    );
+  });
+});
+
+describe("link", () => {
+  it("links to existing scene and item", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+    });
+
+    const scene = new Scene({
+      name: "Scene",
       items: {
-        colour: {
-          source: testInput,
+        test: {
+          source: input,
         },
       },
     });
 
     await obs.call("CreateScene", {
-      sceneName: linkedScene.name,
+      sceneName: scene.name,
     });
 
-    let res = await obs.call("CreateInput", {
-      sceneName: linkedScene.name,
-      inputName: testInput.name,
-      inputKind: testInput.kind,
+    await obs.call("CreateInput", {
+      sceneName: scene.name,
+      inputName: input.name,
+      inputKind: input.kind,
     });
 
-    await linkedScene.link(obs);
+    await expect(scene.link(obs)).resolves.not.toThrow();
 
-    expect(res.sceneItemId).toBe(linkedScene.item("colour").id);
+    const { sceneItems } = await obs.call("GetSceneItemList", {
+      sceneName: scene.name,
+    });
 
-    const parentScene = new Scene({
-      name: "Parent",
+    expect(sceneItems).toContainEqual(
+      expect.objectContaining({
+        sceneItemId: scene.item("test").id,
+      })
+    );
+  });
+
+  it("links nested scenes", async () => {
+    const input = new Input({
+      kind: "test",
+      name: "Input",
+    });
+
+    const nested = new Scene({
+      name: "Nested",
       items: {
-        linked: {
-          source: linkedScene,
+        test: {
+          source: input,
         },
       },
     });
 
-    await parentScene.create(obs);
-
-    const { sceneItems } = await obs.call("GetSceneItemList", {
-      sceneName: linkedScene.name,
+    const parent = new Scene({
+      name: "Parent",
+      items: {
+        nested: {
+          source: nested,
+        },
+        test: {
+          source: input,
+        },
+      },
     });
 
-    expect(sceneItems.length).toBe(1);
+    await obs.call("CreateScene", {
+      sceneName: nested.name,
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: parent.name,
+    });
+
+    await obs.call("CreateSceneItem", {
+      sceneName: parent.name,
+      sourceName: nested.name,
+    });
+
+    let nestedItem = await obs.call("CreateInput", {
+      sceneName: nested.name,
+      inputName: input.name,
+      inputKind: input.kind,
+    });
+
+    let parentItem = await obs.call("CreateSceneItem", {
+      sceneName: parent.name,
+      sourceName: input.name,
+    });
+
+    await parent.link(obs);
+
+    expect(nestedItem.sceneItemId).toBe(nested.item("test").id);
+    expect(parentItem.sceneItemId).toBe(parent.item("test").id);
+  });
+
+  it("fails for already created scenes", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await scene.create(obs);
+
+    await expect(scene.link(obs)).rejects.toThrow();
+  });
+
+  it("fails for already linked scenes", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await obs.call("CreateScene", { sceneName: scene.name });
+
+    await scene.link(obs);
+
+    await expect(scene.link(obs)).rejects.toThrow();
+  });
+
+  it("fails to link to scenes that don't exist", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await expect(scene.link(obs)).rejects.toThrow();
+  });
+
+  it("fails if a source doesn't exist in the scene", async () => {
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: new Input({
+            name: "Input",
+            kind: "test",
+          }),
+        },
+      },
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: scene.name,
+    });
+
+    expect(scene.link(obs)).rejects.toThrow();
+  });
+
+  it("fails if multiple items of a source exist in the scene", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: input,
+        },
+      },
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: scene.name,
+    });
+
+    await obs.call("CreateInput", {
+      sceneName: scene.name,
+      inputName: input.name,
+      inputKind: input.kind,
+    });
+
+    await obs.call("CreateSceneItem", {
+      sceneName: scene.name,
+      sourceName: input.name,
+    });
+
+    await expect(scene.link(obs)).rejects.toThrow();
+  });
+
+  it("sets item transforms if requested", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: input,
+          positionX: 100,
+          positionY: 100,
+          rotation: 90,
+          scaleX: 1.5,
+          scaleY: 0.5,
+        },
+      },
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: scene.name,
+    });
+
+    await obs.call("CreateInput", {
+      sceneName: scene.name,
+      inputName: input.name,
+      inputKind: input.kind,
+    });
+
+    await scene.link(obs, {
+      setItemTransforms: true,
+    });
+
+    const { sceneItemTransform } = await obs.call("GetSceneItemTransform", {
+      sceneName: scene.name,
+      sceneItemId: scene.item("test").id,
+    });
+
+    expect(sceneItemTransform).toEqual(
+      expect.objectContaining({
+        positionX: 100,
+        positionY: 100,
+        rotation: 90,
+        scaleX: 1.5,
+        scaleY: 0.5,
+      })
+    );
+  });
+
+  it("sets input settings if requested", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+      settings: {
+        test: "test",
+      },
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: input,
+        },
+      },
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: scene.name,
+    });
+
+    await obs.call("CreateInput", {
+      sceneName: scene.name,
+      inputName: input.name,
+      inputKind: input.kind,
+    });
+
+    await scene.link(obs, {
+      setInputSettings: true,
+    });
+
+    const { inputSettings } = await obs.call("GetInputSettings", {
+      inputName: input.name,
+    });
+
+    expect(inputSettings).toEqual(
+      expect.objectContaining({
+        test: "test",
+      })
+    );
   });
 });
