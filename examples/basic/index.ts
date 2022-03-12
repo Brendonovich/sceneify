@@ -1,4 +1,5 @@
 import { Alignment, OBS, Scene } from "@sceneify/core";
+import { ColorCorrectionFilter } from "@sceneify/filters";
 // import { ColorCorrectionFilter } from "@sceneify/filters";
 import { ColorSource } from "@sceneify/sources";
 
@@ -12,7 +13,7 @@ async function main() {
 
   // Connect to OBS before creating or linking any scenes
   await obs.connect("ws:localhost:4455");
-  
+
   // verifies that the required linked scene exists
   await verifyLinkedSceneExists(obs);
 
@@ -30,13 +31,13 @@ async function main() {
       height: 400,
     },
     filters: {
-      // color: new ColorCorrectionFilter({
-      //   name: "Color Corrector",
-      //   settings: {
-      //     brightness: 0,
-      //     hue_shift: 0,
-      //   },
-      // }),
+      color: new ColorCorrectionFilter({
+        name: "Color Corrector",
+        settings: {
+          brightness: 0,
+          hue_shift: 0,
+        },
+      }),
     },
   });
 

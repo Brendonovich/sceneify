@@ -13,7 +13,7 @@ export type CustomFilterArgs<TSettings extends Settings> = Omit<
   "kind"
 >;
 
-export abstract class Filter<
+export class Filter<
   TSettings extends Settings = Settings,
   TSource extends Source = Source
 > {
@@ -32,6 +32,7 @@ export abstract class Filter<
   source?: TSource;
 
   initialSettings: DeepPartial<TSettings> = {} as DeepPartial<TSettings>;
+  ref!: string;
 
   async setSettings(settings: DeepPartial<TSettings>) {
     this.checkSource();
@@ -59,15 +60,10 @@ export abstract class Filter<
     this.enabled = enabled;
   }
 
-  get index(): number {
-    this.checkSource();
-
-    return this.source!.filters.indexOf(this);
-  }
-
-  private checkSource() {
+  /** @internal */
+  checkSource() {
     if (!this.source)
-      throw new Error(`Filter ${this.name} does not have source.`);
+      throw new Error(`Filter ${this.name} does not have a source.`);
   }
 
   async remove() {
@@ -78,7 +74,7 @@ export abstract class Filter<
       filterName: this.name,
     });
 
-    this.source!.filters.splice(this.index, 1);
+    this.source!.filters.splice(this.source!.filters.indexOf(this), 1);
     this.source = undefined;
   }
 }

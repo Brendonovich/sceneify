@@ -61,7 +61,7 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm test -- --verbose
 
   publish:
     name: 'Publish to NPM'

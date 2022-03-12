@@ -3,10 +3,10 @@
     "composite": false,
     "emitDeclarationOnly": false,
     "noEmit": true,
-    "rootDir": "."
+    "rootDir": ".."
   },
   "extends": "../../../tsconfig.test.json",
-  "include": ["**/*", "../types/**/*", "../../../types/**/*", "../src/OBSWebSocket.ts"],
+  "include": ["test/**/*", "src/**/*"],
   "references": [
     {
       "path": ".."

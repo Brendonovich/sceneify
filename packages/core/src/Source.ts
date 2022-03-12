@@ -24,6 +24,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   get exists() {
     return this._exists;
   }
+  /** @internal */
   protected _exists = false;
 
   /**
@@ -32,18 +33,22 @@ export abstract class Source<Filters extends SourceFilters = {}> {
   get initialized() {
     return this._initialized;
   }
+  /** @internal */
   protected _initialized = false;
 
-  private filtersMap: Filters & Record<string, Filter> = {} as Filters;
+  /** @internal */
+  protected filtersSchema: Filters & Record<string, Filter> = {} as Filters;
   obs!: OBS;
   linked = false;
   itemInstances = new Set<SceneItem>();
-  protected refs: SourceRefs = {};
+
+  /** @internal */
+  refs: SourceRefs = {};
 
   constructor(args: SourceArgs<Filters>) {
     this.name = args.name;
     this.kind = args.kind;
-    this.filtersMap = args.filters ?? ({} as Filters);
+    this.filtersSchema = args.filters ?? ({} as Filters);
   }
 
   filter<R extends keyof Filters>(ref: R): Filters[R];
@@ -53,7 +58,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * Gets a filter from the input by its ref
    */
   filter(ref: string) {
-    return this.filtersMap[ref];
+    return this.filters.find((f) => f.ref === ref);
   }
 
   /**
@@ -61,111 +66,88 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * to another source, and 2. The source in OBS does not have a filter with a different type
    * but the same name as the filter being added.
    */
-  // TODO: Expose when filters requests are implemented
-  async addFilter(ref: string, filter: Filter, index?: number) {
-    if (filter.source) {
+  async addFilter(ref: string, filter: Filter) {
+    if (filter.source)
       throw new Error(
-        `Filter ${this.name} has already been applied to source ${filter.source.name}`
+        `Failed to add filter ${filter.name} to source ${this.name}: Filter has already been added to source ${filter.source.name}`
       );
-    }
 
-    const exists = await this.obs
+    const { exists } = await this.obs
       .call("GetSourceFilter", {
         sourceName: this.name,
         filterName: filter.name,
       })
       .then((f) => {
         if (filter.kind !== f.filterKind)
-          throw new Error(
-            `Filter ${this.name} already exists but has different kind. Expected ${filter.kind}, found ${f.filterKind}`
-          );
-        return true;
+          throw {
+            error: `Failed to add filter ${filter.name} to source ${this.name}: Filter exists but has different kind, expected ${filter.kind} but found ${f.filterKind}`,
+          };
+
+        return { exists: true };
       })
-      .catch(() => false);
+      .catch((data: { error: string; exists: boolean }) => {
+        if (data.error) throw new Error(data.error);
+
+        return { exists: data.exists ?? false };
+      });
 
     filter.source = this;
+    filter.ref = ref;
 
     if (!exists)
       await this.obs.call("CreateSourceFilter", {
         filterName: filter.name,
         filterKind: filter.kind,
-        filterIndex: index,
         filterSettings: filter.initialSettings,
         sourceName: this.name,
       });
 
-    Object.assign(this.filtersMap, { [ref]: filter });
+    this.filters.push(filter);
 
-    if (index !== undefined)
-      this.filters.splice(index ?? this.filters.length, 0, filter);
+    // TODO: Filter refs
   }
 
   /**
-   * Updates the source's filters in OBS so that they match the filters defined in `this.filters`.
-   * This is done by removing filters that are present on the source in OBS but not on `this`, and adding filters that are present on `this` but not on the source.
+   * Overridable function for creating {@link SceneItem} instances for a source.
+   * Doesn't create any objects in OBS. Instead, creates {@link SceneItem} objects that can
+   * override default {@link SceneItem}  behaviours.
    *
-   * This shouldn't be required very often, probably only on source initialization.
+   * @returns An instance of {@link SceneItem} or a class that extends it.
    */
-  protected async refreshFilters(updateSettings = true) {
-    if (!this.exists) return;
+  createSceneItemObject(
+    scene: Scene,
+    id: number,
+    ref: string
+  ): SceneItem<this> {
+    return new SceneItem(this, scene, id, ref);
+  }
 
-    const { filters } = await this.obs.call("GetSourceFilterList", {
+  /**8
+   * Get a source's private settings.
+   * This is an UNDOCUMENTED request of obs-websocket,
+   * and SHOULD NOT be used unless you know what you're doing.
+   */
+  async getPrivateSettings(): Promise<Settings> {
+    const { sourceSettings } = await this.obs.call("GetSourcePrivateSettings", {
       sourceName: this.name,
     });
 
-    const filtersToRemove = filters.filter((obsFilter) =>
-      this.filters.every(
-        (filter) =>
-          filter.name !== obsFilter.filterName ||
-          (filter.name === obsFilter.filterName &&
-            filter.kind !== obsFilter.filterKind)
-      )
-    );
-    const filtersToAdd = this.filters.filter((filter) =>
-      filters.every(
-        (obsFilter) =>
-          filter.name !== obsFilter.filterName ||
-          (filter.name === obsFilter.filterName &&
-            filter.kind !== obsFilter.filterKind)
-      )
-    );
-    const filtersToUpdateSettings = this.filters.filter((filter) =>
-      filters.some(
-        (sourceFilter) =>
-          filter.name === sourceFilter.filterName &&
-          filter.kind === sourceFilter.filterKind
-      )
-    );
-
-    await Promise.all(
-      filtersToRemove.map((filter) =>
-        this.obs.call("RemoveSourceFilter", {
-          sourceName: this.name,
-          filterName: filter.filterName,
-        })
-      )
-    );
-
-    await Promise.all(
-      filtersToAdd.map((filter) =>
-        this.obs.call("CreateSourceFilter", {
-          sourceName: this.name,
-          filterName: filter.name,
-          filterKind: filter.kind,
-          filterSettings: filter.initialSettings,
-          filterIndex: filter.index,
-        })
-      )
-    );
-
-    if (updateSettings)
-      await Promise.all(
-        filtersToUpdateSettings.map((filter) =>
-          filter.setSettings(filter.settings)
-        )
-      );
+    return sourceSettings;
   }
 
+  /**
+   * Set a source's private settings.
+   * This is an UNDOCUMENTED request of obs-websocket,
+   * and SHOULD NOT be used unless you know what you're doing.
+   */
+  async setPrivateSettings(settings: Settings) {
+    await this.obs.call("SetSourcePrivateSettings", {
+      sourceName: this.name,
+      sourceSettings: settings,
+    });
+  }
+
+  /** @internal */
   async initialize(obs: OBS) {
     if (this.initialized) return;
 
@@ -199,6 +181,9 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * If the source already exists, a new scene item will be created.
    * If not, the source will be created and added to the scene.
    *
+   * Should only be called by a Scene, so that the item can be added
+   * to the scene's item list
+   *
    * @returns A SceneItem created by `Source.createSceneItem`
    * @internal
    */
@@ -213,7 +198,6 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       );
 
     let itemId: number;
-    let transform: SceneItemTransform | null = null;
 
     if (this.exists) {
       // First, attempt to connect to existing scene item with provided ref
@@ -222,23 +206,22 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       // If a ref exists, get the properties of the referenced item
       if (id !== undefined) {
         try {
-          const res = await this.obs.call("GetSceneItemTransform", {
+          await this.obs.call("GetSceneItemIndex", {
             sceneItemId: id,
             sceneName: scene.name,
           });
 
-          transform = res.sceneItemTransform as SceneItemTransform;
-
           itemId = id;
         } catch {
           // If the item doesn't actually exist, remove the existing ref and create a new instance of the source
-          this.removeRef(scene.name, ref);
-
-          const { sceneItemId } = await this.obs.call("CreateSceneItem", {
-            sceneName: scene.name,
-            sourceName: this.name,
-            sceneItemEnabled: enabled,
-          });
+          const [{ sceneItemId }] = await Promise.all([
+            this.obs.call("CreateSceneItem", {
+              sceneName: scene.name,
+              sourceName: this.name,
+              sceneItemEnabled: enabled,
+            }),
+            this.removeRef(scene.name, ref),
+          ]);
 
           itemId = sceneItemId;
         }
@@ -262,18 +245,6 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       itemId = await this.createFirstSceneItem(scene, enabled);
 
       this._exists = true;
-
-      // Create a FilterInstance for each schema item. This allows for a filter schema to be
-      // used multiple times, but exist in OBS as separate objects.
-      for (let filter of this.filters) {
-        filter.source = this;
-        // Necessary since this is usually done in this.addFilter(), and this.refreshFilters() operates on filter.settings
-        // Could probably just do addFilter in a loop instead of all this
-        filter.settings = filter.initialSettings;
-      }
-
-      // We have the FilterInstances created, so we can just refresh as normal to create them in OBS
-      // TODO: await this.refreshFilters();
     }
 
     // As we have created a new scene item, set the corresponding ref.
@@ -284,26 +255,13 @@ export abstract class Source<Filters extends SourceFilters = {}> {
 
     this.itemInstances.add(item);
 
-    // If we found an existing item and got its properties, assign them
-    if (transform !== null) item.transform = transform;
+    await item.fetchProperties();
+
+    for (const ref in this.filtersSchema) {
+      await this.addFilter(ref, this.filtersSchema[ref]);
+    }
 
     return item;
-  }
-
-  /**
-   * Overridable function for creating {@link SceneItem} instances for a source.
-   * Doesn't create any objects in OBS. Instead, creates {@link SceneItem} objects that can
-   * override default {@link SceneItem}  behaviours.
-   *
-   * @returns An instance of {@link SceneItem} or a class that extends it.
-   */
-  // TODO: Think of a better name for ths function
-  createSceneItemObject(
-    scene: Scene,
-    id: number,
-    ref: string
-  ): SceneItem<this> {
-    return new SceneItem(this, scene, id, ref);
   }
 
   /**
@@ -326,49 +284,37 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    *
    * @internal
    */
-  protected abstract fetchExists(): Promise<boolean>;
-
-  async getPrivateSettings(): Promise<Settings> {
-    const { sourceSettings } = await this.obs.call("GetSourcePrivateSettings", {
-      sourceName: this.name,
-    });
-
-    return sourceSettings;
-  }
-
-  /**
-   * Set a source's private settings.
-   * This is an UNDOCUMENTED request of obs-websocket,
-   * and SHOULD NOT be used unless you know what you're doing.
-   */
-  async setPrivateSettings(settings: Settings) {
-    await this.obs.call("SetSourcePrivateSettings", {
-      sourceName: this.name,
-      sourceSettings: settings,
-    });
-  }
+  abstract fetchExists(): Promise<boolean>;
 
   /** @internal */
-  protected getRef(scene: string, ref: string): number | undefined {
+  getRef(scene: string, ref: string): number | undefined {
     return this.refs[scene]?.[ref];
   }
 
   /** @internal */
-  protected async addRef(scene: string, ref: string, id: number) {
+  async addRef(scene: string, ref: string, id: number) {
     (this.refs[scene] ||= {})[ref] = id;
 
-    await this.sendRefs().catch((e) =>
-      console.warn(`Failed to add ref ${ref} -> ${id}`, e)
-    );
+    await this.sendRefs().catch((e) => {
+      throw new Error(
+        `Sceneify Internal Error: Failed to remove ref ${ref} -> ${id} ($${e})`
+      );
+    });
   }
 
   /** @internal */
-  protected async removeRef(scene: string, ref: string) {
+  async removeRef(scene: string, ref: string) {
     delete this.refs[scene]?.[ref];
 
-    await this.sendRefs().catch((e) =>
-      console.warn(`Failed to remove ref ${ref}`, e)
-    );
+    if (Object.keys(this.refs[scene]).length === 0) {
+      delete this.refs[scene];
+    }
+
+    await this.sendRefs().catch((e) => {
+      throw new Error(
+        `Sceneify Internal Error: Failed to remove ref ${ref} (${e})`
+      );
+    });
   }
 
   /** @internal */
@@ -383,11 +329,9 @@ export abstract class Source<Filters extends SourceFilters = {}> {
 
   /** @internal */
   private async fetchRefs() {
-    const { sourceSettings } = await this.obs.call("GetSourcePrivateSettings", {
-      sourceName: this.name,
-    });
+    const privateSettings = await this.getPrivateSettings();
 
-    this.refs = sourceSettings.SCENEIFY_REFS || {};
+    this.refs = privateSettings.SCENEIFY_REFS || {};
   }
 
   /**
@@ -396,7 +340,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    *
    * @internal
    */
-  pushRefs() {
+  refreshRefs() {
     let refs: SourceRefs = {};
 
     this.itemInstances.forEach(

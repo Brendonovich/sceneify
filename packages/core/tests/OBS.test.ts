@@ -1,8 +1,8 @@
 import { Input, Scene } from "../src";
 import { obs } from "./utils";
 
-describe("clean()", () => {
-  it("removes spare scenes from OBS", async () => {
+describe("clean", () => {
+  it("removes dangling scenes from OBS", async () => {
     const scene = new Scene({
       name: "Test",
       items: {
@@ -34,7 +34,7 @@ describe("clean()", () => {
     ).toBeUndefined();
   });
 
-  it("removes leftover scene objects from OBS instance", async () => {
+  it("removes dangling scenes from code", async () => {
     const scene = new Scene({
       name: "Test",
       items: {
@@ -69,6 +69,39 @@ describe("clean()", () => {
     expect(obs.scenes.get(scene.name)).toBeUndefined();
   });
 
+  it("removes dangling inputs from code", async () => {
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        permanent: {
+          source: new Input({
+            name: "Permanent",
+            kind: "permanent",
+          }),
+        },
+      },
+    });
+
+    await scene.create(obs);
+
+    const item = await scene.createItem("test", {
+      source: new Input({
+        name: "Dangling",
+        kind: "test",
+      }),
+    });
+
+    expect(obs.inputs.get(item.source.name)).not.toBeUndefined();
+
+    await obs.call("RemoveInput", {
+      inputName: item.source.name,
+    });
+
+    await obs.clean();
+
+    expect(obs.inputs.get(item.source.name)).toBeUndefined();
+  });
+
   it("doesn't remove linked scenes", async () => {
     const sceneName = "Test";
 
@@ -83,7 +116,7 @@ describe("clean()", () => {
     });
 
     const { scenes: scenesBeforeClean } = await obs.call("GetSceneList");
-    expect(scenesBeforeClean.length).toBe(2);
+    expect(scenesBeforeClean.length).toBe(1);
 
     const scene = new Scene({
       name: sceneName,
@@ -105,7 +138,7 @@ describe("clean()", () => {
 
     const { scenes: scenesAfterClean } = await obs.call("GetSceneList");
 
-    expect(scenesAfterClean.length).toBe(2);
+    expect(scenesAfterClean.length).toBe(1);
     expect(scene.item("item").id).toBe(sceneItemId);
   });
 
@@ -187,5 +220,46 @@ describe("clean()", () => {
     });
 
     expect(() => obs.clean()).not.toThrow();
+  });
+});
+
+describe("startStreaming", () => {
+  it("makes OBS start streaming", async () => {
+    await obs.startStreaming();
+
+    const { outputActive } = await obs.call("GetStreamStatus");
+    expect(outputActive).toBe(true);
+  });
+});
+
+describe("stopStreaming", () => {
+  it("makes OBS stop streaming", async () => {
+    await obs.stopStreaming();
+
+    const { outputActive } = await obs.call("GetStreamStatus");
+    expect(outputActive).toBe(false);
+  });
+});
+
+describe("toggleStreaming", () => {
+  it("toggle OBS' streaming state", async () => {
+    {
+      const { outputActive } = await obs.call("GetStreamStatus");
+      expect(outputActive).toBe(false);
+    }
+
+    await obs.toggleStreaming();
+
+    {
+      const { outputActive } = await obs.call("GetStreamStatus");
+      expect(outputActive).toBe(true);
+    }
+
+    await obs.toggleStreaming();
+    
+    {
+      const { outputActive } = await obs.call("GetStreamStatus");
+      expect(outputActive).toBe(false);
+    }
   });
 });

@@ -59,7 +59,7 @@ export class Input<
     };
   }
 
-  protected async fetchExists() {
+  async fetchExists() {
     try {
       await this.obs.call("GetSourcePrivateSettings", {
         sourceName: this.name,
@@ -95,6 +95,8 @@ export class Input<
       inputSettings: settings,
       sceneItemEnabled: enabled,
     });
+
+    this.obs.inputs.set(this.name, this);
 
     await this.setPrivateSettings({
       SCENEIFY_LINKED: false,
@@ -218,11 +220,31 @@ export class Input<
     });
   }
 
+  async setName(name: string) {
+    if (this.obs.scenes.has(name))
+      throw new Error(
+        `Failed to set name of scene ${this.name}: Scene with name '${name}' already exists`
+      );
+
+    if (this.obs.inputs.has(name))
+      throw new Error(
+        `Failed to set name of scene ${this.name}: Input with name '${name}' already exists`
+      );
+
+    await this.obs.call("SetInputName", {
+      inputName: this.name,
+      newInputName: name,
+    });
+
+    this.obs.inputs.delete(this.name);
+    this.name = name;
+    this.obs.inputs.set(this.name, this);
+  }
+
+  /** @internal */
   removeItemInstance(item: SceneItem<this>) {
     this.itemInstances.delete(item);
 
-    if (this.itemInstances.size === 0) {
-      this._exists = false;
-    }
+    if (this.itemInstances.size === 0) this._exists = false;
   }
 }

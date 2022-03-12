@@ -1,9 +1,9 @@
 import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
 import { Scene } from "./Scene";
 import { Source } from "./Source";
-import { mergeDeep } from "./utils";
 import { SceneItemTransform as RawSceneItemTransform } from "./types";
 import { Alignment, BoundsType } from ".";
+import { removeUndefinedValues } from "./utils";
 
 export interface SceneItemTransform {
   sourceWidth: number;
@@ -87,9 +87,10 @@ export class SceneItem<
       sceneItemTransform: transform as RawSceneItemTransform,
     });
 
-    // Merge deep to ignore undefined
-    // TODO: should probably be shallow merge
-    mergeDeep(this.transform, transform);
+    this.transform = {
+      ...this.transform,
+      ...removeUndefinedValues(transform),
+    };
 
     this.updateSizeFromSource();
   }
@@ -114,6 +115,19 @@ export class SceneItem<
     this.locked = locked;
   }
 
+  async remove() {
+    await this.source.obs.call("RemoveSceneItem", {
+      sceneName: this.scene.name,
+      sceneItemId: this.id,
+    });
+
+    this.source.removeItemInstance(this);
+    this.scene.items.splice(this.scene.items.indexOf(this), 1);
+
+    if (this.source.exists)
+      await this.source.removeRef(this.scene.name, this.ref);
+  }
+
   /**
    * Some sources have custom settings for width and height. Thus, sourceWidth and
    * sourceHeight for their scene items can change. This method reassigns these values and
@@ -126,15 +140,5 @@ export class SceneItem<
 
     this.transform.width = this.transform.scaleX * this.transform.sourceWidth;
     this.transform.height = this.transform.scaleY * this.transform.sourceHeight;
-  }
-
-  async remove() {
-    await this.source.obs.call("RemoveSceneItem", {
-      sceneName: this.scene.name,
-      sceneItemId: this.id,
-    });
-
-    this.source.removeItemInstance(this);
-    this.scene.items.splice(this.scene.items.indexOf(this), 1);
   }
 }

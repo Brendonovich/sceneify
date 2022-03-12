@@ -39,6 +39,10 @@ export function keyframe<T extends number | string | boolean>(
 
 export type KeyframeProperty = number | string | boolean;
 
+export type KeyframeInputsMap = {
+  [key: string]: KeyframeProperty | KeyframeInputsMap;
+};
+
 export type KeyframesFromSchema<P extends Record<string, KeyframeProperty>> = {
   [K in keyof P]?: Record<number, P[K] | KeyframeInput<P[K]>>;
 };

@@ -4,6 +4,7 @@ import {
   OBSResponseTypes as BaseResponseTypes,
   OBSEventTypes as BaseEventTypes,
 } from "obs-websocket-js";
+import { BoundsType, MonitoringType } from "../constants";
 
 /**
  * Makes every field and nested field optional in the provided object.
@@ -52,14 +53,7 @@ export interface SceneItemTransform {
 
   alignment: number;
 
-  boundsType:
-    | "OBS_BOUNDS_NONE"
-    | "OBS_BOUNDS_STRETCH"
-    | "OBS_BOUNDS_SCALE_INNER"
-    | "OBS_BOUNDS_SCALE_OUTER"
-    | "OBS_BOUNDS_SCALE_TO_WIDTH"
-    | "OBS_BOUNDS_SCALE_TO_HEIGHT"
-    | "OBS_BOUNDS_MAX_ONLY";
+  boundsType: BoundsType;
   boundsAlignment: number;
   boundsWidth: number;
   boundsHeight: number;
@@ -129,6 +123,11 @@ export interface OBSRequestTypesOverrides {
   GetSourcePrivateSettings: {
     sourceName: string;
   };
+
+  SetInputAudioMonitorType: {
+    inputName: string;
+    monitorType: MonitoringType;
+  };
 }
 
 export interface OBSResponseTypesOverrides {
@@ -169,10 +168,7 @@ export interface OBSResponseTypesOverrides {
   };
 
   GetInputAudioMonitorType: {
-    monitorType:
-      | "OBS_MONITORING_TYPE_NONE"
-      | "OBS_MONITORING_TYPE_MONITOR_ONLY"
-      | "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT";
+    monitorType: MonitoringType;
   };
 
   GetSourceFilterList: {

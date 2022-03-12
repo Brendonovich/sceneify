@@ -1,4 +1,4 @@
-import { Scene, Input } from "../src";
+import { Scene, Input, Filter } from "../src";
 import { obs } from "./utils";
 
 describe("create", () => {
@@ -74,7 +74,7 @@ describe("create", () => {
     expect(nested3.create).toHaveBeenCalled();
 
     const { scenes } = await obs.call("GetSceneList");
-    expect(scenes.length).toBe(5);
+    expect(scenes.length).toBe(4);
   });
 
   it("detects existing sources", async () => {
@@ -110,6 +110,27 @@ describe("create", () => {
       tempScene.item("existing").source
     );
     expect(existingSource.itemInstances.size).toBe(2);
+  });
+
+  it("adds filters to the scene", async () => {
+    const filter = new Filter({
+      name: "Filter",
+      kind: "test",
+      settings: {},
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {},
+      filters: {
+        test: filter,
+      },
+    });
+
+    await scene.create(obs);
+
+    expect(filter.source).toBe(scene);
+    expect(scene.filters.length).toBe(1);
   });
 });
 
@@ -451,5 +472,202 @@ describe("link", () => {
         test: "test",
       })
     );
+  });
+});
+
+describe("fetchExists", () => {
+  it("fails if an input exists with the same name", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await obs.call("CreateScene", {
+      sceneName: "Test1",
+    });
+
+    await obs.call("CreateInput", {
+      sceneName: "Test1",
+      inputName: scene.name,
+      inputKind: "Test",
+    });
+
+    scene.obs = obs;
+    await expect(scene.fetchExists()).rejects.toThrow();
+  });
+});
+
+describe("remove", () => {
+  it("removes the scene", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await scene.create(obs);
+    await scene.remove();
+
+    expect(scene.exists).toBe(false);
+
+    const { scenes } = await obs.call("GetSceneList");
+    expect(scenes.length).toBe(0);
+
+    expect(obs.scenes.get(scene.name)).toBeUndefined();
+  });
+
+  it("removes scene items", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: input,
+        },
+      },
+    });
+
+    await scene.create(obs);
+    await scene.remove();
+
+    expect(input.itemInstances.size).toBe(0);
+    expect(scene.items.length).toBe(0);
+  });
+
+  it("removes items of scenes", async () => {
+    const nested = new Scene({
+      name: "Nested",
+      items: {},
+    });
+
+    const parent = new Scene({
+      name: "Parent",
+      items: {
+        nested: {
+          source: nested,
+        },
+      },
+    });
+
+    await parent.create(obs);
+    await parent.remove();
+
+    expect(nested.itemInstances.size).toBe(0);
+    expect(parent.items.length).toBe(0);
+  });
+});
+
+describe("makeCurrentScene", () => {
+  it("sets the current program scene", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await scene.create(obs);
+    await scene.makeCurrentScene();
+
+    const { currentProgramSceneName } = await obs.call(
+      "GetCurrentProgramScene"
+    );
+    expect(currentProgramSceneName).toBe(scene.name);
+  });
+
+  it("sets the current preview scene", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await scene.create(obs);
+    await scene.makeCurrentScene(true);
+
+    const { currentPreviewSceneName } = await obs.call(
+      "GetCurrentPreviewScene"
+    );
+    expect(currentPreviewSceneName).toBe(scene.name);
+  });
+});
+
+describe("setName", () => {
+  it("sets the scene name", async () => {
+    const scene = new Scene({
+      name: "Test",
+      items: {},
+    });
+
+    await scene.create(obs);
+
+    expect(scene.name).toBe("Test");
+
+    await scene.setName("New Name");
+    expect(scene.name).toBe("New Name");
+  });
+
+  it("updates refs of items' sources", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: input,
+        },
+      },
+    });
+
+    await scene.create(obs);
+
+    expect(input.refs).toEqual({
+      [scene.name]: {
+        test: scene.item("test").id,
+      },
+    });
+
+    await scene.setName("New Name");
+
+    expect(input.refs).toEqual({
+      [scene.name]: {
+        test: scene.item("test").id,
+      },
+    });
+  });
+
+  it("reports error if source with name already exists", async () => {
+    const input = new Input({
+      name: "Input",
+      kind: "test",
+    });
+
+    const scene = new Scene({
+      name: "Scene",
+      items: {
+        test: {
+          source: input,
+        },
+      },
+    });
+
+    await scene.create(obs);
+
+    const scene2 = new Scene({
+      name: "Scene2",
+      items: {
+        test: {
+          source: input,
+        },
+      },
+    });
+
+    await scene2.create(obs);
+
+    await expect(scene.setName("Input")).rejects.toThrow("Input with name");
+    await expect(scene.setName("Scene2")).rejects.toThrow("Scene with name");
   });
 });

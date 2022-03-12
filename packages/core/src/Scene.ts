@@ -68,7 +68,7 @@ export class Scene<
         sceneName: this.name,
       });
 
-      await this.pushRefs();
+      await this.refreshRefs();
     }
 
     this._exists = true;
@@ -83,7 +83,9 @@ export class Scene<
       SCENEIFY_LINKED: false,
     });
 
-    // TODO: await this.refreshFilters();
+    for (const ref in this.filtersSchema) {
+      await this.addFilter(ref, this.filtersSchema[ref]);
+    }
 
     return this;
   }
@@ -232,6 +234,54 @@ export class Scene<
     return this.items.find((i) => i.ref === ref);
   }
 
+  async setName(name: string) {
+    if (this.obs.scenes.has(name))
+      throw new Error(
+        `Failed to set name of scene ${this.name}: Scene with name '${name}' already exists`
+      );
+
+    if (this.obs.inputs.has(name))
+      throw new Error(
+        `Failed to set name of scene ${this.name}: Input with name '${name}' already exists`
+      );
+
+    await this.obs.call("SetSceneName", {
+      newSceneName: name,
+      sceneName: this.name,
+    });
+
+    this.obs.scenes.delete(this.name);
+    this.name = name;
+    this.obs.scenes.set(this.name, this);
+
+    await Promise.all(this.items.map((i) => i.source.refreshRefs()));
+  }
+
+  /**
+   * @param preview Whether to make the scene the current preview scene
+   */
+  async makeCurrentScene(preview?: boolean) {
+    await this.obs.call(
+      preview ? "SetCurrentPreviewScene" : "SetCurrentProgramScene",
+      { sceneName: this.name }
+    );
+  }
+
+  async remove() {
+    await this.obs.call("RemoveScene", {
+      sceneName: this.name,
+    });
+
+    this.obs.scenes.delete(this.name);
+    this.items.forEach((item) => {
+      item.source.removeItemInstance(item);
+    });
+    this.items = [];
+    this._exists = false;
+  }
+
+  /** @internal */
+  /* istanbul ignore next */
   protected override async createFirstSceneItem(
     scene: Scene,
     _: boolean
@@ -241,7 +291,8 @@ export class Scene<
     );
   }
 
-  protected async fetchExists() {
+  /** @internal */
+  async fetchExists() {
     // Check if source exists
     try {
       await this.obs.call("GetSourcePrivateSettings", {
@@ -267,28 +318,7 @@ export class Scene<
     return true;
   }
 
-  /**
-   * @param preview Whether to make the scene the current preview scene
-   */
-  async makeCurrentScene(preview?: boolean) {
-    await this.obs.call(
-      preview ? "SetCurrentPreviewScene" : "SetCurrentProgramScene",
-      { sceneName: this.name }
-    );
-  }
-
-  async remove() {
-    await this.obs.call("RemoveScene", {
-      sceneName: this.name,
-    });
-
-    this.obs.scenes.delete(this.name);
-    this.items.forEach((item) => {
-      item.source.removeItemInstance(item);
-    });
-    this.items = [];
-  }
-
+  /** @internal */
   removeItemInstance(item: SceneItem<this>) {
     this.itemInstances.delete(item);
   }

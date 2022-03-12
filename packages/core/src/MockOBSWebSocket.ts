@@ -1,4 +1,4 @@
-import { DEFAULT_SCENE_ITEM_TRANSFORM } from "./constants";
+import { DEFAULT_SCENE_ITEM_TRANSFORM, MonitoringType } from "./constants";
 import {
   DeepPartial,
   OBSRequestTypes,
@@ -6,7 +6,7 @@ import {
   SceneItemTransform,
   Settings,
 } from "./types";
-import { mergeDeep } from "./utils";
+import { removeUndefinedValues } from "./utils";
 
 class Filter {
   constructor(
@@ -35,8 +35,8 @@ abstract class Source {
     public filters: Filter[] = []
   ) {}
 
-  addFilter(filter: Filter, index?: number) {
-    this.filters.splice(index ?? this.filters.length, 0, filter);
+  addFilter(filter: Filter) {
+    this.filters.push(filter);
     filter.source = this;
   }
 
@@ -60,10 +60,18 @@ abstract class Source {
 }
 
 class Input extends Source {
+  audioMonitorType = MonitoringType.None;
+  audioSyncOffset = 0;
+  muted = false;
+  volume = {
+    db: 0,
+    mul: 0,
+  };
+
   override removeInstance(instance: SceneItem) {
     super.removeInstance(instance);
 
-    if (this.instances.length === 0) this.obs.removeInput(this.name);
+    if (this.instances.length === 0) this.remove();
   }
 
   override remove() {
@@ -86,16 +94,17 @@ class Scene extends Source {
     super(obs, name, "scene");
   }
 
-  destroy() {
+  override remove() {
+    super.remove();
+
+    this.obs.removeScene(this.name);
     this.items.forEach((i) => i.remove());
   }
-
-  handleInstanceRemoved() {}
 }
 
 class SceneItem {
   enabled = true;
-  locked = true;
+  locked = false;
 
   constructor(
     public id: number,
@@ -113,7 +122,7 @@ class SceneItem {
   }
 
   remove() {
-    this.scene.removeInstance(this);
+    this.source.removeInstance(this);
     this.scene.items.splice(this.scene.items.indexOf(this), 1);
   }
 }
@@ -123,9 +132,20 @@ class OBS {
   inputs = new Map<string, Input>();
   sources = new Map<string, Source>();
 
-  constructor() {
-    this.createScene("_");
-  }
+  streamStatus: OBSResponseTypes["GetStreamStatus"] = {
+    outputActive: false,
+    outputReconnecting: false,
+    outputTimecode: "",
+    outputDuration: 0,
+    outputBytes: 0,
+    outputSkippedFrames: 0,
+    outputTotalFrames: 0,
+  };
+
+  currentScenes = {
+    program: "",
+    preview: "",
+  };
 
   createScene(name: string) {
     const scene = new Scene(this, name);
@@ -158,6 +178,12 @@ class OBS {
 export class MockOBSWebSocket {
   obs = new OBS();
 
+  connect(url: string, password: string, subscriptions: any) {
+    return {
+      rpcVersion: 1,
+    };
+  }
+
   async call<Type extends keyof OBSRequestTypes>(
     requestType: Type,
     requestData?: OBSRequestTypes[Type]
@@ -178,7 +204,10 @@ export class MockOBSWebSocket {
       case "RemoveScene": {
         const data = requestData as OBSRequestTypes["RemoveScene"];
 
-        obs.removeScene(data.sceneName);
+        const scene = obs.scenes.get(data.sceneName);
+        if (!scene) throw new Error("Scene not found");
+
+        scene.remove();
 
         break;
       }
@@ -187,7 +216,6 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["CreateInput"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const input = new Input(
@@ -212,18 +240,17 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["RemoveInput"];
 
         const input = obs.inputs.get(data.inputName);
-
         if (!input) throw new Error("Input not found");
 
-        this.obs.removeInput(data.inputName);
+        input.remove();
 
         break;
       }
 
       case "GetInputSettings": {
         const data = requestData as OBSRequestTypes["GetInputSettings"];
-        const input = obs.inputs.get(data.inputName);
 
+        const input = obs.inputs.get(data.inputName);
         if (!input) throw new Error("Input not found");
 
         ret = {
@@ -236,8 +263,8 @@ export class MockOBSWebSocket {
 
       case "SetInputSettings": {
         const data = requestData as OBSRequestTypes["SetInputSettings"];
-        const input = obs.inputs.get(data.inputName);
 
+        const input = obs.inputs.get(data.inputName);
         if (!input) throw new Error("Input not found");
 
         for (let key in data.inputSettings) {
@@ -251,11 +278,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["GetSceneItemTransform"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const item = scene.items.find((i) => i.id === data.sceneItemId);
-
         if (!item) throw new Error("Scene item not found");
 
         ret = {
@@ -269,14 +294,15 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["SetSceneItemTransform"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const item = scene.items.find((i) => i.id === data.sceneItemId);
-
         if (!item) throw new Error("Scene item not found");
 
-        item.transform = mergeDeep(item.transform, data.sceneItemTransform);
+        item.transform = {
+          ...item.transform,
+          ...removeUndefinedValues(data.sceneItemTransform),
+        };
 
         break;
       }
@@ -285,11 +311,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["CreateSceneItem"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const id = scene.generateId();
@@ -305,11 +329,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["RemoveSceneItem"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const item = scene.items.find((i) => i.id === data.sceneItemId);
-
         if (!item) throw new Error("Item not found");
 
         item.remove();
@@ -321,7 +343,6 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["GetSceneItemList"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         ret = {
@@ -371,7 +392,6 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["GetSourceFilterList"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         ret = {
@@ -391,7 +411,6 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["CreateSourceFilter"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const filter = new Filter(
@@ -400,7 +419,7 @@ export class MockOBSWebSocket {
           data.filterSettings
         );
 
-        source.addFilter(filter, data.filterIndex);
+        source.addFilter(filter);
 
         break;
       }
@@ -409,11 +428,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["RemoveSourceFilter"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const filter = source.filters.find((f) => f.name === data.filterName);
-
         if (!filter) throw new Error("Filter not found");
 
         source.removeFilter(filter);
@@ -433,11 +450,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["GetSourceFilter"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const filter = source.filters.find((f) => f.name === data.filterName);
-
         if (!filter) throw new Error("Filter not found");
 
         ret = {
@@ -455,11 +470,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["SetSourceFilterIndex"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const filter = source.filters.find((f) => f.name === data.filterName);
-
         if (!filter) throw new Error("Filter not found");
 
         source.filters.splice(filter.index, 1);
@@ -472,11 +485,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["SetSourceFilterSettings"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const filter = source.filters.find((f) => f.name === data.filterName);
-
         if (!filter) throw new Error("Filter not found");
 
         for (let settingKey in data.filterSettings) {
@@ -490,11 +501,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["SetSourceFilterEnabled"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         const filter = source.filters.find((f) => f.name === data.filterName);
-
         if (!filter) throw new Error("Filter not found");
 
         filter.enabled = data.filterEnabled;
@@ -506,11 +515,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["GetSceneItemEnabled"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const item = scene.items.find((i) => i.id === data.sceneItemId);
-
         if (!item) throw new Error("Scene item not found");
 
         ret = {
@@ -526,11 +533,9 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["GetSceneItemLocked"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         const item = scene.items.find((i) => i.id === data.sceneItemId);
-
         if (!item) throw new Error("Scene item not found");
 
         ret = {
@@ -544,7 +549,6 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["SetSceneName"];
 
         const scene = obs.scenes.get(data.sceneName);
-
         if (!scene) throw new Error("Scene not found");
 
         scene.name = data.newSceneName;
@@ -570,10 +574,211 @@ export class MockOBSWebSocket {
         const data = requestData as OBSRequestTypes["SetSourcePrivateSettings"];
 
         const source = obs.sources.get(data.sourceName);
-
         if (!source) throw new Error("Source not found");
 
         source.setPrivateSettings(data.sourceSettings);
+
+        break;
+      }
+
+      case "GetCurrentProgramScene": {
+        ret = {
+          currentProgramSceneName: obs.currentScenes.program,
+        } as OBSResponseTypes["GetCurrentProgramScene"];
+
+        break;
+      }
+
+      case "SetCurrentProgramScene": {
+        const data = requestData as OBSRequestTypes["SetCurrentProgramScene"];
+
+        const scene = obs.scenes.get(data.sceneName);
+        if (!scene) throw new Error("Scene not found");
+
+        obs.currentScenes.program = data.sceneName;
+
+        break;
+      }
+
+      case "GetCurrentPreviewScene": {
+        ret = {
+          currentPreviewSceneName: obs.currentScenes.preview,
+        } as OBSResponseTypes["GetCurrentPreviewScene"];
+
+        break;
+      }
+
+      case "SetCurrentPreviewScene": {
+        const data = requestData as OBSRequestTypes["SetCurrentPreviewScene"];
+
+        const scene = obs.scenes.get(data.sceneName);
+
+        if (!scene) throw new Error("Scene not found");
+
+        obs.currentScenes.preview = data.sceneName;
+
+        break;
+      }
+
+      case "GetInputAudioMonitorType": {
+        const data = requestData as OBSRequestTypes["GetInputAudioMonitorType"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        ret = {
+          monitorType: input.audioMonitorType,
+        } as OBSResponseTypes["GetInputAudioMonitorType"];
+
+        break;
+      }
+
+      case "SetInputAudioMonitorType": {
+        const data = requestData as OBSRequestTypes["SetInputAudioMonitorType"];
+
+        const input = obs.inputs.get(data.inputName);
+
+        if (!input) throw new Error("Input not found");
+
+        input.audioMonitorType = data.monitorType;
+
+        break;
+      }
+
+      case "GetInputAudioSyncOffset": {
+        const data = requestData as OBSRequestTypes["GetInputAudioSyncOffset"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        ret = {
+          inputAudioSyncOffset: input.audioSyncOffset,
+        } as OBSResponseTypes["GetInputAudioSyncOffset"];
+
+        break;
+      }
+
+      case "SetInputAudioSyncOffset": {
+        const data = requestData as OBSRequestTypes["SetInputAudioSyncOffset"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        input.audioSyncOffset = data.inputAudioSyncOffset;
+
+        break;
+      }
+
+      case "GetInputMute": {
+        const data = requestData as OBSRequestTypes["GetInputMute"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        ret = {
+          inputMuted: input.muted,
+        } as OBSResponseTypes["GetInputMute"];
+
+        break;
+      }
+
+      case "SetInputMute": {
+        const data = requestData as OBSRequestTypes["SetInputMute"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        input.muted = data.inputMuted;
+
+        break;
+      }
+
+      case "GetInputVolume": {
+        const data = requestData as OBSRequestTypes["GetInputVolume"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        ret = {
+          inputVolumeDb: input.volume.db,
+          inputVolumeMul: input.volume.mul,
+        } as OBSResponseTypes["GetInputVolume"];
+
+        break;
+      }
+
+      case "SetInputVolume": {
+        const data = requestData as OBSRequestTypes["SetInputVolume"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        if (data.inputVolumeDb !== undefined)
+          input.volume.db = data.inputVolumeDb;
+
+        if (data.inputVolumeMul !== undefined)
+          input.volume.mul = data.inputVolumeMul;
+
+        break;
+      }
+
+      case "ToggleInputMute": {
+        const data = requestData as OBSRequestTypes["ToggleInputMute"];
+
+        const input = obs.inputs.get(data.inputName);
+        if (!input) throw new Error("Input not found");
+
+        input.muted = !input.muted;
+
+        ret = {
+          inputMuted: input.muted,
+        } as OBSResponseTypes["ToggleInputMute"];
+
+        break;
+      }
+
+      case "GetSceneItemIndex": {
+        const data = requestData as OBSRequestTypes["GetSceneItemIndex"];
+
+        const scene = obs.scenes.get(data.sceneName);
+        if (!scene) throw new Error("Scene not found");
+
+        const item = scene.items.find((item) => item.id === data.sceneItemId);
+        if (!item) throw new Error("Scene item not found");
+
+        ret = {
+          sceneItemIndex: scene.items.indexOf(item),
+        } as OBSResponseTypes["GetSceneItemIndex"];
+
+        break;
+      }
+
+      case "StartStream": {
+        obs.streamStatus.outputActive = true;
+
+        break;
+      }
+
+      case "StopStream": {
+        obs.streamStatus.outputActive = false;
+
+        break;
+      }
+
+      case "ToggleStream": {
+        obs.streamStatus.outputActive = !obs.streamStatus.outputActive;
+
+        ret = {
+          ...obs.streamStatus,
+        } as OBSResponseTypes["ToggleStream"];
+
+        break;
+      }
+
+      case "GetStreamStatus": {
+        ret = {
+          ...obs.streamStatus,
+        } as OBSResponseTypes["GetStreamStatus"];
 
         break;
       }
