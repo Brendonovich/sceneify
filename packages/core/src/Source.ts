@@ -67,40 +67,7 @@ export abstract class Source<Filters extends SourceFilters = {}> {
    * but the same name as the filter being added.
    */
   async addFilter(ref: string, filter: Filter) {
-    if (filter.source)
-      throw new Error(
-        `Failed to add filter ${filter.name} to source ${this.name}: Filter has already been added to source ${filter.source.name}`
-      );
-
-    const { exists } = await this.obs
-      .call("GetSourceFilter", {
-        sourceName: this.name,
-        filterName: filter.name,
-      })
-      .then((f) => {
-        if (filter.kind !== f.filterKind)
-          throw {
-            error: `Failed to add filter ${filter.name} to source ${this.name}: Filter exists but has different kind, expected ${filter.kind} but found ${f.filterKind}`,
-          };
-
-        return { exists: true };
-      })
-      .catch((data: { error: string; exists: boolean }) => {
-        if (data.error) throw new Error(data.error);
-
-        return { exists: data.exists ?? false };
-      });
-
-    filter.source = this;
-    filter.ref = ref;
-
-    if (!exists)
-      await this.obs.call("CreateSourceFilter", {
-        filterName: filter.name,
-        filterKind: filter.kind,
-        filterSettings: filter.initialSettings,
-        sourceName: this.name,
-      });
+    await filter.create(ref, this);
 
     this.filters.push(filter);
 

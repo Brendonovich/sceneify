@@ -29,10 +29,10 @@ export class Filter<
   enabled: boolean;
   settings: DeepPartial<TSettings> = {} as any;
 
-  source?: TSource;
-
-  initialSettings: DeepPartial<TSettings> = {} as DeepPartial<TSettings>;
+  source!: TSource;
   ref!: string;
+
+  private initialSettings: DeepPartial<TSettings> = {} as any;
 
   async setSettings(settings: DeepPartial<TSettings>) {
     this.checkSource();
@@ -60,12 +60,6 @@ export class Filter<
     this.enabled = enabled;
   }
 
-  /** @internal */
-  checkSource() {
-    if (!this.source)
-      throw new Error(`Filter ${this.name} does not have a source.`);
-  }
-
   async remove() {
     this.checkSource();
 
@@ -75,6 +69,54 @@ export class Filter<
     });
 
     this.source!.filters.splice(this.source!.filters.indexOf(this), 1);
-    this.source = undefined;
+    this.source = undefined as any;
+  }
+
+  /** @internal */
+  async create(ref: string, source: TSource) {
+    if (this.source)
+      if (this.source === source)
+        // Return early since create() has already been called
+        return;
+      else
+        throw new Error(
+          `Failed to add filter ${this.name} to source ${this.name}: Filter has already been added to source ${this.source.name}`
+        );
+
+    this.ref = ref;
+    this.source = source;
+
+    const { exists } = await source.obs
+      .call("GetSourceFilter", {
+        sourceName: this.source.name,
+        filterName: this.name,
+      })
+      .then((f) => {
+        if (this.kind !== f.filterKind)
+          throw {
+            error: `Failed to add filter ${this.name} to source ${this.source.name}: Filter exists in OBS but has different kind, expected ${this.kind} but found ${f.filterKind}`,
+          };
+
+        return { exists: true };
+      })
+      .catch((data: { error: string; exists: boolean }) => {
+        if (data.error) throw new Error(data.error);
+
+        return { exists: data.exists ?? false };
+      });
+
+    if (!exists)
+      await source.obs.call("CreateSourceFilter", {
+        filterName: this.name,
+        filterKind: this.kind,
+        filterSettings: this.initialSettings,
+        sourceName: this.source.name,
+      });
+  }
+
+  /** @internal */
+  checkSource() {
+    if (!this.source)
+      throw new Error(`Filter ${this.name} does not have a source.`);
   }
 }
