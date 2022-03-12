@@ -112,6 +112,9 @@ export class Filter<
         filterSettings: this.initialSettings,
         sourceName: this.source.name,
       });
+    else await this.setSettings(this.settings);
+
+    await this.setEnabled(this.enabled);
   }
 
   /** @internal */
