@@ -75,12 +75,12 @@ export class Filter<
   /** @internal */
   async create(ref: string, source: TSource) {
     if (this.source)
-      if (this.source === source)
+      if (this.source === source && this.ref === ref)
         // Return early since create() has already been called
         return;
       else
         throw new Error(
-          `Failed to add filter ${this.name} to source ${this.name}: Filter has already been added to source ${this.source.name}`
+          `Failed to add filter ${this.name} to source ${this.name}: Filter has already been added to source ${this.source.name} under ref ${this.ref}`
         );
 
     this.ref = ref;
