@@ -1,4 +1,5 @@
 import { Input, Scene } from "../src";
+import { MockInput } from "../src/mocks/MockInput";
 import { obs } from "./utils";
 
 describe("clean", () => {
@@ -7,10 +8,8 @@ describe("clean", () => {
       name: "Test",
       items: {
         item: {
-          source: new Input({
+          source: new MockInput({
             name: "Source",
-            kind: "test",
-            settings: {},
           }),
         },
       },
@@ -39,10 +38,8 @@ describe("clean", () => {
       name: "Test",
       items: {
         item: {
-          source: new Input({
+          source: new MockInput({
             name: "Source",
-            kind: "test",
-            settings: {},
           }),
         },
       },
@@ -74,9 +71,8 @@ describe("clean", () => {
       name: "Scene",
       items: {
         permanent: {
-          source: new Input({
+          source: new MockInput({
             name: "Permanent",
-            kind: "permanent",
           }),
         },
       },
@@ -85,9 +81,8 @@ describe("clean", () => {
     await scene.create(obs);
 
     const item = await scene.createItem("test", {
-      source: new Input({
+      source: new MockInput({
         name: "Dangling",
-        kind: "test",
       }),
     });
 
@@ -112,7 +107,7 @@ describe("clean", () => {
     const { sceneItemId } = await obs.call("CreateInput", {
       sceneName,
       inputName: "Test Input",
-      inputKind: "test",
+      inputKind: "mock",
     });
 
     const { scenes: scenesBeforeClean } = await obs.call("GetSceneList");
@@ -122,9 +117,8 @@ describe("clean", () => {
       name: sceneName,
       items: {
         item: {
-          source: new Input({
+          source: new MockInput({
             name: "Test Input",
-            kind: "test",
           }),
         },
       },
@@ -204,10 +198,8 @@ describe("clean", () => {
       name: "Test",
       items: {
         item: {
-          source: new Input({
+          source: new MockInput({
             name: "Source",
-            kind: "test",
-            settings: {},
           }),
         },
       },
@@ -256,7 +248,7 @@ describe("toggleStreaming", () => {
     }
 
     await obs.toggleStreaming();
-    
+
     {
       const { outputActive } = await obs.call("GetStreamStatus");
       expect(outputActive).toBe(false);

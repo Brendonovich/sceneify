@@ -1,11 +1,12 @@
-import { openStdin } from "process";
 import {
   CustomInputArgs,
   Input,
   MonitoringType,
   Scene,
   SceneItem,
+  SourceFilters,
 } from "../src";
+import { MockInput } from "../src/mocks/MockInput";
 import { obs } from "./utils";
 
 /**
@@ -14,30 +15,23 @@ import { obs } from "./utils";
  * the same thing needs to be done in overrides as well.
  */
 it("adds item instances with createSceneItemObject overridden", async () => {
-  class TestInputItem<Input extends TestInput> extends SceneItem<Input> {
+  class OverrideInputItem<Input extends OverrideInput> extends SceneItem<Input> {
     constructor(source: Input, scene: Scene, id: number, ref: string) {
       super(source, scene, id, ref);
     }
   }
 
-  class TestInput extends Input {
-    constructor(args: CustomInputArgs<{}, {}>) {
-      super({
-        kind: "test",
-        ...args,
-      });
-    }
-
+  class OverrideInput extends MockInput<SourceFilters> {
     override createSceneItemObject(
       scene: Scene,
       id: number,
       ref: string
     ): SceneItem<this> {
-      return new TestInputItem(this, scene, id, ref);
+      return new OverrideInputItem(this, scene, id, ref);
     }
   }
 
-  const input = new TestInput({
+  const input = new OverrideInput({
     name: "Input",
   });
 
@@ -57,9 +51,8 @@ it("adds item instances with createSceneItemObject overridden", async () => {
 
 describe("fetchExists", () => {
   it("succeeds if an input exists with the same name", async () => {
-    const input = new Input({
+    const input = new MockInput({
       name: "Input",
-      kind: "test",
     });
 
     const scene = new Scene({
@@ -97,8 +90,7 @@ describe("fetchExists", () => {
 
 describe("remove", () => {
   it("removes the input", async () => {
-    const input = new Input({
-      kind: "test",
+    const input = new MockInput({
       name: "Input",
     });
 
@@ -126,8 +118,7 @@ describe("remove", () => {
 
 describe("createFirstSceneItem", () => {
   it("sets properties on creation", async () => {
-    const input = new Input({
-      kind: "test",
+    const input = new MockInput({
       name: "Input",
       audioMonitorType: MonitoringType.MonitorAndOutput,
       audioSyncOffset: 1,
@@ -172,8 +163,7 @@ describe("createFirstSceneItem", () => {
 
 describe("toggleMuted", () => {
   it("toggles mute state", async () => {
-    const input = new Input({
-      kind: "test",
+    const input = new MockInput({
       name: "Input",
     });
 
@@ -208,8 +198,7 @@ describe("toggleMuted", () => {
 
 describe("fetchProperties", () => {
   it("fetches properties", async () => {
-    const input = new Input({
-      kind: "test",
+    const input = new MockInput({
       name: "Input",
     });
 
@@ -277,8 +266,7 @@ describe("fetchProperties", () => {
 
 describe("setName", () => {
   it("renames the input", async () => {
-    const input = new Input({
-      kind: "test",
+    const input = new MockInput({
       name: "Input",
     });
 
@@ -300,14 +288,12 @@ describe("setName", () => {
   });
 
   it("reports error if source with name already exists", async () => {
-    const input = new Input({
+    const input = new MockInput({
       name: "Input",
-      kind: "test",
     });
 
-    const input2 = new Input({
+    const input2 = new MockInput({
       name: "Input2",
-      kind: "test",
     });
 
     const scene = new Scene({

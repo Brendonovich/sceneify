@@ -1,3 +1,4 @@
+import { OBS } from ".";
 import { Source } from "./Source";
 import { DeepPartial, Settings } from "./types";
 
@@ -12,6 +13,8 @@ export type CustomFilterArgs<TSettings extends Settings> = Omit<
   FilterArgs<TSettings>,
   "kind"
 >;
+
+const filterDefaultSettings = new Map<string, Settings>();
 
 export class Filter<
   TSettings extends Settings = Settings,
@@ -34,13 +37,14 @@ export class Filter<
 
   private initialSettings: DeepPartial<TSettings> = {} as any;
 
-  async setSettings(settings: DeepPartial<TSettings>) {
+  async setSettings(settings: DeepPartial<TSettings>, overlay = true) {
     this.checkSource();
 
     await this.source!.obs.call("SetSourceFilterSettings", {
       sourceName: this.source!.name,
       filterName: this.name,
       filterSettings: settings as any,
+      overlay,
     });
 
     for (let setting in settings) {
@@ -112,9 +116,33 @@ export class Filter<
         filterSettings: this.initialSettings,
         sourceName: this.source.name,
       });
-    else await this.setSettings(this.initialSettings);
+    else await this.setSettings(this.initialSettings, false);
+
+    const defaultSettings = await this.getDefaultSettings();
+
+    this.settings = {
+      ...defaultSettings,
+      ...this.initialSettings,
+    };
 
     await this.setEnabled(this.enabled);
+  }
+
+  async getDefaultSettings() {
+    const cached = filterDefaultSettings.get(this.kind);
+
+    if (cached) return cached;
+
+    const { filterSettings } = await this.source.obs.call(
+      "GetSourceFilterDefaultSettings",
+      {
+        filterKind: this.kind,
+      }
+    );
+
+    filterDefaultSettings.set(this.kind, filterSettings);
+
+    return { ...filterSettings };
   }
 
   /** @internal */

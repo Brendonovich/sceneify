@@ -107,6 +107,7 @@ export interface OBSRequestTypesOverrides {
     sourceName: string;
     filterName: string;
     filterSettings: Settings;
+    overlay?: boolean;
   };
 
   SetSourceFilterEnabled: {

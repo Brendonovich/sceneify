@@ -17,4 +17,4 @@ export type {
   OBSResponseTypesOverrides,
 } from "./types";
 
-export * from "./MockOBSWebSocket"
+export * from "./mocks/MockOBSWebSocket"

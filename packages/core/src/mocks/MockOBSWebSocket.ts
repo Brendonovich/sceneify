@@ -1,12 +1,14 @@
-import { DEFAULT_SCENE_ITEM_TRANSFORM, MonitoringType } from "./constants";
+import { DEFAULT_SCENE_ITEM_TRANSFORM, MonitoringType } from "../constants";
 import {
   DeepPartial,
   OBSRequestTypes,
   OBSResponseTypes,
   SceneItemTransform,
   Settings,
-} from "./types";
-import { removeUndefinedValues } from "./utils";
+} from "../types";
+import { removeUndefinedValues } from "../utils";
+import { MockFilterSettings } from "./MockFilter";
+import { MockInputSettings } from "./MockInput";
 
 class Filter {
   constructor(
@@ -439,8 +441,17 @@ export class MockOBSWebSocket {
       }
 
       case "GetSourceFilterDefaultSettings": {
+        const data =
+          requestData as OBSRequestTypes["GetSourceFilterDefaultSettings"];
+
+        if (data.filterKind !== "mock")
+          throw new Error("MockOBSWebsocket only supports MockFilter");
+
         ret = {
-          filterSettings: {},
+          filterSettings: {
+            a: 1,
+            b: "value",
+          } as MockFilterSettings as any,
         } as OBSResponseTypes["GetSourceFilterDefaultSettings"];
 
         break;
@@ -718,6 +729,22 @@ export class MockOBSWebSocket {
 
         if (data.inputVolumeMul !== undefined)
           input.volume.mul = data.inputVolumeMul;
+
+        break;
+      }
+
+      case "GetInputDefaultSettings": {
+        const data = requestData as OBSRequestTypes["GetInputDefaultSettings"];
+
+        if (data.inputKind !== "mock")
+          throw new Error("MockOBSWebSocket only supports MockInput");
+
+        ret = {
+          defaultInputSettings: {
+            a: 1,
+            b: "value",
+          } as MockInputSettings as any,
+        } as OBSResponseTypes["GetInputDefaultSettings"];
 
         break;
       }

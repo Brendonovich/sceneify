@@ -24,6 +24,8 @@ export interface InputArgs<
   muted?: boolean;
 }
 
+const inputDefaultSettings = new Map<string, Settings>();
+
 export class Input<
   TSettings extends Settings = {},
   Filters extends SourceFilters = {}
@@ -47,16 +49,36 @@ export class Input<
     this.creationArgs = args;
   }
 
-  async setSettings(settings: DeepPartial<TSettings>) {
+  async setSettings(settings: DeepPartial<TSettings>, overlay = true) {
     await this.obs.call("SetInputSettings", {
       inputName: this.name,
       inputSettings: settings,
+      overlay
     });
 
     this.settings = {
       ...this.settings,
       settings,
     };
+  }
+
+  async getDefaultSettings() {
+    const cached = inputDefaultSettings.get(this.kind);
+    if (cached)
+      return {
+        ...cached,
+      };
+
+    const { defaultInputSettings } = await this.obs.call(
+      "GetInputDefaultSettings",
+      {
+        inputKind: this.kind,
+      }
+    );
+
+    inputDefaultSettings.set(this.kind, defaultInputSettings);
+
+    return defaultInputSettings;
   }
 
   async fetchExists() {
@@ -102,7 +124,12 @@ export class Input<
       SCENEIFY_LINKED: false,
     });
 
-    this.settings = settings ?? {};
+    const defaultSettings = await this.getDefaultSettings();
+
+    this.settings = {
+      ...defaultSettings,
+      ...settings,
+    };
 
     let promises: Promise<any>[] = [];
 

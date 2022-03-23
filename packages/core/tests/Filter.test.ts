@@ -1,11 +1,11 @@
 import { Filter, Scene } from "../src";
+import { MockFilter } from "../src/mocks/MockFilter";
 import { obs } from "./utils";
 
 describe("setSettings", () => {
   it("sets the filter's settings", async () => {
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {},
     });
 
@@ -18,7 +18,7 @@ describe("setSettings", () => {
     }).create(obs);
 
     await filter.setSettings({
-      test: 1,
+      a: 1,
     });
 
     const { filterSettings } = await obs.call("GetSourceFilter", {
@@ -27,16 +27,15 @@ describe("setSettings", () => {
     });
 
     expect(filterSettings).toEqual({
-      test: 1,
+      a: 1,
     });
   });
 });
 
 describe("setEnabled", () => {
   it("sets the filter's enabled state", async () => {
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {},
     });
 
@@ -65,9 +64,8 @@ describe("setEnabled", () => {
 
 describe("remove", () => {
   it("removes the filter", async () => {
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {},
     });
 
@@ -112,9 +110,8 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {},
     });
 
@@ -131,7 +128,7 @@ describe("create", () => {
         filterEnabled: filter.enabled,
         filterIndex: 0,
         filterKind: filter.kind,
-        filterSettings: filter.settings,
+        filterSettings: {},
       },
     ]);
   });
@@ -142,11 +139,10 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {
-        test: 1,
+        a: 1,
       },
     });
 
@@ -155,7 +151,7 @@ describe("create", () => {
       filterName: filter.name,
       filterKind: filter.kind,
       filterSettings: {
-        test: 0,
+        a: 0,
       },
     });
 
@@ -173,7 +169,7 @@ describe("create", () => {
         filterIndex: 0,
         filterKind: filter.kind,
         filterSettings: {
-          test: 1,
+          a: 1,
         },
       },
     ]);
@@ -185,9 +181,8 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {},
     });
 
@@ -207,9 +202,8 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new Filter({
+    const filter = new MockFilter({
       name: "Filter",
-      kind: "test",
       settings: {},
     });
 

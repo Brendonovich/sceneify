@@ -1,7 +1,7 @@
 import { Filter } from "./Filter";
 import { OBS } from "./OBS";
 import { Scene } from "./Scene";
-import { SceneItem, SceneItemTransform } from "./SceneItem";
+import { SceneItem } from "./SceneItem";
 import { Settings } from "./types";
 
 export type SourceFilters = Record<string, Filter>;
@@ -170,12 +170,18 @@ export abstract class Source<Filters extends SourceFilters = {}> {
       // First, attempt to connect to existing scene item with provided ref
       const id = this.getRef(scene.name, ref);
 
-      // If a ref exists, get the properties of the referenced item
       if (id !== undefined) {
+        // If a ref exists, attempt to find the corresponding item
         try {
           await this.obs.call("GetSceneItemIndex", {
             sceneItemId: id,
             sceneName: scene.name,
+          });
+
+          await this.obs.call("SetSceneItemEnabled", {
+            sceneItemId: id,
+            sceneName: scene.name,
+            sceneItemEnabled: enabled,
           });
 
           itemId = id;
@@ -198,8 +204,6 @@ export abstract class Source<Filters extends SourceFilters = {}> {
         // of the source, keeping in mind that multiple items of a source can exist at once.
         // Thus, any old items of the source will exist alongisde the newly created item,
         // ready to be removed with `obs.clean`.
-
-        // Also, not checking if a matching item already exists saves on OBS requests :)
 
         const { sceneItemId } = await this.obs.call("CreateSceneItem", {
           sceneName: scene.name,
