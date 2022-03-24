@@ -94,7 +94,7 @@ async function main() {
   // settings set to the values you have defined in your schema. You'll probably want these to be true
   // if your schema contains custom property or setting values.
   await linkedScene.link(obs, {
-    setTransform: true,
+    // setTransform: true,
   });
 
   // After linking, you can interact with the items you declared in the schema in the same way

@@ -1,12 +1,11 @@
 import {
-  CustomInputArgs,
   Input,
   MonitoringType,
   Scene,
   SceneItem,
   SourceFilters,
+  mocks
 } from "../src";
-import { MockInput } from "../src/mocks/MockInput";
 import { obs } from "./utils";
 
 /**
@@ -21,7 +20,7 @@ it("adds item instances with createSceneItemObject overridden", async () => {
     }
   }
 
-  class OverrideInput extends MockInput<SourceFilters> {
+  class OverrideInput extends mocks.MockInput<SourceFilters> {
     override createSceneItemObject(
       scene: Scene,
       id: number,
@@ -51,7 +50,7 @@ it("adds item instances with createSceneItemObject overridden", async () => {
 
 describe("fetchExists", () => {
   it("succeeds if an input exists with the same name", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -90,7 +89,7 @@ describe("fetchExists", () => {
 
 describe("remove", () => {
   it("removes the input", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -118,7 +117,7 @@ describe("remove", () => {
 
 describe("createFirstSceneItem", () => {
   it("sets properties on creation", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
       audioMonitorType: MonitoringType.MonitorAndOutput,
       audioSyncOffset: 1,
@@ -163,7 +162,7 @@ describe("createFirstSceneItem", () => {
 
 describe("toggleMuted", () => {
   it("toggles mute state", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -198,7 +197,7 @@ describe("toggleMuted", () => {
 
 describe("fetchProperties", () => {
   it("fetches properties", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -266,7 +265,7 @@ describe("fetchProperties", () => {
 
 describe("setName", () => {
   it("renames the input", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -288,11 +287,11 @@ describe("setName", () => {
   });
 
   it("reports error if source with name already exists", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
-    const input2 = new MockInput({
+    const input2 = new mocks.MockInput({
       name: "Input2",
     });
 

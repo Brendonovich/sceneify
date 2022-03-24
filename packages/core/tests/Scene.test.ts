@@ -1,6 +1,4 @@
-import { Scene, Input, Filter } from "../src";
-import { MockFilter } from "../src/mocks/MockFilter";
-import { MockInput } from "../src/mocks/MockInput";
+import { Scene, mocks } from "../src";
 import { obs } from "./utils";
 
 describe("create", () => {
@@ -80,7 +78,7 @@ describe("create", () => {
   });
 
   it("detects existing sources", async () => {
-    const existingSource = new MockInput({
+    const existingSource = new mocks.MockInput({
       name: "Existing Source",
     });
 
@@ -113,7 +111,7 @@ describe("create", () => {
   });
 
   it("adds filters to the scene", async () => {
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
     });
 
@@ -139,7 +137,7 @@ describe("createItem", () => {
       items: {},
     }).create(obs);
 
-    const testInput = new MockInput({
+    const testInput = new mocks.MockInput({
       name: "Colour Source",
     });
 
@@ -168,7 +166,7 @@ describe("createItem", () => {
     }).create(obs);
 
     const item = await scene.createItem("item", {
-      source: new MockInput({
+      source: new mocks.MockInput({
         name: "Colour Source",
       }),
       positionX: 100,
@@ -197,7 +195,7 @@ describe("createItem", () => {
 
 describe("link", () => {
   it("links to existing scene and item", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -234,7 +232,7 @@ describe("link", () => {
   });
 
   it("links nested scenes", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -327,7 +325,7 @@ describe("link", () => {
       name: "Scene",
       items: {
         test: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Input",
           }),
         },
@@ -342,7 +340,7 @@ describe("link", () => {
   });
 
   it("fails if multiple items of a source exist in the scene", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -374,7 +372,7 @@ describe("link", () => {
   });
 
   it("sets item transforms if requested", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -423,7 +421,7 @@ describe("link", () => {
   });
 
   it("sets input settings when requested", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
       settings: {
         a: 1,
@@ -506,7 +504,7 @@ describe("remove", () => {
   });
 
   it("removes scene items", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -597,7 +595,7 @@ describe("setName", () => {
   });
 
   it("updates refs of items' sources", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -628,7 +626,7 @@ describe("setName", () => {
   });
 
   it("reports error if source with name already exists", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 

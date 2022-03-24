@@ -1,9 +1,9 @@
-import { MockOBSWebSocket, OBS } from "../src";
+import { mocks, OBS } from "../src";
 
 export let obs = new OBS();
 
 beforeEach(async () => {
-  obs.socket = new MockOBSWebSocket() as any;
+  obs.socket = new mocks.MockOBSWebSocket() as any;
   await obs.connect("", "");
 });
 

@@ -11,10 +11,6 @@
   "scripts": {
     "test": "jest -i"
   },
-  "exports": {
-    ".": "./dist",
-    "./mocks": "./dist/mocks"
-  },
   "dependencies": {
     "next-tick": "^1.1.0",
     "obs-websocket-js": "5.0.0-alpha.3"

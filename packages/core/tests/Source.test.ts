@@ -1,11 +1,9 @@
-import { Filter, Scene } from "../src";
-import { MockFilter } from "../src/mocks/MockFilter";
-import { MockInput } from "../src/mocks/MockInput";
+import { Scene, mocks } from "../src";
 import { obs, resetSceneify } from "./utils";
 
 describe("createSceneItem", () => {
   it("fails if source is not initialized", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
     });
 
@@ -21,7 +19,7 @@ describe("createSceneItem", () => {
 
   it("finds existing item with refs", async () => {
     // make items in obs
-    const existingInput = new MockInput({
+    const existingInput = new mocks.MockInput({
       name: "Input",
     });
 
@@ -38,7 +36,7 @@ describe("createSceneItem", () => {
 
     resetSceneify();
 
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: existingInput.name,
     });
 
@@ -57,7 +55,7 @@ describe("createSceneItem", () => {
 
   it("creates a new item if ref is broken", async () => {
     // make items in obs
-    const existingInput = new MockInput({
+    const existingInput = new mocks.MockInput({
       name: "Input",
     });
 
@@ -89,7 +87,7 @@ describe("createSceneItem", () => {
 
     resetSceneify();
 
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: existingInput.name,
     });
 
@@ -118,10 +116,10 @@ describe("createSceneItem", () => {
       items: {},
     }).create(obs);
 
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Input",
       filters: {
-        test: new MockFilter({
+        test: new mocks.MockFilter({
           name: "Filter",
         }),
       },

@@ -1,5 +1,4 @@
-import { Input, Scene } from "../src";
-import { MockInput } from "../src/mocks/MockInput";
+import { Scene, mocks } from "../src";
 import { obs } from "./utils";
 
 describe("clean", () => {
@@ -8,7 +7,7 @@ describe("clean", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },
@@ -38,7 +37,7 @@ describe("clean", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },
@@ -71,7 +70,7 @@ describe("clean", () => {
       name: "Scene",
       items: {
         permanent: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Permanent",
           }),
         },
@@ -81,7 +80,7 @@ describe("clean", () => {
     await scene.create(obs);
 
     const item = await scene.createItem("test", {
-      source: new MockInput({
+      source: new mocks.MockInput({
         name: "Dangling",
       }),
     });
@@ -117,7 +116,7 @@ describe("clean", () => {
       name: sceneName,
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Test Input",
           }),
         },
@@ -198,7 +197,7 @@ describe("clean", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },

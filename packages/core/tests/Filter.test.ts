@@ -1,10 +1,9 @@
-import { Filter, Scene } from "../src";
-import { MockFilter } from "../src/mocks/MockFilter";
+import { Filter, Scene, mocks } from "../src";
 import { obs } from "./utils";
 
 describe("setSettings", () => {
   it("sets the filter's settings", async () => {
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {},
     });
@@ -34,7 +33,7 @@ describe("setSettings", () => {
 
 describe("setEnabled", () => {
   it("sets the filter's enabled state", async () => {
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {},
     });
@@ -64,7 +63,7 @@ describe("setEnabled", () => {
 
 describe("remove", () => {
   it("removes the filter", async () => {
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {},
     });
@@ -110,7 +109,7 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {},
     });
@@ -139,7 +138,7 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {
         a: 1,
@@ -181,7 +180,7 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {},
     });
@@ -202,7 +201,7 @@ describe("create", () => {
       items: {},
     }).create(obs);
 
-    const filter = new MockFilter({
+    const filter = new mocks.MockFilter({
       name: "Filter",
       settings: {},
     });

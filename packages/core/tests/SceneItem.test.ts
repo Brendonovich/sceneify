@@ -1,5 +1,4 @@
-import { Scene, Input } from "../src";
-import { MockInput } from "../src/mocks/MockInput";
+import { Scene, mocks } from "../src";
 import { obs } from "./utils";
 
 describe("setTransform", () => {
@@ -8,7 +7,7 @@ describe("setTransform", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },
@@ -46,7 +45,7 @@ describe("setTransform", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },
@@ -88,7 +87,7 @@ describe("setEnabled", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },
@@ -113,7 +112,7 @@ describe("setLocked", () => {
       name: "Test",
       items: {
         item: {
-          source: new MockInput({
+          source: new mocks.MockInput({
             name: "Source",
           }),
         },
@@ -134,7 +133,7 @@ describe("setLocked", () => {
 
 describe("remove", () => {
   it("removes item from scene", async () => {
-    const input = new MockInput({
+    const input = new mocks.MockInput({
       name: "Source",
     });
 
@@ -154,7 +153,7 @@ describe("remove", () => {
   });
 
   it("removes item ref", async () => {
-    let input = new MockInput({
+    let input = new mocks.MockInput({
       name: "Source",
     });
 
