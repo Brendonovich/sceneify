@@ -12,6 +12,7 @@
     "test": "jest -i"
   },
   "exports": {
+    ".": "./dist",
     "./mocks": "./dist/mocks"
   },
   "dependencies": {
