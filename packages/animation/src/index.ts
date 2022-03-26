@@ -1,4 +1,5 @@
 export * from "./easing";
+export * from "./obs-animation"
 
 import { Filter, Input, SceneItem, SceneItemTransform } from "@sceneify/core";
 import { Queue } from "@datastructures-js/queue";
@@ -60,11 +61,6 @@ export interface Keyframes<Subject extends AnimationSubject> {
   subject: Subject;
   values: SubjectKeyframeValues<Subject>;
 }
-
-export const keyframes = <Subject extends AnimationSubject>(
-  subject: Subject,
-  values: SubjectKeyframeValues<Subject>
-): Keyframes<Subject> => ({ subject, values });
 
 interface SubjectKeyframes {
   [key: string]: SubjectKeyframes | Queue<Keyframe>;
