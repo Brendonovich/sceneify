@@ -14,7 +14,7 @@ export interface InputArgs<
   TSettings extends Settings = {},
   Filters extends SourceFilters = {}
 > extends SourceArgs<Filters> {
-  settings?: Partial<TSettings>;
+  settings?: DeepPartial<TSettings>;
   volume?: {
     db?: number;
     mul?: number;
@@ -38,6 +38,10 @@ export class Input<
   audioSyncOffset = 0;
   muted = false;
 
+  /**
+   * Set transitively in initialize if source exists
+   * Set manually in createFirstSceneItem if source doesn't exist
+   */
   settings: DeepPartial<TSettings> = {} as any;
 
   /** @internal */
@@ -152,7 +156,7 @@ export class Input<
 
     if (this.exists) {
       this.obs.inputs.set(this.name, this);
-      await this.setSettings(this.settings, false);
+      await this.setSettings(this.creationArgs.settings ?? {} as any, false);
     }
   }
 
