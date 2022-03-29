@@ -38,7 +38,7 @@ export class Input<
   audioSyncOffset = 0;
   muted = false;
 
-  settings: DeepPartial<Settings> = {};
+  settings: DeepPartial<TSettings> = {} as any;
 
   /** @internal */
   creationArgs: InputArgs<TSettings, Filters>;
@@ -53,7 +53,7 @@ export class Input<
     await this.obs.call("SetInputSettings", {
       inputName: this.name,
       inputSettings: settings,
-      overlay
+      overlay,
     });
 
     this.settings = {
@@ -67,7 +67,7 @@ export class Input<
     if (cached)
       return {
         ...cached,
-      };
+      } as TSettings;
 
     const { defaultInputSettings } = await this.obs.call(
       "GetInputDefaultSettings",
@@ -78,7 +78,7 @@ export class Input<
 
     inputDefaultSettings.set(this.kind, defaultInputSettings);
 
-    return defaultInputSettings;
+    return defaultInputSettings as TSettings;
   }
 
   async fetchExists() {
@@ -129,7 +129,7 @@ export class Input<
     this.settings = {
       ...defaultSettings,
       ...settings,
-    };
+    } as DeepPartial<TSettings>;
 
     let promises: Promise<any>[] = [];
 
@@ -150,7 +150,10 @@ export class Input<
   override async initialize(obs: OBS) {
     await super.initialize(obs);
 
-    if (this.exists) this.obs.inputs.set(this.name, this);
+    if (this.exists) {
+      this.obs.inputs.set(this.name, this);
+      await this.setSettings(this.settings, false);
+    }
   }
 
   /**

@@ -23,7 +23,7 @@ async function main() {
 
   const ITEM_COUNT = 100;
 
-  const SPEED = 500;
+  const SPEED = 1000;
   const WIDTH = 1900;
   const HEIGHT = 1060;
 
