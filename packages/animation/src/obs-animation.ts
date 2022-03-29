@@ -55,7 +55,7 @@ type AnimatableProperties<S extends AnimationSubject> = S extends Input | Filter
   ? S["settings"]
   : S extends SceneItem
   ? S["transform"]
-  : {};
+  : never;
 
 type AnimationTarget<S extends AnimationSubject> = {
   source: S;
@@ -85,10 +85,12 @@ export async function pluginAnimate<
         animations: Object.entries(target.animations).map(
           ([property, keyframes]) => ({
             property,
-            keyframes: Object.entries(keyframes).map(([timeStr, value]) => ({
-              timestamp: parseInt(timeStr),
-              value,
-            })),
+            keyframes: Object.entries(keyframes as Record<number, number>).map(
+              ([timeStr, value]) => ({
+                timestamp: parseInt(timeStr),
+                value,
+              })
+            ),
           })
         ),
       })),
