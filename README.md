@@ -15,6 +15,7 @@
 <a href="https://bundlephobia.com/result?p=@sceneify/core">
    <img src="https://img.shields.io/bundlephobia/min/@sceneify/core?style=flat-square&colorA=black&colorB=blue" alt="Build Size">
 </a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FBrendonovich%2Fsceneify?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FBrendonovich%2Fsceneify.svg?type=shield"/></a>
 </p>
 
 Using `obs-websocket` can be difficult. Small manipulations of scenes and scene items are manageable, but keeping track of scenes, sources, settings, filters and more can quickly become a daunting task.
@@ -30,3 +31,6 @@ This library is not well tested and is still under heavy development. Feel free 
 - Persistence across code reloads, so scenes and items aren't deleted and recreated each time you run your code
 - `Scene`, `Source` and `SceneItem` are designed to be overridden, allowing for complex layouts to be abstracted into subclasses
 - Easy integration into existing layouts with `Scene.link()`, allowing for incremental migration to Sceneify without handing over your entire layout to your code.
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FBrendonovich%2Fsceneify.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FBrendonovich%2Fsceneify?ref=badge_large)
