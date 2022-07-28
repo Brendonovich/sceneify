@@ -13,7 +13,7 @@ export class VideoCaptureSource<
   constructor(args: CustomInputArgs<VideoCaptureSourceSettings, Filters>) {
     super({
       ...args,
-      kind: "dshow_input",
+      kind: "av_capture_input",
     });
   }
 }
