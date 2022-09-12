@@ -1,13 +1,8 @@
-import { Input, SourceFilters, CustomInputArgs } from "@sceneify/core";
+import { Font, Input, SourceFilters, CustomInputArgs } from "@sceneify/core";
 
 export type GDIPlusTextSourceSettings = {
   text: string;
-  font: {
-    face: string;
-    flags: number;
-    size: number;
-    style: string;
-  };
+  font: Font;
   antialiasing: boolean;
   color: number;
   read_from_file: boolean;

@@ -9,9 +9,7 @@ import { BoundsType, MonitoringType } from "../constants";
 /**
  * Makes every field and nested field optional in the provided object.
  */
-export type DeepPartial<T> = T extends Function
-  ? T
-  : T extends object
+export type DeepPartial<T> = T extends object
   ? { [P in keyof T]?: DeepPartial<T[P]> }
   : T;
 
@@ -34,6 +32,13 @@ export interface Filter {
   filterIndex: number;
   filterKind: string;
   filterSettings: Settings;
+}
+
+export interface Font {
+  face: string;
+  flags: number;
+  size: number;
+  style: string;
 }
 
 export interface SceneItemTransform {
@@ -69,51 +74,6 @@ export interface OBSRequestTypesOverrides {
     sceneName: string;
     sceneItemId: number;
     sceneItemTransform: Partial<SceneItemTransform>;
-  };
-
-  GetSourceFilterList: {
-    sourceName: string;
-  };
-
-  CreateSourceFilter: {
-    sourceName: string;
-    filterName: string;
-    filterIndex?: number;
-    filterKind: string;
-    filterSettings?: Settings;
-  };
-
-  RemoveSourceFilter: {
-    sourceName: string;
-    filterName: string;
-  };
-
-  GetSourceFilterDefaultSettings: {
-    filterKind: string;
-  };
-
-  GetSourceFilter: {
-    sourceName: string;
-    filterName: string;
-  };
-
-  SetSourceFilterIndex: {
-    sourceName: string;
-    filterName: string;
-    filterIndex: number;
-  };
-
-  SetSourceFilterSettings: {
-    sourceName: string;
-    filterName: string;
-    filterSettings: Settings;
-    overlay?: boolean;
-  };
-
-  SetSourceFilterEnabled: {
-    sourceName: string;
-    filterName: string;
-    filterEnabled: boolean;
   };
 
   SetSourcePrivateSettings: {
@@ -171,24 +131,6 @@ export interface OBSResponseTypesOverrides {
   GetInputAudioMonitorType: {
     monitorType: MonitoringType;
   };
-
-  GetSourceFilterList: {
-    filters: Filter[];
-  };
-
-  CreateSourceFilter: undefined;
-
-  RemoveSourceFilter: undefined;
-
-  GetSourceFilterDefaultSettings: { filterSettings: Settings };
-
-  GetSourceFilter: Filter;
-
-  SetSourceFilterIndex: undefined;
-
-  SetSourceFilterSettings: undefined;
-
-  SetSourceFilterEnabled: undefined;
 
   SetSourcePrivateSettings: undefined;
 

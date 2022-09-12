@@ -226,8 +226,6 @@ export abstract class Source<Filters extends SourceFilters = {}> {
 
     this.itemInstances.add(item);
 
-    await item.fetchProperties();
-
     for (const ref in this.filtersSchema) {
       await this.addFilter(ref, this.filtersSchema[ref]);
     }

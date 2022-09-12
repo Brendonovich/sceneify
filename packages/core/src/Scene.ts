@@ -3,6 +3,7 @@ import { OBS } from "./OBS";
 import { SceneItem, SceneItemTransform } from "./SceneItem";
 import { SourceFilters, Source } from "./Source";
 import { Input } from "./Input";
+import { wait } from "./utils";
 
 /**
  * Describes how a scene item should be created, including its base source and transform

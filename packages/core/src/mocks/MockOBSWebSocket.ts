@@ -448,7 +448,7 @@ export class MockOBSWebSocket {
           throw new Error("MockOBSWebsocket only supports MockFilter");
 
         ret = {
-          filterSettings: {
+          defaultFilterSettings: {
             a: 1,
             b: "value",
           } as MockFilterSettings as any,

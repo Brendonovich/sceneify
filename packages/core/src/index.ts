@@ -15,6 +15,7 @@ export type {
   OBSEventTypesOverrides,
   OBSRequestTypesOverrides,
   OBSResponseTypesOverrides,
+  Font,
 } from "./types";
 
 export * as mocks from "./mocks";
