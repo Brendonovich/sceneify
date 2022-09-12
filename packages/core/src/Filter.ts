@@ -1,4 +1,3 @@
-import { OBS } from ".";
 import { Source } from "./Source";
 import { DeepPartial, Settings } from "./types";
 
@@ -133,16 +132,16 @@ export class Filter<
 
     if (cached) return cached;
 
-    const { filterSettings } = await this.source.obs.call(
+    const { defaultFilterSettings } = await this.source.obs.call(
       "GetSourceFilterDefaultSettings",
       {
         filterKind: this.kind,
       }
     );
 
-    filterDefaultSettings.set(this.kind, filterSettings);
+    filterDefaultSettings.set(this.kind, defaultFilterSettings);
 
-    return { ...filterSettings };
+    return { ...defaultFilterSettings };
   }
 
   /** @internal */
