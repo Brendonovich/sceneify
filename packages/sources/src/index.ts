@@ -6,3 +6,4 @@ export * from "./GDIPlusText";
 export * from "./Media";
 export * from "./DisplayCapture";
 export * from "./VideoCapture";
+export * from "./DecklinkInput";
