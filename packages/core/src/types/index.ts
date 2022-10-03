@@ -69,6 +69,12 @@ export interface SceneItemTransform {
   cropBottom: number;
 }
 
+export interface PropertyItem {
+  itemEnabled: boolean;
+  itemName: string;
+  itemValue: string;
+}
+
 export interface OBSRequestTypesOverrides {
   SetSceneItemTransform: {
     sceneName: string;
@@ -136,6 +142,10 @@ export interface OBSResponseTypesOverrides {
 
   GetSourcePrivateSettings: {
     sourceSettings: Settings;
+  };
+
+  GetInputPropertiesListPropertyItems: {
+    propertyItems: PropertyItem[];
   };
 }
 
