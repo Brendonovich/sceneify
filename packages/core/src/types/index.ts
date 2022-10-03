@@ -72,7 +72,7 @@ export interface SceneItemTransform {
 export interface PropertyItem {
   itemEnabled: boolean;
   itemName: string;
-  itemValue: string;
+  itemValue: string | number;
 }
 
 export interface OBSRequestTypesOverrides {
