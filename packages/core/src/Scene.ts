@@ -76,7 +76,7 @@ export class Scene<
 
     obs.scenes.set(this.name, this);
 
-    for (const ref in this.itemsSchema) {
+    for (const ref of Object.keys(this.itemsSchema).reverse()) {
       await this.createItem(ref, this.itemsSchema[ref]);
     }
 
