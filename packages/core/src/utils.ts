@@ -8,3 +8,7 @@ export function removeUndefinedValues(obj: Record<string, any>) {
 export function wait(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
 }
+
+export function rgba(red: number, green: number, blue: number, alpha = 255) {
+  return red + (green << 8) + (blue << 16) + (alpha << 24);
+}
