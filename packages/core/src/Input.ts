@@ -51,7 +51,7 @@ export class Input<
    * Set transitively in initialize if source exists
    * Set manually in createFirstSceneItem if source doesn't exist
    */
-  settings: DeepPartial<TSettings> = {} as any;
+  settings: TSettings = {} as any;
 
   /** @internal */
   creationArgs: InputArgs<TSettings, Filters>;
@@ -157,7 +157,7 @@ export class Input<
     this.settings = {
       ...defaultSettings,
       ...settings,
-    } as DeepPartial<TSettings>;
+    };
 
     let promises: Promise<any>[] = [];
 
