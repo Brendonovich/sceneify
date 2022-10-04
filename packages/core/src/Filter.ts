@@ -115,7 +115,7 @@ export class Filter<
         filterSettings: this.initialSettings,
         sourceName: this.source.name,
       });
-    else await this.setSettings(this.initialSettings, false);
+    else await this.setSettings(this.initialSettings);
 
     const defaultSettings = await this.getDefaultSettings();
 

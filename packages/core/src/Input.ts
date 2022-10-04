@@ -180,7 +180,7 @@ export class Input<
 
     if (this.exists) {
       this.obs.inputs.set(this.name, this);
-      await this.setSettings(this.creationArgs.settings ?? ({} as any), false);
+      await this.setSettings(this.creationArgs.settings ?? ({} as any));
     }
   }
 
