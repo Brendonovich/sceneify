@@ -54,3 +54,9 @@ export const DEFAULT_SCENE_ITEM_TRANSFORM: SceneItemTransform = {
   boundsHeight: 0,
   boundsType: BoundsType.None,
 };
+
+export enum VideoRange {
+  Default = 0,
+  Partial = 1,
+  Full = 2,
+}

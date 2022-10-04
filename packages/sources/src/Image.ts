@@ -2,6 +2,8 @@ import { CustomInputArgs, Input, SourceFilters } from "@sceneify/core";
 
 export type ImageSourceSettings = {
   file: string;
+  unload: boolean;
+  linear_alpha: boolean;
 };
 
 export class ImageSource<Filters extends SourceFilters = {}> extends Input<

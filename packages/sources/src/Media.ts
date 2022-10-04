@@ -4,18 +4,13 @@ import {
   CustomInputArgs,
   OBSEventTypes,
   OBS,
+  VideoRange,
 } from "@sceneify/core";
 import { EventEmitter } from "eventemitter3";
 
-export enum ColorRange {
-  Default = 0,
-  Partial = 1,
-  Full = 2,
-}
-
 export type MediaSourceSettings = {
-  local_file: string;
   is_local_file: boolean;
+  local_file: string;
   looping: boolean;
   restart_on_activate: boolean;
   buffering_mb: number;
@@ -26,7 +21,7 @@ export type MediaSourceSettings = {
   clear_on_media_end: boolean;
   close_when_inactive: boolean;
   speed_percent: number;
-  color_range: ColorRange;
+  color_range: VideoRange;
   linear_alpha: boolean;
   seekable: boolean;
 };
@@ -41,6 +36,10 @@ export class MediaSource<Filters extends SourceFilters = {}> extends Input<
   Filters
 > {
   private emitter = new EventEmitter();
+
+  constructor(args: CustomInputArgs<MediaSourceSettings, Filters>) {
+    super({ ...args, kind: "ffmpeg_source" });
+  }
 
   private emit(event: keyof MediaSourceEvents) {
     this.emitter.emit(event);
@@ -57,10 +56,6 @@ export class MediaSource<Filters extends SourceFilters = {}> extends Input<
       this.emit("PlaybackEnded");
     }
   };
-
-  constructor(args: CustomInputArgs<MediaSourceSettings, Filters>) {
-    super({ ...args, kind: "ffmpeg_source" });
-  }
 
   override async initialize(obs: OBS) {
     await super.initialize(obs);
