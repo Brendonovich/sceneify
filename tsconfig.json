@@ -24,6 +24,9 @@
     },
     {
       "path": "packages/sources"
+    },
+    {
+      "path": "packages/streamfx"
     }
   ]
 }

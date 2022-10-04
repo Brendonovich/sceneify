@@ -24,11 +24,20 @@ export interface InputArgs<
   muted?: boolean;
 }
 
+export type PropertyLists = Record<string, string | number>;
+
+export type PropertyList<T> = {
+  enabled: boolean;
+  name: string;
+  value: T;
+}[];
+
 const inputDefaultSettings = new Map<string, Settings>();
 
 export class Input<
   TSettings extends Settings = {},
-  Filters extends SourceFilters = {}
+  Filters extends SourceFilters = {},
+  Properties extends PropertyLists = {}
 > extends Source<Filters> {
   volume = {
     db: 0,
@@ -83,6 +92,21 @@ export class Input<
     inputDefaultSettings.set(this.kind, defaultInputSettings);
 
     return defaultInputSettings as TSettings;
+  }
+
+  async getPropertyListItems<K extends keyof Properties>(
+    property: K
+  ): Promise<PropertyList<Properties[K]>> {
+    const resp = await this.obs.call("GetInputPropertiesListPropertyItems", {
+      inputName: this.name,
+      propertyName: property as string,
+    });
+
+    return resp.propertyItems.map((i) => ({
+      enabled: i.itemEnabled,
+      name: i.itemName,
+      value: i.itemValue as Properties[K],
+    }));
   }
 
   async fetchExists() {

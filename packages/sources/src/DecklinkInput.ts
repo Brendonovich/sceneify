@@ -43,9 +43,21 @@ export type DecklinkInputSettings = {
   allow_10_bit: boolean;
 };
 
+export type DecklinkInputPropertyLists = {
+  device_hash: string;
+  video_connection: number;
+  audtio_connection: number;
+  mode_id: number;
+  pixel_format: number;
+  color_space: number;
+  color_range: number;
+  channel_format: number;
+};
+
 export class DecklinkInput<Filters extends SourceFilters = {}> extends Input<
   DecklinkInputSettings,
-  Filters
+  Filters,
+  DecklinkInputPropertyLists
 > {
   constructor(args: CustomInputArgs<DecklinkInputSettings, Filters>) {
     super({
