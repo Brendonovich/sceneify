@@ -7,3 +7,5 @@ export * from "./Media";
 export * from "./DisplayCapture";
 export * from "./VideoCapture";
 export * from "./DecklinkInput";
+export * from "./MacAudioInput";
+export * from "./MacOSScreenCapture";
