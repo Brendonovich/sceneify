@@ -19,3 +19,4 @@ export type {
 } from "./types";
 
 export * as mocks from "./mocks";
+export { rgba, wait } from "./utils";
