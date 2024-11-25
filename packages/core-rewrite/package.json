@@ -1,0 +1,7 @@
+{
+  "name": "@sceneify/core-rewrite",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "obs-websocket-js": "5.0.1"
+  }
+}
