@@ -1,5 +1,5 @@
-import { OBS } from "./obs";
-import { SceneItemTransform } from "./sceneItem";
+import { OBS } from "./obs.ts";
+import { SceneItemTransform } from "./sceneItem.ts";
 
 export function defineInputType<
   TSettings extends Record<string, any>,
@@ -170,8 +170,8 @@ export class Input<
     });
 
     return res.propertyItems.map((i) => ({
-      enabled: i.itemEnabled,
-      name: i.itemName,
+      enabled: i.itemEnabled as boolean,
+      name: i.itemName as string,
       value: i.itemValue as InputTypeSettings<TType>[K],
     }));
   }
@@ -196,6 +196,8 @@ class Filter<TType extends FilterType<any, any>> {
 
 export type DefineSceneItemArgs<TInput extends Input<any, any>> = {
   input: TInput;
+  index?: number;
+  enabled?: boolean;
 } & Partial<SceneItemTransform>;
 
 export type SceneItems = Record<string, Input<any, any>>;

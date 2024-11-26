@@ -26,6 +26,18 @@ export interface SceneItemTransform {
   cropBottom: number;
 }
 
+export type SceneItemTransformInput = Partial<
+  Omit<
+    SceneItemTransform,
+    | "width"
+    | "height"
+    | "sourceWidth"
+    | "sourceHeight"
+    | "boundsWidth"
+    | "boundsHeight"
+  >
+>;
+
 export function sceneItemTransformToOBS(
   transform: Partial<SceneItemTransform>
 ): Partial<OBSSceneItemTransform> {
@@ -36,10 +48,10 @@ export function sceneItemTransformToOBS(
       : undefined,
     boundsAlignment: transform.boundsAlignment
       ? alignmentToOBS(transform.boundsAlignment)
-      : transform.boundsAlignment,
+      : undefined,
     boundsType: transform.boundsType
       ? boundsTypeToOBS(transform.boundsType)
-      : transform.boundsType,
+      : undefined,
   };
 }
 
@@ -58,7 +70,7 @@ import {
   OBSAlignment,
   OBSBoundsType,
   OBSSceneItemTransform,
-} from "./obs-types";
+} from "./obs-types.ts";
 
 const Alignment: Record<Alignment, OBSAlignment> = {
   centerLeft: 1,

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "lib": ["es2020", "dom"]
+  }
+}

@@ -2,6 +2,10 @@
   "name": "@sceneify/core-rewrite",
   "main": "./src/index.ts",
   "dependencies": {
-    "obs-websocket-js": "5.0.1"
+    "obs-websocket-js": "5.0.1",
+    "type-fest": "^4.28.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
   }
 }
