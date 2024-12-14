@@ -14,7 +14,7 @@ import {
 
 type SIOfSceneAsSI<TDef extends definition.Scene> = {
   [K in keyof definition.SIOfScene<TDef>]: SceneItem<
-    Input<definition.SIOfScene<TDef>[K]>
+    definition.SIOfScene<TDef>[K]
   >;
 };
 export class Scene<TDef extends definition.Scene = definition.Scene> {
@@ -34,76 +34,12 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
 
   item<K extends keyof definition.SIOfScene<TDef>>(
     key: K
-  ): SceneItem<Input<definition.SIOfScene<TDef>[K]>> {
+  ): SceneItem<definition.SIOfScene<TDef>[K]> {
     return this.items[key];
   }
 
   async getItems() {
     return await this.def.getItems(this.obs);
-  }
-
-  /* @internal */
-  async syncItem<
-    TInput extends definition.Input<definition.InputType<string, any>, any>
-  >(def: definition.DefineSceneItemArgs<TInput>) {
-    const { input } = def;
-
-    let res:
-      | undefined
-      | { error: "same-name-different-kind"; kind: string }
-      | { error: "not-owned"; id: number }
-      | { success: SceneItem<Input<TInput>> } = undefined;
-
-    for (const item of await this.getItems()) {
-      if (item.sourceName !== def.input.args.name) continue;
-      if (item.inputKind !== def.input.type.kind) {
-        if (!res)
-          res = { error: "same-name-different-kind", kind: item.inputKind };
-        continue;
-      }
-
-      const { sceneItemSettings } = await this.obs.ws.call(
-        "GetSceneItemPrivateSettings",
-        { sceneName: this.def.name, sceneItemId: item.sceneItemId }
-      );
-
-      if (sceneItemSettings.SCENEIFY?.init !== "created") {
-        res = { error: "not-owned", id: item.sceneItemId };
-        continue;
-      }
-
-      res = {
-        success: new SceneItem(
-          new Input(input, this.obs),
-          this,
-          item.sceneItemId
-        ),
-      };
-    }
-
-    let sceneItem: SceneItem<Input<TInput>>;
-    if (!res) sceneItem = await this.createItem(def);
-    else if ("success" in res) {
-      const item = res.success;
-      await item.updateFromDefinition(def);
-      sceneItem = item;
-    } else {
-      if (res.error === "same-name-different-kind")
-        throw new Error(
-          `Input '${input.args.name}' already exists with kind '${res.kind}' instead of expected kind '${def.input.type.kind}'`
-        );
-      else
-        throw new Error(
-          `Scene items of input '${input.args.name}' cannot be synced as none are owned by Sceneify`
-        );
-    }
-
-    if (input.args.settings)
-      await input.setSettings(this.obs, input.args.settings);
-
-    await sceneItem.setTransform(def);
-
-    return sceneItem;
   }
 
   async createItem<TInput extends definition.Input<any, any>>(
@@ -132,7 +68,8 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
         return sceneItemId;
       });
 
-    const item = new SceneItem(new Input(def.input, this.obs), this, id);
+    const [input] = await syncInput(this.obs, def.input);
+    const item = new SceneItem(input, this, id);
 
     await item.updateFromDefinition(def);
 
@@ -140,8 +77,195 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
   }
 }
 
-class Filter<TDef extends definition.Filter<any>> {
-  constructor(public def: TDef, public obs: OBS, public input: Input<any>) {}
+export async function syncSceneItem<
+  TScene extends Scene,
+  TInput extends definition.Input<definition.InputType<string, any>, any>
+>(scene: TScene, def: definition.DefineSceneItemArgs<TInput>) {
+  const { input } = def;
+  let res:
+    | undefined
+    | { error: "same-name-different-kind"; kind: string }
+    | { error: "not-owned"; id: number }
+    | { success: SceneItem<TInput> } = undefined;
+
+  for (const item of await scene.getItems()) {
+    if (item.sourceName !== def.input.args.name) continue;
+    if (item.inputKind !== def.input.type.id) {
+      if (!res)
+        res = { error: "same-name-different-kind", kind: item.inputKind };
+      continue;
+    }
+
+    const { sceneItemSettings } = await scene.obs.ws.call(
+      "GetSceneItemPrivateSettings",
+      { sceneName: scene.def.name, sceneItemId: item.sceneItemId }
+    );
+
+    if (sceneItemSettings.SCENEIFY?.init !== "created") {
+      res = { error: "not-owned", id: item.sceneItemId };
+      continue;
+    }
+
+    const [input] = await syncInput(scene.obs, def.input);
+
+    res = { success: new SceneItem(input, scene, item.sceneItemId) };
+  }
+
+  let sceneItem: SceneItem<TInput>;
+  if (!res) sceneItem = await scene.createItem(def);
+  else if ("success" in res) {
+    const item = res.success;
+    sceneItem = item;
+    await sceneItem.updateFromDefinition(def);
+  } else {
+    if (res.error === "same-name-different-kind")
+      throw new Error(
+        `Input '${input.args.name}' already exists with kind '${res.kind}' instead of expected kind '${def.input.type.id}'`
+      );
+    else
+      throw new Error(
+        `Scene items of input '${input.args.name}' cannot be synced as none are owned by Sceneify`
+      );
+  }
+
+  return sceneItem;
+}
+
+async function syncInput<TInput extends definition.Input<any, any>>(
+  obs: OBS,
+  def: TInput
+): Promise<[Input<TInput>]>;
+async function syncInput<TInput extends definition.Input<any, any>>(
+  obs: OBS,
+  def: TInput,
+  forceCreate: {
+    scene: Scene<any>;
+    sceneItemArgs: definition.DefineSceneItemArgs<TInput>;
+  }
+): Promise<[Input<TInput>, SceneItem<TInput>]>;
+async function syncInput<
+  TInput extends definition.Input<
+    any,
+    Record<string, definition.FilterType<any, any>>
+  >
+>(
+  obs: OBS,
+  def: TInput,
+  forceCreate?: {
+    scene: Scene<any>;
+    sceneItemArgs: definition.DefineSceneItemArgs<TInput>;
+  }
+): Promise<[Input<TInput>, ...([SceneItem<TInput>] | [])]> {
+  let input: Input<TInput>;
+  let sceneItem: SceneItem<TInput> | undefined;
+
+  const prev = obs.syncedInputs.get(def.name);
+  if (prev) return [prev] as any;
+
+  const inputFilters: any = {};
+
+  if (forceCreate)
+    sceneItem = await forceCreate.scene.createItem(forceCreate.sceneItemArgs);
+
+  input = new Input({ def, obs, filters: inputFilters });
+
+  await Promise.all([
+    (async () => {
+      if (def.args.settings) await input.setSettings(def.args.settings as any);
+    })(),
+    (async () => {
+      if (def.args.filters) {
+        const filters = await input.getFilters();
+
+        const {
+          sourceSettings: { SCENEIFY },
+        } = await obs.ws.call("GetSourcePrivateSettings", {
+          sourceName: input.def.name,
+        });
+
+        const entries = Object.entries(def.args.filters);
+        entries.sort(([_, f1], [__, f2]) => {
+          if (f1.args.index === undefined) return -1;
+          if (f2.args.index === undefined) return 1;
+          return f1.args.index - f2.args.index;
+        });
+
+        for (const [key, filterDef] of entries) {
+          let filter: Filter<any, TInput> | undefined;
+
+          for (const existingFilter of filters) {
+            if (existingFilter.name !== filterDef.args.name) continue;
+            if (existingFilter.kind !== filterDef.kind.id)
+              throw new Error(
+                `Filter '${existingFilter.name}' on source ${input.name} already exists with kind '${existingFilter.kind}' instead of expected kind '${filterDef.kind.id}'`
+              );
+
+            if (!SCENEIFY?.filters?.some((f) => f.name === filterDef.name))
+              throw new Error(
+                `Filter '${filterDef.name}' of input '${input.name}' cannot be synced as it is not owned by Sceneify`
+              );
+
+            filter = new Filter(filterDef, obs, input);
+          }
+
+          if (!filter) {
+            await obs.ws.call("CreateSourceFilter", {
+              sourceName: input.name,
+              filterName: filterDef.name,
+              filterKind: filterDef.kind.id,
+            });
+
+            filter = new Filter(filterDef, obs, input);
+          }
+
+          await Promise.all([
+            (async () => {
+              if (filterDef.args.index !== undefined)
+                await filter.setIndex(filterDef.args.index);
+            })(),
+            (async () => {
+              if (filterDef.args.enabled !== undefined)
+                await filter.setEnabled(filterDef.args.enabled);
+            })(),
+            (async () => {
+              if (filterDef.args.settings)
+                filter.setSettings(filterDef.args.settings);
+            })(),
+          ]);
+
+          inputFilters[key] = filter;
+        }
+      }
+    })(),
+  ]);
+
+  await obs.ws.call("SetSourcePrivateSettings", {
+    sourceName: def.args.name,
+    sourceSettings: {
+      SCENEIFY: {
+        init: "created",
+        ...(def.args.filters
+          ? {
+              filters: Object.entries(def.args.filters).map(([_, f]) => ({
+                name: f.args.name,
+              })),
+            }
+          : undefined),
+      },
+    },
+  });
+
+  obs.syncedInputs.set(def.name, input);
+
+  if (sceneItem) return [input, sceneItem];
+  return [input];
+}
+
+class Filter<
+  TDef extends definition.Filter<any>,
+  TInput extends definition.Input<any, any>
+> {
+  constructor(public def: TDef, public obs: OBS, public input: Input<TInput>) {}
 
   get name() {
     return this.def.name;
@@ -168,8 +292,32 @@ class Filter<TDef extends definition.Filter<any>> {
   }
 }
 
-class Input<TDef extends definition.Input<any, any>> {
-  constructor(public def: TDef, public obs: OBS) {}
+export type FilterDefsOfInputDef<TDef extends definition.Input<any, any>> =
+  TDef extends definition.Input<any, infer TFilters> ? TFilters : never;
+type InputFiltersFromDef<
+  TDef extends definition.Input<any, any>,
+  TInput extends TDef
+> = {
+  [K in keyof FilterDefsOfInputDef<TDef>]: Filter<
+    FilterDefsOfInputDef<TDef>[K],
+    TInput
+  >;
+};
+
+export class Input<TDef extends definition.Input<any, any>> {
+  obs: OBS;
+  def: TDef;
+  private filters: InputFiltersFromDef<TDef, TDef> = {} as any;
+
+  constructor(args: {
+    def: TDef;
+    obs: OBS;
+    filters: InputFiltersFromDef<TDef, TDef>;
+  }) {
+    this.def = args.def;
+    this.filters = args.filters;
+    this.obs = args.obs;
+  }
 
   get name() {
     return this.def.name;
@@ -177,8 +325,8 @@ class Input<TDef extends definition.Input<any, any>> {
 
   filter<TKey extends keyof definition.InputFilters<TDef>>(
     key: TKey
-  ): Filter<definition.InputFilters<TDef>[TKey]> {
-    return null;
+  ): Filter<definition.InputFilters<TDef>[TKey], TDef> {
+    return this.filters[key];
   }
 
   async setSettings(
@@ -225,14 +373,18 @@ class Input<TDef extends definition.Input<any, any>> {
   >(setting: K) {
     return await this.def.getSettingListItems(this.obs, setting);
   }
+
+  async getFilters() {
+    return await this.def.getFilters(this.obs);
+  }
 }
 
-class SceneItem<TInput extends Input<definition.Input<any, any>>> {
+class SceneItem<TInput extends definition.Input<any, any>> {
   obs: OBS;
   declared: boolean;
 
   constructor(
-    public input: TInput,
+    public input: Input<TInput>,
     public scene: Scene<any>,
     public id: number
   ) {
@@ -242,9 +394,15 @@ class SceneItem<TInput extends Input<definition.Input<any, any>>> {
 
   /* @internal */
   async updateFromDefinition(def: definition.DefineSceneItemArgs<any>) {
-    if (def.index !== undefined) this.setIndex(def.index);
-
-    if (def.enabled !== undefined) this.setEnabled(def.enabled);
+    await Promise.all([
+      this.setTransform(def),
+      (async () => {
+        if (def.index !== undefined) await this.setIndex(def.index);
+      })(),
+      (async () => {
+        if (def.enabled !== undefined) await this.setEnabled(def.enabled);
+      })(),
+    ]);
   }
 
   async getTransform() {
@@ -354,7 +512,7 @@ export async function syncScene<T extends definition.Scene>(
   });
 
   for (const [key, args] of Object.entries(sceneDef.args.items ?? {})) {
-    const item = await scene.syncItem(args);
+    const item = await syncSceneItem(scene, args);
 
     items[key] = item;
   }

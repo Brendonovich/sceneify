@@ -10,7 +10,7 @@ export function defineInputType<
 }
 
 abstract class SourceType<TKind extends string> {
-  constructor(public kind: TKind) {}
+  constructor(public id: TKind) {}
 
   abstract settings(): SourceType<TKind>;
 }
@@ -46,7 +46,7 @@ export class InputType<
 
   async getDefaultSettings(obs: OBS) {
     const res = await obs.ws.call("GetInputDefaultSettings", {
-      inputKind: this.kind,
+      inputKind: this.id,
     });
 
     return res.defaultInputSettings as TSettings;
@@ -56,13 +56,14 @@ export class InputType<
 type DefineFilterArgs<TSettings> = {
   name: string;
   enabled?: boolean;
+  index?: number;
   settings?: Partial<TSettings>;
 };
 
 export type FilterTypeSettings<TType extends FilterType<any, any>> =
   TType extends FilterType<any, infer TSettings> ? TSettings : never;
 
-class FilterType<
+export class FilterType<
   TKind extends string = string,
   TSettings extends Record<string, any> = any
 > extends SourceType<TKind> {
@@ -202,6 +203,20 @@ export class Input<
       value: i.itemValue as InputTypeSettings<TType>[K],
     }));
   }
+
+  async getFilters(obs: OBS) {
+    const { filters } = await obs.ws.call("GetSourceFilterList", {
+      sourceName: this.args.name,
+    });
+
+    return filters.map((f) => ({
+      enabled: f.filterEnabled as boolean,
+      index: f.filterIndex as number,
+      kind: f.filterKind as string,
+      name: f.filterName as string,
+      settings: f.filterSettings as any,
+    }));
+  }
 }
 
 export type InputFilters<T extends Input<any, any>> = T extends Input<
@@ -219,7 +234,7 @@ export type FilterSettings<TInput extends Filter<any>> = TInput extends Filter<
 
 export class Filter<TType extends FilterType<any, any>> {
   constructor(
-    public type: TType,
+    public kind: TType,
     public args: DefineFilterArgs<FilterTypeSettings<TType>>
   ) {}
 

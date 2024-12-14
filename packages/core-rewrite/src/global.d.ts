@@ -10,7 +10,9 @@ declare module "obs-websocket-js" {
     SetSourcePrivateSettings: {
       sourceName: string;
       sourceSettings: {
-        SCENEIFY?: SceneifyPrivateSettings;
+        SCENEIFY?: SceneifyPrivateSettings & {
+          filters?: Array<{ name: string }>;
+        };
       };
     };
     GetSourcePrivateSettings: {
@@ -33,7 +35,9 @@ declare module "obs-websocket-js" {
     SetSourcePrivateSettings: void;
     GetSourcePrivateSettings: {
       sourceSettings: {
-        SCENEIFY?: SceneifyPrivateSettings;
+        SCENEIFY?: SceneifyPrivateSettings & {
+          filters?: Array<{ name: string }>;
+        };
       };
     };
     SetSceneItemPrivateSettings: {};

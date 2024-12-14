@@ -114,10 +114,8 @@ export const noiseGateFilter = defineFilterType("noise_gate_filter").settings<{
 }>();
 
 export const noiseSuppressFilter = defineFilterType(
-  "noise_suppress_filter"
-).settings<{
-  method: "speex" | "rnnoise" | "nvafx";
-}>();
+  "noise_suppress_filter_v2"
+).settings<{ method: "speex" | "rnnoise" | "nvafx" }>();
 
 export const renderDelayFilter = defineFilterType("gpu_delay").settings<{
   delay_ms: number;

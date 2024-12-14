@@ -1,5 +1,6 @@
 import { defineScene } from "./definition.ts";
 import {
+  gainFilter,
   noiseGateFilter,
   noiseSuppressFilter,
   sharpenFilter,
@@ -7,14 +8,12 @@ import {
 } from "./filters.ts";
 import {
   browserSource,
-  colorSource,
   coreAudioInputCapture,
   macOSScreenCapture,
   videoCaptureSource,
 } from "./inputs.ts";
 import { OBS } from "./obs.ts";
-import { syncScene as syncScene } from "./runtime.ts";
-import { alignmentToOBS } from "./sceneItem.ts";
+import { FilterDefsOfInputDef, syncScene as syncScene } from "./runtime.ts";
 
 export const GAP = 20;
 
@@ -38,6 +37,20 @@ const micInput = coreAudioInputCapture.defineInput({
     device_id:
       "AppleUSBAudioEngine:Burr-Brown from TI              :USB Audio CODEC :130000:2",
     enable_downmix: true,
+  },
+  filters: {
+    gain: gainFilter.defineFilter({
+      index: 0,
+      enabled: true,
+      name: "Gain",
+      settings: { db: 2.5 },
+    }),
+    noiseSuppression: noiseSuppressFilter.defineFilter({
+      index: 1,
+      enabled: true,
+      name: "Noise Suppression",
+      settings: { method: "speex" },
+    }),
   },
 });
 
@@ -90,11 +103,6 @@ export const mainScene = defineScene({
       index: 4,
       input: micInput,
     },
-
-    //  mic: {
-    // index: 4,
-    // input: aud
-    //  }
     //   guest: {
     //     input: browserSource.defineInput({
     //       name: "Guest",
@@ -123,27 +131,6 @@ export const mainScene = defineScene({
     //       settings: {
     //         url: "https://streamkit.discord.com/overlay/voice/949090953497567312/966581199025893387?icon=true&online=true&logo=white&text_color=%23ffffff&text_size=14&text_outline_color=%23000000&text_outline_size=0&text_shadow_color=%23000000&text_shadow_size=0&bg_color=%231e2124&bg_opacity=0.95&bg_shadow_color=%23000000&bg_shadow_size=0&invite_code=XpctyaUgG8&limit_speaking=true&small_avatars=false&hide_names=false&fade_chat=0",
     //       },
-    //     }),
-    //   },
-    //   display: {
-    //     index: 0,
-    //     input: display,
-    //     positionX: 0,
-    //     positionY: 0,
-    //   },
-    //   micAudio: {
-    //     input: micInput,
-    //   },
-    //   systemAudio: {
-    //     input: coreAudioInputCapture.defineInput({
-    //       name: "System Audio",
-    //       settings: {
-    //         device_id: "BlackHole16ch_UID",
-    //       },
-    //       // TODO
-    //       // volume: {
-    //       // 	db: -8
-    //       // }
     //     }),
     //   },
   },
@@ -178,11 +165,7 @@ async function main() {
   const main = await syncScene(obs, mainScene);
   const camera = await syncScene(obs, cameraScene);
 
-  obs.setCurrentScene(camera);
-
-  setTimeout(() => {
-    obs.setCurrentScene(main);
-  }, 1000);
+  await obs.setCurrentScene(main);
 }
 
 main();

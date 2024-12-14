@@ -1,11 +1,14 @@
 import OBSWebsocket from "obs-websocket-js";
-import { Scene } from "./runtime.ts";
+import { Scene, Input } from "./runtime.ts";
 
 export type LogLevel = "none" | "info" | "error";
 
 export class OBS {
   ws: OBSWebsocket;
   logging: LogLevel;
+
+  /** @internal */
+  syncedInputs = new Map<string, Input<any>>();
 
   constructor() {
     this.ws = new OBSWebsocket();
