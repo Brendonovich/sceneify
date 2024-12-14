@@ -46,4 +46,16 @@ export class OBS {
       sceneName: typeof scene === "string" ? scene : scene.name,
     });
   }
+
+  async startStream() {
+    await this.ws.call("StartStream");
+  }
+
+  async stopStream() {
+    await this.ws.call("StopStream");
+  }
+
+  async toggleStream() {
+    return await this.ws.call("ToggleStream").then((r) => r.outputActive);
+  }
 }

@@ -1,197 +1,169 @@
+import { defineScene } from "./definition.ts";
 import {
-  defineFilterType,
-  defineInputType,
-  defineScene,
-} from "./definition.ts";
+  noiseGateFilter,
+  noiseSuppressFilter,
+  sharpenFilter,
+  // streamfxBlurFilter,
+} from "./filters.ts";
+import {
+  browserSource,
+  colorSource,
+  coreAudioInputCapture,
+  macOSScreenCapture,
+  videoCaptureSource,
+} from "./inputs.ts";
 import { OBS } from "./obs.ts";
 import { syncScene as syncScene } from "./runtime.ts";
+import { alignmentToOBS } from "./sceneItem.ts";
 
 export const GAP = 20;
-
-export const macOSScreenCapture = defineInputType("screen_capture").settings<{
-  application: string;
-  display_uuid: string;
-  hide_obs: boolean;
-  show_cursor: boolean;
-  show_empty_names: boolean;
-  show_hidden_windows: boolean;
-  type: number;
-  window: number;
-}>();
-
-export const browserSource = defineInputType("browser_source").settings<{
-  url: string;
-  width: number;
-  height: number;
-  reroute_audio: boolean;
-}>();
-
-export const colorSource = defineInputType("color_source_v3").settings<{
-  color: number;
-  width: number;
-  height: number;
-}>();
-
-export const videoCaptureSource = defineInputType(
-  "av_capture_input_v2"
-).settings<{ device: string; device_name: string }>();
-
-export const coreAudioInputCapture = defineInputType(
-  "coreaudio_input_capture"
-).settings<{
-  device_id: string;
-}>();
-
-export const streamfxBlurFilter = defineFilterType(
-  "streamfx-filter-blur"
-).settings<{
-  "Filter.Blur.Type": string;
-  "Filter.Blur.Subtype": "area";
-  "Filter.Blur.Size": number;
-}>();
-
-export const noiseSuppressFilter = defineFilterType(
-  "noise_suppress_filter"
-).settings<{
-  method: "speex" | "rnnoise" | "nvafx";
-}>();
-
-export const noiseGateFilter = defineFilterType("noise_gate_filter").settings<{
-  open_threshold: number;
-  close_threshold: number;
-  attack_time: number;
-  hold_time: number;
-  release_time: number;
-}>();
 
 export const webcam = videoCaptureSource.defineInput({
   name: "Webcam",
   settings: {
-    device: "47B4B64B-7067-4B9C-AD2B-AE273A71F4B5",
-  },
-  filters: {
-    blur: streamfxBlurFilter.defineFilter({
-      name: "Blur",
-      settings: {
-        "Filter.Blur.Type": "box",
-        "Filter.Blur.Size": 30,
-      },
-    }),
+    device: "0x122000046d085c",
   },
 });
 
-export const micInput = coreAudioInputCapture.defineInput({
+const display = macOSScreenCapture.defineInput({
+  name: "Display",
+  settings: {
+    display_uuid: "37D8832A-2D66-02CA-B9F7-8F30A301B230",
+  },
+});
+
+const micInput = coreAudioInputCapture.defineInput({
   name: "Mic Audio",
   settings: {
-    // TODO: mono
-  },
-  filters: {
-    supression: noiseSuppressFilter.defineFilter({
-      name: "Noise Suppress",
-      settings: {
-        method: "speex",
-      },
-    }),
-    gate: noiseGateFilter.defineFilter({
-      name: "Noise Gate",
-      settings: {
-        open_threshold: -35,
-        close_threshold: -45,
-      },
-    }),
+    device_id:
+      "AppleUSBAudioEngine:Burr-Brown from TI              :USB Audio CODEC :130000:2",
+    enable_downmix: true,
   },
 });
 
-export const display = macOSScreenCapture.defineInput({
-  name: "Display",
-  filters: {
-    blur: streamfxBlurFilter.defineFilter({
-      name: "Blur",
-      enabled: false,
-      settings: {
-        "Filter.Blur.Type": "box",
-        "Filter.Blur.Subtype": "area",
-        "Filter.Blur.Size": 30,
-      },
-    }),
-  },
-});
+const OUTPUT_WIDTH = 1920;
+const OUTPUT_HEIGHT = 1080;
+
+const DISPLAY_WIDTH = 3456;
+const DISPLAY_HEIGHT = 2234;
+
+const DISPLAY_SCALE = OUTPUT_HEIGHT / DISPLAY_HEIGHT;
+const DISPLAY_OFFSET = (OUTPUT_WIDTH - DISPLAY_WIDTH * DISPLAY_SCALE) / 2;
 
 export const mainScene = defineScene({
   name: "Main",
   items: {
-    camera: {
+    display: {
       index: 1,
+      input: display,
+      scaleX: DISPLAY_SCALE,
+      scaleY: DISPLAY_SCALE,
+      positionX: DISPLAY_OFFSET,
+      positionY: 0,
+      alignment: "topLeft",
+    },
+    webcam: {
+      index: 2,
       input: webcam,
-      positionX: 1920 - GAP,
-      positionY: 1080 - GAP,
+      positionX: OUTPUT_WIDTH - GAP,
+      positionY: OUTPUT_HEIGHT - GAP,
       cropLeft: 300,
       cropRight: 300,
       alignment: "bottomRight",
     },
-    guest: {
-      input: browserSource.defineInput({
-        name: "Guest",
-        settings: {
-          width: 1920,
-          height: 1080,
-          url: "https://ping.gg/call/brendonovich/embed?view=cl8287d6q12920gmk8bbjyff5",
-        },
-      }),
-      alignment: "bottomRight",
-    },
-    chat: {
-      input: browserSource.defineInput({
-        name: "Chat",
-        settings: {
-          url: "", //import.meta.env.VITE_CHAT_WIDGET_URL,
-          width: 1000,
-        },
-      }),
-      positionX: 1920 - GAP,
-      alignment: "bottomRight",
-    },
     discordServer: {
+      index: 3,
       input: browserSource.defineInput({
         name: "Discord Server",
         settings: {
-          url: "https://streamkit.discord.com/overlay/status/949090953497567312?icon=true&online=true&logo=white&text_color=%23ffffff&text_size=14&text_outline_color=%23000000&text_outline_size=0&text_shadow_color=%23000000&text_shadow_size=0&bg_color=%231e2124&bg_opacity=0.95&bg_shadow_color=%23000000&bg_shadow_size=0&invite_code=XpctyaUgG8&limit_speaking=false&small_avatars=false&hide_names=false&fade_chat=0",
           width: 312,
           height: 64,
+          url: "https://streamkit.discord.com/overlay/status/1177608475682029568?icon=true&online=true&logo=white&text_color=%23ffffff&text_size=14&text_outline_color=%23000000&text_outline_size=0&text_shadow_color=%23000000&text_shadow_size=0&bg_color=%231e2124&bg_opacity=0.95&bg_shadow_color=%23000000&bg_shadow_size=0&invite_code=XpctyaUgG8&limit_speaking=false&small_avatars=false&hide_names=false&fade_chat=0",
+          css: "body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }",
         },
       }),
-      alignment: "bottomRight",
-      positionX: 1920 - GAP,
+      alignment: "topRight",
+      positionX: OUTPUT_WIDTH - GAP,
       positionY: GAP,
     },
-    streamkitVoice: {
-      input: browserSource.defineInput({
-        name: "Streamkit Voice",
-        settings: {
-          url: "https://streamkit.discord.com/overlay/voice/949090953497567312/966581199025893387?icon=true&online=true&logo=white&text_color=%23ffffff&text_size=14&text_outline_color=%23000000&text_outline_size=0&text_shadow_color=%23000000&text_shadow_size=0&bg_color=%231e2124&bg_opacity=0.95&bg_shadow_color=%23000000&bg_shadow_size=0&invite_code=XpctyaUgG8&limit_speaking=true&small_avatars=false&hide_names=false&fade_chat=0",
-        },
-      }),
-    },
-    display: {
-      index: 0,
-      input: display,
-      positionX: 0,
-      positionY: 0,
-    },
-    micAudio: {
+    mic: {
+      index: 4,
       input: micInput,
     },
-    systemAudio: {
-      input: coreAudioInputCapture.defineInput({
-        name: "System Audio",
-        settings: {
-          device_id: "BlackHole16ch_UID",
-        },
-        // TODO
-        // volume: {
-        // 	db: -8
-        // }
-      }),
+
+    //  mic: {
+    // index: 4,
+    // input: aud
+    //  }
+    //   guest: {
+    //     input: browserSource.defineInput({
+    //       name: "Guest",
+    //       settings: {
+    //         width: 1920,
+    //         height: 1080,
+    //         url: "https://ping.gg/call/brendonovich/embed?view=cl8287d6q12920gmk8bbjyff5",
+    //       },
+    //     }),
+    //     alignment: "bottomRight",
+    //   },
+    //   chat: {
+    //     input: browserSource.defineInput({
+    //       name: "Chat",
+    //       settings: {
+    //         url: "", //import.meta.env.VITE_CHAT_WIDGET_URL,
+    //         width: 1000,
+    //       },
+    //     }),
+    //     positionX: 1920 - GAP,
+    //     alignment: "bottomRight",
+    //   },
+    //   streamkitVoice: {
+    //     input: browserSource.defineInput({
+    //       name: "Streamkit Voice",
+    //       settings: {
+    //         url: "https://streamkit.discord.com/overlay/voice/949090953497567312/966581199025893387?icon=true&online=true&logo=white&text_color=%23ffffff&text_size=14&text_outline_color=%23000000&text_outline_size=0&text_shadow_color=%23000000&text_shadow_size=0&bg_color=%231e2124&bg_opacity=0.95&bg_shadow_color=%23000000&bg_shadow_size=0&invite_code=XpctyaUgG8&limit_speaking=true&small_avatars=false&hide_names=false&fade_chat=0",
+    //       },
+    //     }),
+    //   },
+    //   display: {
+    //     index: 0,
+    //     input: display,
+    //     positionX: 0,
+    //     positionY: 0,
+    //   },
+    //   micAudio: {
+    //     input: micInput,
+    //   },
+    //   systemAudio: {
+    //     input: coreAudioInputCapture.defineInput({
+    //       name: "System Audio",
+    //       settings: {
+    //         device_id: "BlackHole16ch_UID",
+    //       },
+    //       // TODO
+    //       // volume: {
+    //       // 	db: -8
+    //       // }
+    //     }),
+    //   },
+  },
+});
+
+const cameraScene = defineScene({
+  name: "Camera",
+  items: {
+    webcam: {
+      index: 0,
+      input: webcam,
+      positionX: 0,
+      positionY: 0,
+      scaleX: 1,
+      scaleY: 1,
+      alignment: "topLeft",
+    },
+    mic: {
+      index: 1,
+      input: micInput,
     },
   },
 });
@@ -203,43 +175,14 @@ async function main() {
   const obs = new OBS();
   await obs.connect("ws://localhost:4455");
 
-  const scene = await syncScene(obs, mainScene);
+  mainScene.getItems(obs);
 
-  const camera = scene.item("camera");
-  const cameraTransform = await camera.getTransform();
+  const main = await syncScene(obs, mainScene);
+  const camera = await syncScene(obs, cameraScene);
 
-  await camera.setTransform({
-    cropLeft: 300,
-    cropRight: 300,
-    positionX: 1920 - GAP,
-    positionY: 1080 - GAP,
-    scaleX: CAM_WIDTH / cameraTransform.sourceWidth,
-    scaleY: CAM_HEIGHT / cameraTransform.sourceHeight,
-  });
-
-  await camera.remove().catch(() => {
-    console.log("successfully failed to remove camera");
-  });
-
-  const colorItem = await scene.syncItem({
-    input: colorSource.defineInput({
-      name: "Color",
-      settings: {
-        color: 0xff000000,
-        width: 960,
-        height: 590,
-      },
-    }),
-    positionX: 0,
-    positionY: 0,
-    alignment: "topLeft",
-  });
-
-  await new Promise((r) => setTimeout(r, 1000));
-
-  await colorItem.remove().then(() => {
-    console.log("successfully succeeded to remove color");
-  });
+  setTimeout(() => {
+    obs.setCurrentScene(camera);
+  }, 1000);
 }
 
 main();

@@ -1,3 +1,4 @@
+import { OBSMonitoringType, OBSVolumeInput } from "./obs-types.ts";
 import { OBS } from "./obs.ts";
 import { SceneItemTransform } from "./sceneItem.ts";
 
@@ -14,7 +15,7 @@ abstract class SourceType<TKind extends string> {
   abstract settings(): SourceType<TKind>;
 }
 
-type DefineInputArgs<
+export type DefineInputArgs<
   TSettings,
   TFilters extends Record<string, FilterType<string, any>>
 > = {
@@ -22,6 +23,9 @@ type DefineInputArgs<
   settings?: Partial<TSettings>;
   filters?: { [K in keyof TFilters]: Filter<TFilters[K]> };
 };
+
+export type InputTypeSettings<TType extends InputType<any, any>> =
+  TType extends InputType<any, infer TSettings> ? TSettings : never;
 
 export class InputType<
   TKind extends string,
@@ -55,6 +59,9 @@ type DefineFilterArgs<TSettings> = {
   settings?: Partial<TSettings>;
 };
 
+export type FilterTypeSettings<TType extends FilterType<any, any>> =
+  TType extends FilterType<any, infer TSettings> ? TSettings : never;
+
 class FilterType<
   TKind extends string = string,
   TSettings extends Record<string, any> = any
@@ -69,6 +76,12 @@ class FilterType<
   defineFilter(args: DefineFilterArgs<TSettings>): Filter<this> {
     return new Filter(this, args as any);
   }
+
+  async getDefaultSettings(obs: OBS) {
+    return await obs.ws
+      .call("GetSourceFilterDefaultSettings")
+      .then((r) => r.defaultFilterSettings as TSettings);
+  }
 }
 
 export function defineFilterType<
@@ -78,8 +91,8 @@ export function defineFilterType<
   return new FilterType<TKind, TSettings>(kind);
 }
 
-export type InputTypeSettings<TType extends InputType<any, any>> =
-  TType extends InputType<any, infer TSettings> ? TSettings : never;
+export type InputSettings<TInput extends Input<any, any>> =
+  TInput extends Input<infer TType, any> ? InputTypeSettings<TType> : never;
 
 export class Input<
   TType extends InputType<any, any>,
@@ -90,8 +103,22 @@ export class Input<
     public args: DefineInputArgs<InputTypeSettings<TType>, TFilters>
   ) {}
 
+  get name() {
+    return this.args.name;
+  }
+
   filter(key: keyof TFilters) {
     return this.args.filters?.[key];
+  }
+
+  async getSettings(obs: OBS): Promise<InputTypeSettings<TType>> {
+    const settings = await obs.ws
+      .call("GetInputSettings", { inputName: this.args.name })
+      .then((d) => d.inputSettings as any);
+
+    const defaultSettings = await this.type.getDefaultSettings(obs);
+
+    return { ...defaultSettings, ...settings };
   }
 
   async setSettings(
@@ -131,7 +158,7 @@ export class Input<
       .then((r) => ({ db: r.inputVolumeDb, mul: r.inputVolumeMul }));
   }
 
-  async setVolume(obs: OBS, data: { db: number } | { mul: number }) {
+  async setVolume(obs: OBS, data: OBSVolumeInput) {
     await obs.ws.call("SetInputVolume", {
       inputName: this.args.name,
       ...("db" in data
@@ -153,12 +180,12 @@ export class Input<
     });
   }
 
-  // async setAudioMonitorType(obs: OBS, type: MonitoringType) {
-  //   await obs.ws.call("SetInputAudioMonitorType", {
-  //     inputName: this.name,
-  //     monitorType: type,
-  //   });
-  // }
+  async setAudioMonitorType(obs: OBS, type: OBSMonitoringType) {
+    await obs.ws.call("SetInputAudioMonitorType", {
+      inputName: this.args.name,
+      monitorType: type,
+    });
+  }
 
   async getSettingListItems<K extends keyof InputTypeSettings<TType> & string>(
     obs: OBS,
@@ -184,14 +211,59 @@ export type InputFilters<T extends Input<any, any>> = T extends Input<
   ? TFilters
   : never;
 
-type FilterTypeSettings<TType extends FilterType<any, any>> =
-  TType extends FilterType<any, infer TSettings> ? TSettings : never;
+export type FilterSettings<TInput extends Filter<any>> = TInput extends Filter<
+  infer TType
+>
+  ? FilterTypeSettings<TType>
+  : never;
 
-class Filter<TType extends FilterType<any, any>> {
+export class Filter<TType extends FilterType<any, any>> {
   constructor(
     public type: TType,
     public args: DefineFilterArgs<FilterTypeSettings<TType>>
   ) {}
+
+  get name() {
+    return this.args.name;
+  }
+
+  async setSettings(
+    obs: OBS,
+    source: string | { name: string },
+    filterSettings: Partial<FilterTypeSettings<TType>>,
+    overlay = true
+  ) {
+    await obs.ws.call("SetSourceFilterSettings", {
+      sourceName: typeof source === "string" ? source : source.name,
+      filterName: this.args.name,
+      filterSettings,
+      overlay,
+    });
+  }
+
+  async setIndex(
+    obs: OBS,
+    source: string | { name: string },
+    filterIndex: number
+  ) {
+    await obs.ws.call("SetSourceFilterIndex", {
+      sourceName: typeof source === "string" ? source : source.name,
+      filterName: this.args.name,
+      filterIndex,
+    });
+  }
+
+  async setEnabled(
+    obs: OBS,
+    source: string | { name: string },
+    filterEnabled: boolean
+  ) {
+    await obs.ws.call("SetSourceFilterEnabled", {
+      sourceName: typeof source === "string" ? source : source.name,
+      filterName: this.args.name,
+      filterEnabled,
+    });
+  }
 }
 
 export type DefineSceneItemArgs<TInput extends Input<any, any>> = {
@@ -208,12 +280,30 @@ type DefineSceneArgs<TItems extends SceneItems> = {
   filters?: Record<string, unknown>;
 };
 
-export type SceneItemsOfScene<T extends Scene> = T extends Scene<infer TItems>
+export type SIOfScene<T extends Scene> = T extends Scene<infer TItems>
   ? TItems
   : never;
 
 export class Scene<TItems extends SceneItems = SceneItems> {
   constructor(public args: DefineSceneArgs<TItems>) {}
+
+  get name() {
+    return this.args.name;
+  }
+
+  async getItems(obs: OBS) {
+    return await obs.ws
+      .call("GetSceneItemList", { sceneName: this.args.name })
+      .then(
+        (res) =>
+          res.sceneItems as Array<{
+            sceneItemId: number;
+            sceneItemIndex: number;
+            sourceName: string;
+            inputKind: string;
+          }>
+      );
+  }
 }
 
 export function defineScene<TItems extends SceneItems>(

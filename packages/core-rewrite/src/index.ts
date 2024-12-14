@@ -1,1 +1,0 @@
-import { OBS } from "./obs";

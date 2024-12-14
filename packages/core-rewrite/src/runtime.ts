@@ -1,46 +1,45 @@
 import { OBSWebSocketError } from "obs-websocket-js";
+
 import * as definition from "./definition.ts";
 import { OBS } from "./obs.ts";
-import { OBSSceneItemTransform } from "./obs-types.ts";
 import {
-  SceneItemTransform,
+  OBSMonitoringType,
+  OBSSceneItemTransform,
+  OBSVolumeInput,
+} from "./obs-types.ts";
+import {
   SceneItemTransformInput,
   sceneItemTransformToOBS,
 } from "./sceneItem.ts";
 
-type SceneItems = Record<string, definition.Input<any, any>>;
-
-export class Scene<TItems extends SceneItems> {
+type SIOfSceneAsSI<TDef extends definition.Scene> = {
+  [K in keyof definition.SIOfScene<TDef>]: SceneItem<
+    Input<definition.SIOfScene<TDef>[K]>
+  >;
+};
+export class Scene<TDef extends definition.Scene> {
   obs: OBS;
-  name: string;
-  private items: { [K in keyof TItems]: SceneItem<Input<TItems[K]>> };
+  def: TDef;
+  private items: SIOfSceneAsSI<TDef>;
 
-  constructor(args: {
-    name: string;
-    items: { [K in keyof TItems]: SceneItem<Input<TItems[K]>> };
-    obs: OBS;
-  }) {
-    this.name = args.name;
+  constructor(args: { def: TDef; items: SIOfSceneAsSI<TDef>; obs: OBS }) {
+    this.def = args.def;
     this.items = args.items;
     this.obs = args.obs;
   }
 
-  item<K extends keyof TItems>(key: K): SceneItem<Input<TItems[K]>> {
+  get name() {
+    return this.def.name;
+  }
+
+  item<K extends keyof definition.SIOfScene<TDef>>(
+    key: K
+  ): SceneItem<Input<definition.SIOfScene<TDef>[K]>> {
     return this.items[key];
   }
 
   async getItems() {
-    return await this.obs.ws
-      .call("GetSceneItemList", { sceneName: this.name })
-      .then(
-        (res) =>
-          res.sceneItems as Array<{
-            sceneItemId: number;
-            sceneItemIndex: number;
-            sourceName: string;
-            inputKind: string;
-          }>
-      );
+    return await this.def.getItems(this.obs);
   }
 
   /* @internal */
@@ -72,6 +71,8 @@ export class Scene<TItems extends SceneItems> {
         `Input '${input.args.name}' already exists with kind '${existingItemWithName.inputKind}' instead of expected kind '${def.input.type.kind}'`
       );
 
+    // item.input.updateFromDefinition();
+
     if (input.args.settings)
       await input.setSettings(this.obs, input.args.settings);
 
@@ -85,12 +86,12 @@ export class Scene<TItems extends SceneItems> {
   ) {
     const id = await this.obs.ws
       .call("CreateSceneItem", {
-        sceneName: this.name,
+        sceneName: this.def.name,
         sourceName: def.input.args.name,
       })
       .catch(() =>
         this.obs.ws.call("CreateInput", {
-          sceneName: this.name,
+          sceneName: this.def.name,
           inputName: def.input.args.name,
           inputKind: def.input.type.kind,
           inputSettings: def.input.args.settings,
@@ -106,11 +107,90 @@ export class Scene<TItems extends SceneItems> {
   }
 }
 
-class Input<TDefinition extends definition.Input<any, any>> {
-  constructor(public def: TDefinition, public obs: OBS) {}
+class Filter<TDef extends definition.Filter<any>> {
+  constructor(public def: TDef, public obs: OBS, public input: Input<any>) {}
 
-  filter<TKey extends keyof definition.InputFilters<TDefinition>>(key: TKey) {
+  get name() {
+    return this.def.name;
+  }
+
+  async setSettings(
+    filterSettings: Partial<definition.FilterSettings<TDef>>,
+    overlay = true
+  ) {
+    return await this.def.setSettings(
+      this.obs,
+      this.input,
+      filterSettings,
+      overlay
+    );
+  }
+
+  async setIndex(index: number) {
+    return await this.def.setIndex(this.obs, this.input, index);
+  }
+
+  async setEnabled(enabled: boolean) {
+    return await this.def.setEnabled(this.obs, this.input, enabled);
+  }
+}
+
+class Input<TDef extends definition.Input<any, any>> {
+  constructor(public def: TDef, public obs: OBS) {}
+
+  get name() {
+    return this.def.name;
+  }
+
+  filter<TKey extends keyof definition.InputFilters<TDef>>(
+    key: TKey
+  ): Filter<definition.InputFilters<TDef>[TKey]> {
     return null;
+  }
+
+  async setSettings(
+    settings: Partial<definition.InputSettings<TDef>>,
+    overlay?: boolean
+  ) {
+    return await this.def.setSettings(this.obs, settings, overlay);
+  }
+
+  async getMuted() {
+    return await this.def.getMuted(this.obs);
+  }
+
+  async setMuted(muted: boolean) {
+    return await this.def.setMuted(this.obs, muted);
+  }
+
+  async toggleMuted() {
+    return await this.def.toggleMuted(this.obs);
+  }
+
+  async getVolume() {
+    return await this.def.getVolume(this.obs);
+  }
+
+  async setVolume(volume: OBSVolumeInput) {
+    return await this.def.setVolume(this.obs, volume);
+  }
+
+  async getAudioSyncOffset() {
+    return await this.def.getAudioSyncOffset(this.obs);
+  }
+
+  async setAudioSyncOffset(offset: number) {
+    return await this.def.setAudioSyncOffset(this.obs, offset);
+  }
+
+  async setAudioMonitorType(type: OBSMonitoringType) {
+    return await this.def.setAudioMonitorType(this.obs, type);
+  }
+
+  async getSettingListItems<
+    K extends keyof definition.InputSettings<TDef> & string
+  >(setting: K) {
+    return await this.def.getSettingListItems(this.obs, setting);
   }
 }
 
@@ -129,28 +209,18 @@ class SceneItem<TInput extends Input<definition.Input<any, any>>> {
 
   /* @internal */
   async updateFromDefinition(def: definition.DefineSceneItemArgs<any>) {
-    if (def.index !== undefined)
-      await this.obs.ws.call("SetSceneItemIndex", {
-        sceneName: this.scene.name,
-        sceneItemId: this.id,
-        sceneItemIndex: def.index,
-      });
+    if (def.index !== undefined) this.setIndex(def.index);
 
-    if (def.enabled !== undefined)
-      await this.obs.ws.call("SetSceneItemEnabled", {
-        sceneItemId: this.id,
-        sceneName: this.scene.name,
-        sceneItemEnabled: def.enabled,
-      });
+    if (def.enabled !== undefined) this.setEnabled(def.enabled);
   }
 
   async getTransform() {
-    const res = await this.obs.ws.call("GetSceneItemTransform", {
-      sceneName: this.scene.name,
-      sceneItemId: this.id,
-    });
-
-    return res.sceneItemTransform as any as OBSSceneItemTransform;
+    return await this.obs.ws
+      .call("GetSceneItemTransform", {
+        sceneName: this.scene.name,
+        sceneItemId: this.id,
+      })
+      .then((r) => r.sceneItemTransform as any as OBSSceneItemTransform);
   }
 
   async setTransform(transform: SceneItemTransformInput) {
@@ -180,6 +250,14 @@ class SceneItem<TInput extends Input<definition.Input<any, any>>> {
       sceneName: this.scene.name,
       sceneItemId: this.id,
       sceneItemLocked: locked,
+    });
+  }
+
+  async setIndex(index: number) {
+    await this.obs.ws.call("SetSceneItemIndex", {
+      sceneName: this.scene.name,
+      sceneItemId: this.id,
+      sceneItemIndex: index,
     });
   }
 
@@ -223,8 +301,8 @@ export async function syncScene<T extends definition.Scene>(
 
   const items: Record<string, any> = {} as any;
 
-  const scene = new Scene<definition.SceneItemsOfScene<T>>({
-    name: sceneDef.args.name,
+  const scene = new Scene<T>({
+    def: sceneDef,
     items: items as any,
     obs,
   });

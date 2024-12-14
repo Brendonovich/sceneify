@@ -35,3 +35,18 @@ export type OBSBoundsType =
   | "OBS_BOUNDS_SCALE_TO_WIDTH"
   | "OBS_BOUNDS_SCALE_TO_HEIGHT"
   | "OBS_BOUNDS_MAX_ONLY";
+export type OBSMonitoringType =
+  | "OBS_MONITORING_TYPE_NONE"
+  | "OBS_MONITORING_TYPE_MONITOR_ONLY"
+  | "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT";
+
+export interface OBSFont {
+  face: string;
+  flags: number;
+  size: number;
+  style: string;
+}
+
+export type OBSVideoRange = 0 | 1 | 2;
+
+export type OBSVolumeInput = { db: number } | { mul: number };
