@@ -9,6 +9,7 @@ export class OBS {
 
   constructor() {
     this.ws = new OBSWebsocket();
+    this.logging = "info";
   }
 
   async connect(url?: string, password?: string) {

@@ -175,13 +175,13 @@ async function main() {
   const obs = new OBS();
   await obs.connect("ws://localhost:4455");
 
-  mainScene.getItems(obs);
-
   const main = await syncScene(obs, mainScene);
   const camera = await syncScene(obs, cameraScene);
 
+  obs.setCurrentScene(camera);
+
   setTimeout(() => {
-    obs.setCurrentScene(camera);
+    obs.setCurrentScene(main);
   }, 1000);
 }
 

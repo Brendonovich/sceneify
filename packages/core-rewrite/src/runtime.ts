@@ -17,7 +17,7 @@ type SIOfSceneAsSI<TDef extends definition.Scene> = {
     Input<definition.SIOfScene<TDef>[K]>
   >;
 };
-export class Scene<TDef extends definition.Scene> {
+export class Scene<TDef extends definition.Scene = definition.Scene> {
   obs: OBS;
   def: TDef;
   private items: SIOfSceneAsSI<TDef>;
@@ -48,37 +48,62 @@ export class Scene<TDef extends definition.Scene> {
   >(def: definition.DefineSceneItemArgs<TInput>) {
     const { input } = def;
 
-    const items = await this.getItems();
-    const existingItemWithName = items.find(
-      (i) => i.sourceName === def.input.args.name
-    );
+    let res:
+      | undefined
+      | { error: "same-name-different-kind"; kind: string }
+      | { error: "not-owned"; id: number }
+      | { success: SceneItem<Input<TInput>> } = undefined;
 
-    let item: SceneItem<Input<TInput>>;
-    if (
-      existingItemWithName &&
-      existingItemWithName.inputKind === input.type.kind
-    ) {
-      item = new SceneItem(
-        new Input(input, this.obs),
-        this,
-        existingItemWithName.sceneItemId
+    for (const item of await this.getItems()) {
+      if (item.sourceName !== def.input.args.name) continue;
+      if (item.inputKind !== def.input.type.kind) {
+        if (!res)
+          res = { error: "same-name-different-kind", kind: item.inputKind };
+        continue;
+      }
+
+      const { sceneItemSettings } = await this.obs.ws.call(
+        "GetSceneItemPrivateSettings",
+        { sceneName: this.def.name, sceneItemId: item.sceneItemId }
       );
 
+      if (sceneItemSettings.SCENEIFY?.init !== "created") {
+        res = { error: "not-owned", id: item.sceneItemId };
+        continue;
+      }
+
+      res = {
+        success: new SceneItem(
+          new Input(input, this.obs),
+          this,
+          item.sceneItemId
+        ),
+      };
+    }
+
+    let sceneItem: SceneItem<Input<TInput>>;
+    if (!res) sceneItem = await this.createItem(def);
+    else if ("success" in res) {
+      const item = res.success;
       await item.updateFromDefinition(def);
-    } else if (!existingItemWithName) item = await this.createItem(def);
-    else
-      throw new Error(
-        `Input '${input.args.name}' already exists with kind '${existingItemWithName.inputKind}' instead of expected kind '${def.input.type.kind}'`
-      );
-
-    // item.input.updateFromDefinition();
+      sceneItem = item;
+    } else {
+      if (res.error === "same-name-different-kind")
+        throw new Error(
+          `Input '${input.args.name}' already exists with kind '${res.kind}' instead of expected kind '${def.input.type.kind}'`
+        );
+      else
+        throw new Error(
+          `Scene items of input '${input.args.name}' cannot be synced as none are owned by Sceneify`
+        );
+    }
 
     if (input.args.settings)
       await input.setSettings(this.obs, input.args.settings);
 
-    await item.setTransform(def);
+    await sceneItem.setTransform(def);
 
-    return item;
+    return sceneItem;
   }
 
   async createItem<TInput extends definition.Input<any, any>>(
@@ -97,7 +122,15 @@ export class Scene<TDef extends definition.Scene> {
           inputSettings: def.input.args.settings,
         })
       )
-      .then((r) => r.sceneItemId);
+      .then(async ({ sceneItemId }) => {
+        await this.obs.ws.call("SetSceneItemPrivateSettings", {
+          sceneName: this.def.name,
+          sceneItemId,
+          sceneItemSettings: { SCENEIFY: { init: "created" } },
+        });
+
+        return sceneItemId;
+      });
 
     const item = new SceneItem(new Input(def.input, this.obs), this, id);
 
@@ -285,15 +318,28 @@ export async function syncScene<T extends definition.Scene>(
 
   await obs.ws
     .call("CreateScene", { sceneName: sceneDef.args.name })
-    .catch((e) => {
+    .then(() =>
+      obs.ws.call("SetSourcePrivateSettings", {
+        sourceName: sceneDef.args.name,
+        sourceSettings: { SCENEIFY: { init: "created" } },
+      })
+    )
+    .catch(async (e) => {
       const SCENE_ALREADY_EXISTS = 601;
       if (e instanceof OBSWebSocketError && e.code === SCENE_ALREADY_EXISTS) {
-        obs.log(
-          "info",
-          `Reusing existing scene '${sceneDef.args.name}' as it already exists`
+        const { sourceSettings } = await obs.ws.call(
+          "GetSourcePrivateSettings",
+          { sourceName: sceneDef.args.name }
         );
 
-        return;
+        if (sourceSettings.SCENEIFY?.init === "created") {
+          obs.log(
+            "info",
+            `Reusing existing scene '${sceneDef.args.name}' as it already exists`
+          );
+
+          return;
+        }
       }
 
       throw e;
