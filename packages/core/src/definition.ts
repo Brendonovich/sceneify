@@ -80,7 +80,7 @@ export class FilterType<
 
   async getDefaultSettings(obs: OBS) {
     return await obs.ws
-      .call("GetSourceFilterDefaultSettings")
+      .call("GetSourceFilterDefaultSettings", { filterKind: this.id })
       .then((r) => r.defaultFilterSettings as TSettings);
   }
 }
@@ -129,7 +129,7 @@ export class Input<
   ) {
     await obs.ws.call("SetInputSettings", {
       inputName: this.args.name,
-      inputSettings: settings,
+      inputSettings: settings as any,
       overlay,
     });
   }
@@ -251,7 +251,7 @@ export class Filter<TType extends FilterType<any, any>> {
     await obs.ws.call("SetSourceFilterSettings", {
       sourceName: typeof source === "string" ? source : source.name,
       filterName: this.args.name,
-      filterSettings,
+      filterSettings: filterSettings as any,
       overlay,
     });
   }

@@ -1,0 +1,8 @@
+{
+  "name": "@sceneify/finitesingularity",
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@sceneify/core": "workspace:*"
+  }
+}

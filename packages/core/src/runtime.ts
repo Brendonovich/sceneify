@@ -42,9 +42,9 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
     return await this.def.getItems(this.obs);
   }
 
-  async createItem<TInput extends definition.Input<any, any>>(
-    def: definition.DefineSceneItemArgs<TInput>
-  ) {
+  async createItem<
+    TInput extends definition.Input<definition.InputType<any, any>, any>
+  >(def: definition.DefineSceneItemArgs<TInput>) {
     const id = await this.obs.ws
       .call("CreateSceneItem", {
         sceneName: this.def.name,
@@ -54,7 +54,7 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
         this.obs.ws.call("CreateInput", {
           sceneName: this.def.name,
           inputName: def.input.args.name,
-          inputKind: def.input.type.kind,
+          inputKind: def.input.type.id,
           inputSettings: def.input.args.settings,
         })
       )
@@ -209,11 +209,25 @@ async function syncInput<
           }
 
           if (!filter) {
-            await obs.ws.call("CreateSourceFilter", {
-              sourceName: input.name,
-              filterName: filterDef.name,
-              filterKind: filterDef.kind.id,
-            });
+            await obs.ws
+              .call("CreateSourceFilter", {
+                sourceName: input.name,
+                filterName: filterDef.name,
+                filterKind: filterDef.kind.id,
+              })
+              .catch((e) => {
+                const InvalidFilterKind = 607;
+                if (
+                  e instanceof OBSWebSocketError &&
+                  e.code === InvalidFilterKind
+                ) {
+                  throw new Error(
+                    `Filter kind '${filterDef.kind.id}' is not supported by OBS. Check that any necessary plugins are loaded.`
+                  );
+                }
+
+                throw e;
+              });
 
             filter = new Filter(filterDef, obs, input);
           }

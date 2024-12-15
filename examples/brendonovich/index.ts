@@ -1,19 +1,15 @@
-import { defineScene } from "./definition.js";
 import {
+  defineScene,
   gainFilter,
-  noiseGateFilter,
   noiseSuppressFilter,
-  sharpenFilter,
-  // streamfxBlurFilter,
-} from "./filters.js";
-import {
   browserSource,
   coreAudioInputCapture,
   macOSScreenCapture,
   videoCaptureSource,
-} from "./inputs.js";
-import { OBS } from "./obs.js";
-import { FilterDefsOfInputDef, syncScene as syncScene } from "./runtime.js";
+  OBS,
+  syncScene,
+} from "@sceneify/core";
+import { compositeBlurFilter } from "@sceneify/finitesingularity";
 
 export const GAP = 20;
 
@@ -28,6 +24,13 @@ const display = macOSScreenCapture.defineInput({
   name: "Display",
   settings: {
     display_uuid: "37D8832A-2D66-02CA-B9F7-8F30A301B230",
+  },
+  filters: {
+    blur: compositeBlurFilter.defineFilter({
+      enabled: false,
+      name: "Blur",
+      settings: {},
+    }),
   },
 });
 

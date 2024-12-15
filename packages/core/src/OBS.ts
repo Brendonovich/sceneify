@@ -62,4 +62,10 @@ export class OBS {
   async toggleStream() {
     return await this.ws.call("ToggleStream").then((r) => r.outputActive);
   }
+
+  async getFilterKinds() {
+    return await this.ws
+      .call("GetSourceFilterKindList")
+      .then((d) => d.sourceFilterKinds);
+  }
 }
