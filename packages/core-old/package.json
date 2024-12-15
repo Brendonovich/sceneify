@@ -1,0 +1,60 @@
+{
+  "name": "@sceneify/core-old",
+  "version": "1.0.0-beta.0",
+  "description": "",
+  "main": "./cjs/index.cjs",
+  "browser": "./lib/index.js",
+  "module": "./esm/index.js",
+  "types": "./dts/index.d.ts",
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "test": "jest -i"
+  },
+  "dependencies": {
+    "next-tick": "^1.1.0",
+    "obs-websocket-js": "5.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "@types/next-tick": "^1.0.0",
+    "@types/node": "^16.9.3",
+    "@types/ws": "^7.4.6",
+    "jest": "^27.4.5"
+  },
+  "files": [
+    "cjs/**/*.{cjs,map}",
+    "dist",
+    "dts",
+    "esm/**/*.{js,map}",
+    "lib",
+    "lib/**/*.{js,map}",
+    "src/**/*.{ts,tsx,json}"
+  ],
+  "packemon": [
+    {
+      "format": "cjs",
+      "platform": "node"
+    },
+    {
+      "format": [
+        "lib",
+        "esm"
+      ],
+      "platform": "browser"
+    }
+  ],
+  "engines": {
+    "node": ">=12.17.0",
+    "npm": ">=6.13.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "<rootDir>/tests/tsconfig.json"
+      }
+    }
+  },
+  "type": "commonjs"
+}
