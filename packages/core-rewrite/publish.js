@@ -2,7 +2,7 @@ const decoder = new TextDecoder("utf-8");
 const data = await Deno.readFile("package.json");
 const pkgJson = JSON.parse(decoder.decode(data));
 
-pkgJson.version = (await getCommitId()).slice(0, 16);
+pkgJson.version = `0.0.0-main-${(await getCommitId()).slice(0, 8)}`;
 
 await Deno.writeTextFile("package.json", JSON.stringify(pkgJson, null, 2));
 
