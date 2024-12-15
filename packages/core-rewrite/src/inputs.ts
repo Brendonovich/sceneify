@@ -1,5 +1,5 @@
-import { defineInputType } from "./definition.ts";
-import { OBSFont, OBSVideoRange } from "./obs-types.ts";
+import { defineInputType } from "./definition.js";
+import { OBSFont, OBSVideoRange } from "./obs-types.js";
 
 export const browserSource = defineInputType("browser_source").settings<{
   url: string;

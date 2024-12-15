@@ -70,7 +70,7 @@ import {
   OBSAlignment,
   OBSBoundsType,
   OBSSceneItemTransform,
-} from "./obs-types.ts";
+} from "./obs-types.js";
 
 const Alignment: Record<Alignment, OBSAlignment> = {
   centerLeft: 1,

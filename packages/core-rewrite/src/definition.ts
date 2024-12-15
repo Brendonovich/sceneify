@@ -1,6 +1,6 @@
-import { OBSMonitoringType, OBSVolumeInput } from "./obs-types.ts";
-import { OBS } from "./obs.ts";
-import { SceneItemTransform } from "./sceneItem.ts";
+import { OBSMonitoringType, OBSVolumeInput } from "./obs-types.js";
+import { OBS } from "./obs.js";
+import { SceneItemTransform } from "./sceneItem.js";
 
 export function defineInputType<
   TSettings extends Record<string, any>,

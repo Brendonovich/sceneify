@@ -1,4 +1,4 @@
-import { defineFilterType } from "./definition.ts";
+import { defineFilterType } from "./definition.js";
 
 export const applyLUTFilter = defineFilterType("clut_filter").settings<{
   image_path: string;

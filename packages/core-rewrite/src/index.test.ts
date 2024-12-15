@@ -1,19 +1,19 @@
-import { defineScene } from "./definition.ts";
+import { defineScene } from "./definition.js";
 import {
   gainFilter,
   noiseGateFilter,
   noiseSuppressFilter,
   sharpenFilter,
   // streamfxBlurFilter,
-} from "./filters.ts";
+} from "./filters.js";
 import {
   browserSource,
   coreAudioInputCapture,
   macOSScreenCapture,
   videoCaptureSource,
-} from "./inputs.ts";
-import { OBS } from "./obs.ts";
-import { FilterDefsOfInputDef, syncScene as syncScene } from "./runtime.ts";
+} from "./inputs.js";
+import { OBS } from "./obs.js";
+import { FilterDefsOfInputDef, syncScene as syncScene } from "./runtime.js";
 
 export const GAP = 20;
 

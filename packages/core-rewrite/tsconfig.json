@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
     "module": "Preserve",
     "moduleResolution": "Bundler",
-    "emitDeclarationOnly": true,
+    "target": "ES6",
     "declaration": true,
     "outDir": "dist",
     "skipLibCheck": true,
     "lib": ["es2020", "dom"],
+    "types": ["@types/deno"],
     "strict": true
   }
 }

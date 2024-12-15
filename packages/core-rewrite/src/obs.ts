@@ -1,5 +1,5 @@
 import OBSWebsocket from "obs-websocket-js";
-import { Scene, Input } from "./runtime.ts";
+import { Scene, Input } from "./runtime.js";
 
 export type LogLevel = "none" | "info" | "error";
 

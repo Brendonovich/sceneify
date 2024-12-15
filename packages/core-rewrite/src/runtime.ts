@@ -1,16 +1,16 @@
 import { OBSWebSocketError } from "obs-websocket-js";
 
-import * as definition from "./definition.ts";
-import { OBS } from "./obs.ts";
+import * as definition from "./definition.js";
+import { OBS } from "./obs.js";
 import {
   OBSMonitoringType,
   OBSSceneItemTransform,
   OBSVolumeInput,
-} from "./obs-types.ts";
+} from "./obs-types.js";
 import {
   SceneItemTransformInput,
   sceneItemTransformToOBS,
-} from "./sceneItem.ts";
+} from "./sceneItem.js";
 
 type SIOfSceneAsSI<TDef extends definition.Scene> = {
   [K in keyof definition.SIOfScene<TDef>]: SceneItem<
