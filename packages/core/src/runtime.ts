@@ -261,7 +261,7 @@ async function syncInput<
   return [input];
 }
 
-class Filter<
+export class Filter<
   TDef extends definition.Filter<any>,
   TInput extends definition.Input<any, any>
 > {
@@ -379,7 +379,7 @@ export class Input<TDef extends definition.Input<any, any>> {
   }
 }
 
-class SceneItem<TInput extends definition.Input<any, any>> {
+export class SceneItem<TInput extends definition.Input<any, any>> {
   obs: OBS;
   declared: boolean;
 
