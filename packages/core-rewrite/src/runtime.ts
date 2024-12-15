@@ -77,7 +77,7 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
   }
 }
 
-export async function syncSceneItem<
+async function syncSceneItem<
   TScene extends Scene,
   TInput extends definition.Input<definition.InputType<string, any>, any>
 >(scene: TScene, def: definition.DefineSceneItemArgs<TInput>) {
