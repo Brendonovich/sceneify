@@ -1,0 +1,32 @@
+{
+  "name": "@sceneify/core-rewrite",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "postinstall": "effect-language-service tsc-plugin patch"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "dependencies": {
+    "effect": "^3.12.0",
+    "obs-websocket-js": "^5.0.6"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.62.5",
+    "@vitest/coverage-v8": "^4.0.16",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16",
+    "vitest-tsconfig-paths": "^3.4.1"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}

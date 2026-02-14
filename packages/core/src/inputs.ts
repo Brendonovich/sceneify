@@ -1,6 +1,25 @@
 import { defineInputType } from "./definition.js";
 import { OBSFont, OBSVideoRange } from "./obs-types.js";
 
+interface DeclareInputOpts<TSettings> {
+	name: string;
+	settings: Partial<TSettings>
+}
+
+function InputType<Self, Settings extends Record<string, any>>(id: string) {
+	return class {
+		static id = id;
+	}
+}
+
+class BrowserSource extends InputType<BrowserSource, {
+  url: string;
+  width: number;
+  height: number;
+  reroute_audio: boolean;
+  css: string;
+}>("browser_source") {}
+
 export const browserSource = defineInputType("browser_source").settings<{
   url: string;
   width: number;

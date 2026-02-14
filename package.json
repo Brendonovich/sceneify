@@ -12,16 +12,6 @@
       "website"
     ]
   },
-  "scripts": {
-    "test": "beemo jest",
-    "coverage": "pnpm test -- --coverage",
-    "build": "packemon build --addEngines",
-    "type": "beemo typescript --build",
-    "build-all": "pnpm build && pnpm type",
-    "clean": "packemon clean",
-    "set-package-versions": "node scripts/setPackageVersions.js",
-    "create-version-tag": "node scripts/createVersionTag.js"
-  },
   "devDependencies": {
     "@beemo/cli": "^2.0.5",
     "@beemo/core": "^2.1.3",

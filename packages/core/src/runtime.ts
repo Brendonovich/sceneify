@@ -12,12 +12,14 @@ import {
   sceneItemTransformToOBS,
 } from "./sceneItem.js";
 
-type SIOfSceneAsSI<TDef extends definition.Scene> = {
+type SIOfSceneAsSI<TDef extends definition.SceneDefinition> = {
   [K in keyof definition.SIOfScene<TDef>]: SceneItem<
     definition.SIOfScene<TDef>[K]
   >;
 };
-export class Scene<TDef extends definition.Scene = definition.Scene> {
+export class Scene<
+  TDef extends definition.SceneDefinition = definition.SceneDefinition
+> {
   obs: OBS;
   def: TDef;
   private items: SIOfSceneAsSI<TDef>;
@@ -43,7 +45,10 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
   }
 
   async createItem<
-    TInput extends definition.Input<definition.InputType<any, any>, any>
+    TInput extends definition.InputDefinition<
+      definition.InputType<any, any>,
+      any
+    >
   >(def: definition.DefineSceneItemArgs<TInput>) {
     const id = await this.obs.ws
       .call("CreateSceneItem", {
@@ -79,7 +84,10 @@ export class Scene<TDef extends definition.Scene = definition.Scene> {
 
 async function syncSceneItem<
   TScene extends Scene,
-  TInput extends definition.Input<definition.InputType<string, any>, any>
+  TInput extends definition.InputDefinition<
+    definition.InputType<string, any>,
+    any
+  >
 >(scene: TScene, def: definition.DefineSceneItemArgs<TInput>) {
   const { input } = def;
   let res:
@@ -131,11 +139,11 @@ async function syncSceneItem<
   return sceneItem;
 }
 
-async function syncInput<TInput extends definition.Input<any, any>>(
+async function syncInput<TInput extends definition.InputDefinition<any, any>>(
   obs: OBS,
   def: TInput
 ): Promise<[Input<TInput>]>;
-async function syncInput<TInput extends definition.Input<any, any>>(
+async function syncInput<TInput extends definition.InputDefinition<any, any>>(
   obs: OBS,
   def: TInput,
   forceCreate: {
@@ -144,7 +152,7 @@ async function syncInput<TInput extends definition.Input<any, any>>(
   }
 ): Promise<[Input<TInput>, SceneItem<TInput>]>;
 async function syncInput<
-  TInput extends definition.Input<
+  TInput extends definition.InputDefinition<
     any,
     Record<string, definition.FilterType<any, any>>
   >
@@ -276,13 +284,17 @@ async function syncInput<
 }
 
 export class Filter<
-  TDef extends definition.Filter<any>,
-  TInput extends definition.Input<any, any>
+  TDef extends definition.FilterDefinition<definition.FilterType<any, any>>,
+  TInput extends definition.InputDefinition<any, any>
 > {
   constructor(public def: TDef, public obs: OBS, public input: Input<TInput>) {}
 
   get name() {
     return this.def.name;
+  }
+
+  async getSettings(): Promise<Partial<definition.FilterSettings<TDef>>> {
+    return await this.def.getSettings(this.obs, this.input.name);
   }
 
   async setSettings(
@@ -306,10 +318,13 @@ export class Filter<
   }
 }
 
-export type FilterDefsOfInputDef<TDef extends definition.Input<any, any>> =
-  TDef extends definition.Input<any, infer TFilters> ? TFilters : never;
+export type FilterDefsOfInputDef<
+  TDef extends definition.InputDefinition<any, any>
+> = TDef extends definition.InputDefinition<any, infer TFilters>
+  ? TFilters
+  : never;
 type InputFiltersFromDef<
-  TDef extends definition.Input<any, any>,
+  TDef extends definition.InputDefinition<any, any>,
   TInput extends TDef
 > = {
   [K in keyof FilterDefsOfInputDef<TDef>]: Filter<
@@ -318,7 +333,7 @@ type InputFiltersFromDef<
   >;
 };
 
-export class Input<TDef extends definition.Input<any, any>> {
+export class Input<TDef extends definition.InputDefinition<any, any>> {
   obs: OBS;
   def: TDef;
   private filters: InputFiltersFromDef<TDef, TDef> = {} as any;
@@ -393,7 +408,7 @@ export class Input<TDef extends definition.Input<any, any>> {
   }
 }
 
-export class SceneItem<TInput extends definition.Input<any, any>> {
+export class SceneItem<TInput extends definition.InputDefinition<any, any>> {
   obs: OBS;
   declared: boolean;
 
@@ -479,9 +494,9 @@ export class SceneItem<TInput extends definition.Input<any, any>> {
   }
 }
 
-let currentSceneDef: definition.Scene | undefined;
+let currentSceneDef: definition.SceneDefinition | undefined;
 
-export async function syncScene<T extends definition.Scene>(
+export async function syncScene<T extends definition.SceneDefinition>(
   obs: OBS,
   sceneDef: T
 ) {

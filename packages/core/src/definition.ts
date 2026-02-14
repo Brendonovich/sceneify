@@ -21,7 +21,7 @@ export type DefineInputArgs<
 > = {
   name: string;
   settings?: Partial<TSettings>;
-  filters?: { [K in keyof TFilters]: Filter<TFilters[K]> };
+  filters?: { [K in keyof TFilters]: FilterDefinition<TFilters[K]> };
 };
 
 export type InputTypeSettings<TType extends InputType<any, any>> =
@@ -40,8 +40,8 @@ export class InputType<
 
   defineInput<TFilters extends Record<string, FilterType<any, any>>>(
     args: DefineInputArgs<TSettings, TFilters>
-  ): Input<this, TFilters> {
-    return new Input(this, args as any);
+  ): InputDefinition<this, TFilters> {
+    return new InputDefinition(this, args as any);
   }
 
   async getDefaultSettings(obs: OBS) {
@@ -74,8 +74,8 @@ export class FilterType<
     return this as any;
   }
 
-  defineFilter(args: DefineFilterArgs<TSettings>): Filter<this> {
-    return new Filter(this, args as any);
+  defineFilter(args: DefineFilterArgs<TSettings>): FilterDefinition<this> {
+    return new FilterDefinition(this, args as any);
   }
 
   async getDefaultSettings(obs: OBS) {
@@ -92,10 +92,16 @@ export function defineFilterType<
   return new FilterType<TKind, TSettings>(kind);
 }
 
-export type InputSettings<TInput extends Input<any, any>> =
-  TInput extends Input<infer TType, any> ? InputTypeSettings<TType> : never;
+export type InputSettings<TInput extends InputDefinition<any, any>> =
+  TInput extends InputDefinition<infer TType, any>
+    ? InputTypeSettings<TType>
+    : never;
 
-export class Input<
+export interface SceneItemSourceDefinition {
+  name: string;
+}
+
+export class InputDefinition<
   TType extends InputType<any, any>,
   TFilters extends Record<string, FilterType>
 > {
@@ -219,20 +225,15 @@ export class Input<
   }
 }
 
-export type InputFilters<T extends Input<any, any>> = T extends Input<
-  any,
-  infer TFilters
->
-  ? TFilters
-  : never;
+export type InputFilters<T extends InputDefinition<any, any>> =
+  T extends InputDefinition<any, infer TFilters> ? TFilters : never;
 
-export type FilterSettings<TInput extends Filter<any>> = TInput extends Filter<
-  infer TType
->
-  ? FilterTypeSettings<TType>
-  : never;
+export type FilterSettings<TInput extends FilterDefinition<any>> =
+  TInput extends FilterDefinition<infer TType>
+    ? FilterTypeSettings<TType>
+    : never;
 
-export class Filter<TType extends FilterType<any, any>> {
+export class FilterDefinition<TType extends FilterType<any, any>> {
   constructor(
     public kind: TType,
     public args: DefineFilterArgs<FilterTypeSettings<TType>>
@@ -240,6 +241,18 @@ export class Filter<TType extends FilterType<any, any>> {
 
   get name() {
     return this.args.name;
+  }
+
+  async getSettings(
+    obs: OBS,
+    sourceName: string
+  ): Promise<Partial<FilterTypeSettings<TType>>> {
+    return await obs.ws
+      .call("GetSourceFilter", {
+        sourceName,
+        filterName: this.args.name,
+      })
+      .then((d) => d.filterSettings as any);
   }
 
   async setSettings(
@@ -281,13 +294,15 @@ export class Filter<TType extends FilterType<any, any>> {
   }
 }
 
-export type DefineSceneItemArgs<TInput extends Input<any, any>> = {
+export type DefineSceneItemArgs<
+  TInput extends InputDefinition<any, any> | GroupDefinition<any>
+> = {
   input: TInput;
   index?: number;
   enabled?: boolean;
 } & Partial<SceneItemTransform>;
 
-export type SceneItems = Record<string, Input<any, any>>;
+export type SceneItems = Record<string, InputDefinition<any, any>>;
 
 type DefineSceneArgs<TItems extends SceneItems> = {
   name: string;
@@ -295,11 +310,13 @@ type DefineSceneArgs<TItems extends SceneItems> = {
   filters?: Record<string, unknown>;
 };
 
-export type SIOfScene<T extends Scene> = T extends Scene<infer TItems>
+export type SIOfScene<T extends SceneDefinition> = T extends SceneDefinition<
+  infer TItems
+>
   ? TItems
   : never;
 
-export class Scene<TItems extends SceneItems = SceneItems> {
+export class SceneDefinition<TItems extends SceneItems = SceneItems> {
   constructor(public args: DefineSceneArgs<TItems>) {}
 
   get name() {
@@ -324,5 +341,34 @@ export class Scene<TItems extends SceneItems = SceneItems> {
 export function defineScene<TItems extends SceneItems>(
   args: DefineSceneArgs<TItems>
 ) {
-  return new Scene<TItems>(args);
+  return new SceneDefinition<TItems>(args);
 }
+
+export class GroupDefinition<TItems extends SceneItems> {
+  constructor(public args: DefineSceneArgs<TItems>) {}
+
+  get name() {
+    return this.args.name;
+  }
+
+  async getItems(obs: OBS) {
+    return await obs.ws
+      .call("GetGroupSceneItemList", { sceneName: this.args.name })
+      .then(
+        (res) =>
+          res.sceneItems as Array<{
+            sceneItemId: number;
+            sceneItemIndex: number;
+            sourceName: string;
+            inputKind: string;
+          }>
+      );
+  }
+}
+
+export interface DefineGroupArgs<TItems extends SceneItems>
+  extends DefineSceneArgs<TItems> {}
+
+export function defineGroup<TItems extends SceneItems>(
+  args: DefineGroupArgs<TItems>
+) {}

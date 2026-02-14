@@ -1,8 +1,11 @@
 export * as definition from "./definition.js";
 export {
   defineFilterType,
+  FilterTypeSettings,
   defineInputType,
+  InputTypeSettings,
   defineScene,
+  defineGroup,
 } from "./definition.js";
 export * as runtime from "./runtime.js";
 export { syncScene } from "./runtime.js";

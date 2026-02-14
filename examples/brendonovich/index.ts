@@ -8,6 +8,7 @@ import {
   videoCaptureSource,
   OBS,
   syncScene,
+  defineGroup,
 } from "@sceneify/core";
 import { compositeBlurFilter } from "@sceneify/finitesingularity";
 
@@ -29,7 +30,14 @@ const display = macOSScreenCapture.defineInput({
     blur: compositeBlurFilter.defineFilter({
       enabled: false,
       name: "Blur",
-      settings: {},
+      settings: {
+        blur_algorithm: 3,
+        blur_type: 1,
+        kawase_passes: 48,
+        pixelate_origin_x: 1728,
+        pixelate_origin_y: 1117,
+        radius: 55.4,
+      },
     }),
   },
 });
@@ -144,7 +152,10 @@ const cameraScene = defineScene({
   items: {
     webcam: {
       index: 0,
-      input: webcam,
+      input: defineGroup({
+        name: "Group",
+        items: { webcam: { input: webcam } },
+      }),
       positionX: 0,
       positionY: 0,
       scaleX: 1,
@@ -167,6 +178,8 @@ async function main() {
 
   const main = await syncScene(obs, mainScene);
   const camera = await syncScene(obs, cameraScene);
+
+  // console.log(await main.item("display").input.filter("blur").getSettings());
 
   await obs.setCurrentScene(main);
 }
