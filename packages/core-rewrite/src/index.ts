@@ -14,5 +14,5 @@ export * from "./Input.ts";
 export * from "./Filter.ts";
 
 // Runtime
-export * as Scene from "./Scene.ts";
+export * from "./Scene.ts";
 export * from "./SceneItem.ts";

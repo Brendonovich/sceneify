@@ -1,24 +1,25 @@
 import { describe, it, expect } from "vitest";
 import { Effect } from "effect";
 import { FilterType } from "../src/FilterType.js";
-import { createFilter } from "../src/FilterRuntime.js";
 import { createMockOBSSocket, type CallHandler } from "./helpers.js";
+import { Filter } from "../src/Filter.js";
 
 class ColorCorrection extends FilterType("color_filter_v2")<{
   gamma: number;
   contrast: number;
   brightness: number;
-}> {}
+}>() {}
 
-function createTestFilter(handlers: Record<string, CallHandler> = {}) {
+const createTestFilter = Effect.fn(function* (
+  handlers: Record<string, CallHandler> = {}
+) {
   const mock = createMockOBSSocket({ handlers });
-  const filter = createFilter<typeof ColorCorrection>(
-    mock.service,
+  const filter = yield* Filter.make<typeof ColorCorrection>(
     "Color Fix",
     "Chat Browser"
   );
   return { filter, calls: mock.calls };
-}
+});
 
 describe("Filter", () => {
   describe("getSettings", () => {

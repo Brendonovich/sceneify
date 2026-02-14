@@ -3,6 +3,7 @@ import type { Filter } from "./Filter.ts";
 import { OBSSocket } from "./OBSSocket.ts";
 import { Effect } from "effect";
 import type { OBSError } from "./errors.ts";
+import type { FilterType } from "./FilterType.ts";
 
 export namespace Input {
   /**
@@ -12,15 +13,12 @@ export namespace Input {
    */
   export interface Declaration<
     TType extends InputType,
-    TFilters extends Record<string, Filter.Config<any>> = Record<
-      string,
-      Filter.Config<any>
-    >
+    TFilters extends Record<string, FilterType> = {}
   > {
     readonly type: TType;
     readonly name: string;
     readonly settings: Partial<InputTypeSettings<TType>>;
-    readonly filters: TFilters;
+    readonly filters: FiltersDeclaration<TFilters>;
   }
 
   /**
@@ -96,6 +94,10 @@ export namespace Input {
     readonly filter: <K extends string>(key: K) => Filter.Filter<any>;
   }
 
+  type FiltersDeclaration<TFilters extends Record<string, FilterType>> = {
+    [K in keyof TFilters]: Filter.Config<TFilters[K]>;
+  };
+
   /**
    * Declare an input instance from an InputType class.
    *
@@ -119,20 +121,20 @@ export namespace Input {
    */
   export const declare = <
     const TType extends InputType<any, any>,
-    const TFilters extends Record<string, Filter.Config<any>> = {}
+    const TFilters extends Record<string, FilterType> = {}
   >(
     type: TType,
     options: {
       name: string;
       settings?: Partial<InputTypeSettings<TType>>;
-      filters?: TFilters;
+      filters?: FiltersDeclaration<TFilters>;
     }
   ): Input.Declaration<TType, TFilters> => {
     return {
       type,
       name: options.name,
       settings: options.settings ?? ({} as Partial<InputTypeSettings<TType>>),
-      filters: options.filters ?? ({} as TFilters),
+      filters: options.filters ?? ({} as FiltersDeclaration<TFilters>),
     };
   };
 

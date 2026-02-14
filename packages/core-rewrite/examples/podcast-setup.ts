@@ -42,7 +42,7 @@ class ImageSource extends InputType("image_source")<{
 
 class NoiseSuppressFilter extends FilterType("noise_suppress_filter_v2")<{
   method: "speex" | "rnnoise" | "nvafx";
-}> {}
+}>() {}
 
 class NoiseGateFilter extends FilterType("noise_gate_filter")<{
   open_threshold: number;
@@ -50,11 +50,11 @@ class NoiseGateFilter extends FilterType("noise_gate_filter")<{
   attack_time: number;
   hold_time: number;
   release_time: number;
-}> {}
+}>() {}
 
 class GainFilter extends FilterType("gain_filter")<{
   db: number;
-}> {}
+}>() {}
 
 // ─── Inputs (with inline filters) ───────────────────────────────────────────
 
@@ -236,4 +236,4 @@ const runnable = program.pipe(
   Effect.provide(Sceneify.layer)
 );
 
-// Effect.runPromise(runnable);
+Effect.runPromise(runnable);

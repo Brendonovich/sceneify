@@ -1,21 +1,21 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import { InputType, type InputTypeSettings } from "../src/InputType.js";
 import { FilterType, type FilterTypeSettings } from "../src/FilterType.js";
-import * as Input from "../src/Input.js";
-import * as Scene from "../src/Scene.js";
+import { Input } from "../src/Input.js";
+import { Scene } from "../src/Scene.js";
 
 describe("Declaration APIs", () => {
   class BrowserSource extends InputType("browser_source")<{
     url: string;
     width: number;
     height: number;
-  }> {}
+  }>() {}
 
   class ColorCorrection extends FilterType("color_filter_v2")<{
     gamma: number;
     contrast: number;
     brightness: number;
-  }> {}
+  }>() {}
 
   describe("Input.declare", () => {
     it("should create an input declaration", () => {
@@ -100,7 +100,7 @@ describe("Declaration APIs", () => {
       });
 
       type DeclSettings = typeof declaration.settings;
-      expectTypeOf<DeclSettings>().toMatchTypeOf<
+      expectTypeOf<DeclSettings>().toMatchObjectType<
         Partial<InputTypeSettings<typeof BrowserSource>>
       >();
     });
@@ -120,7 +120,7 @@ describe("Declaration APIs", () => {
       type FilterSettings = NonNullable<
         typeof declaration.filters.colorFix.settings
       >;
-      expectTypeOf<FilterSettings>().toMatchTypeOf<
+      expectTypeOf<FilterSettings>().toMatchObjectType<
         Partial<FilterTypeSettings<typeof ColorCorrection>>
       >();
     });

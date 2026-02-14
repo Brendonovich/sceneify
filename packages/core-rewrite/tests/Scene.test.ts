@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { Effect } from "effect";
 import { InputType } from "../src/InputType.js";
 import { FilterType } from "../src/FilterType.js";
-import * as Input from "../src/Input.js";
-import * as Scene from "../src/Scene.js";
+import { Input } from "../src/Input.js";
+import { Scene } from "../src/Scene.js";
 import { Sceneify } from "../src/Sceneify.js";
 import { runEffect, type CallHandler } from "./helpers.js";
 
@@ -12,20 +12,20 @@ class BrowserSource extends InputType("browser_source")<{
   url: string;
   width: number;
   height: number;
-}> {}
+}>() {}
 
 class ColorSource extends InputType("color_source_v3")<{
   color: number;
   width: number;
   height: number;
-}> {}
+}>() {}
 
 // Test FilterTypes
 class ColorCorrection extends FilterType("color_filter_v2")<{
   gamma: number;
   contrast: number;
   brightness: number;
-}> {}
+}>() {}
 
 // Default handlers for fresh scene creation (no existing scenes/items)
 function freshSceneHandlers(
