@@ -1,4 +1,5 @@
-import { describe, it, expect, expectTypeOf } from "vitest";
+import { describe, expect, expectTypeOf } from "vitest";
+import { it } from "@effect/vitest";
 import { InputType, type InputTypeSettings } from "../src/InputType.js";
 
 describe("InputType", () => {
@@ -6,13 +7,13 @@ describe("InputType", () => {
     url: string;
     width: number;
     height: number;
-  }> {}
+  }>() {}
 
   class ColorSource extends InputType("color_source_v3")<{
     color: number;
     width: number;
     height: number;
-  }> {}
+  }>() {}
 
   it("should create an InputType class", () => {
     expect(BrowserSource).toBeDefined();

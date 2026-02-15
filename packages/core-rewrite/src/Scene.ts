@@ -1,7 +1,11 @@
 import { Effect } from "effect";
 import { Input } from "./Input.ts";
 import type { InputType, InputTypeSettings } from "./InputType.ts";
-import { InputAlreadyExistsError, type OBSError } from "./errors.ts";
+import {
+  InputAlreadyExistsError,
+  NameConflictError,
+  type OBSError,
+} from "./errors.ts";
 import { OBSSocket } from "./OBSSocket.ts";
 import { Sceneify } from "./Sceneify.ts";
 import { SceneItem } from "./SceneItem.ts";
@@ -72,13 +76,19 @@ export namespace Scene {
      * Dynamically create a new scene item at runtime.
      * The returned item is NOT declared and can be removed.
      */
-    readonly createItem: <TType extends InputType<string, any>>(
+    readonly createItem: <
+      TType extends InputType<string, any>,
+      TFilters extends Record<string, FilterType>
+    >(
       config: CreateItemConfig<TType>
     ) => Effect.Effect<
-      SceneItem.SceneItem<Input.Declaration<TType>>,
+      SceneItem.SceneItem<Input.Declaration<TType, TFilters>>,
       OBSError | InputAlreadyExistsError,
       Sceneify
     >;
+
+    readonly makeProgramScene: Effect.Effect<void, OBSError>;
+    readonly makePreviewScene: Effect.Effect<void, OBSError>;
   }
 
   export const sync = <
@@ -102,6 +112,19 @@ export namespace Scene {
 
       if (!exists) {
         yield* obs.call("CreateScene", { sceneName: declaration.name });
+        // Stamp the new scene as owned by Sceneify
+        yield* obs.call("SetSourcePrivateSettings", {
+          sourceName: declaration.name,
+          sourceSettings: { SCENEIFY: { init: "created" } },
+        });
+      } else {
+        // Scene already exists — verify it was created by Sceneify
+        const { sourceSettings } = yield* obs.call("GetSourcePrivateSettings", {
+          sourceName: declaration.name,
+        });
+        if (sourceSettings.SCENEIFY?.init !== "created") {
+          return yield* new NameConflictError({ name: declaration.name });
+        }
       }
 
       // Create scene-level filters
@@ -183,15 +206,22 @@ export namespace Scene {
         }
 
         if (inputExists || inputAlreadyInOBS) {
-          // Input already exists, find or create scene item
+          // Input already exists — check if the source is owned by Sceneify
+          const { sourceSettings } = yield* obs.call(
+            "GetSourcePrivateSettings",
+            { sourceName: item.source.name }
+          );
+          const sourceOwned = sourceSettings.SCENEIFY?.init === "created";
+
+          // Find an existing scene item for this source, or create one
           const existingItem = currentSceneItems.find(
             (i) => i.sourceName === item.source.name
           );
 
-          if (existingItem) {
+          if (existingItem && sourceOwned) {
             sceneItemId = existingItem.sceneItemId;
           } else {
-            // Add existing input to this scene
+            // Either no existing item in this scene, or source not owned — create a new one
             const result = yield* obs.call("CreateSceneItem", {
               sceneName: declaration.name,
               sourceName: item.source.name,
@@ -277,6 +307,22 @@ export namespace Scene {
           );
         }
 
+        // Stamp the input source as owned by Sceneify, including its filter list
+        const filterEntries = Object.values(declaredFilters);
+        yield* obs.call("SetSourcePrivateSettings", {
+          sourceName: item.source.name,
+          sourceSettings: {
+            SCENEIFY: {
+              init: "created",
+              ...(filterEntries.length > 0
+                ? {
+                    filters: filterEntries.map((f) => ({ name: f.name })),
+                  }
+                : undefined),
+            },
+          },
+        });
+
         // Create Input runtime
         const inputInstance = yield* Input.make(
           item.source.name,
@@ -293,16 +339,23 @@ export namespace Scene {
         );
       }
 
-      // Remove stale items not in the declaration
+      // Remove stale items not in the declaration — but only if owned by Sceneify
       const declaredNames = new Set(
         Object.values(declaration.items).map((i) => i.source.name)
       );
       for (const current of currentSceneItems) {
         if (!declaredNames.has(current.sourceName)) {
-          yield* obs.call("RemoveSceneItem", {
-            sceneName: declaration.name,
-            sceneItemId: current.sceneItemId,
-          });
+          // Check if the source is owned by Sceneify before removing the item
+          const { sourceSettings: staleSourceSettings } = yield* obs.call(
+            "GetSourcePrivateSettings",
+            { sourceName: current.sourceName }
+          );
+          if (staleSourceSettings.SCENEIFY?.init === "created") {
+            yield* obs.call("RemoveSceneItem", {
+              sceneName: declaration.name,
+              sceneItemId: current.sceneItemId,
+            });
+          }
         }
       }
 
@@ -330,6 +383,12 @@ export namespace Scene {
 
               sceneItemId = result.sceneItemId;
               yield* sceneify.registerInput({ name: config.name });
+
+              // Stamp the input source as owned by Sceneify
+              yield* obs.call("SetSourcePrivateSettings", {
+                sourceName: config.name,
+                sourceSettings: { SCENEIFY: { init: "created" } },
+              });
             } else {
               const result = yield* obs.call("CreateSceneItem", {
                 sceneName,
@@ -351,6 +410,13 @@ export namespace Scene {
               false
             );
           }).pipe(Effect.provideService(OBSSocket, obs)),
+
+        makeProgramScene: obs.call("SetCurrentProgramScene", {
+          sceneName,
+        }),
+        makePreviewScene: obs.call("SetCurrentPreviewScene", {
+          sceneName,
+        }),
       };
 
       return scene;

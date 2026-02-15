@@ -1,0 +1,21 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "dev": "cd .. && yarn build && cd example && yarn start"
+  },
+  "author": "Brendan Allan",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^16.11.16",
+    "ts-node": "^10.2.1"
+  },
+  "dependencies": {
+    "@sceneify/core-rewrite": "workspace:*",
+    "@sceneify/sources": "workspace:*",
+    "effect": "^3.19.13"
+  }
+}

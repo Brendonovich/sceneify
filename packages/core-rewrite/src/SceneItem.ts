@@ -2,6 +2,20 @@ import { Effect } from "effect";
 import { Input } from "./Input.ts";
 import type { OBSError } from "./errors.ts";
 import { OBSSocket } from "./OBSSocket.ts";
+import type { InputType } from "./InputType.ts";
+import type { FilterType } from "./FilterType.ts";
+
+export const Alignment = {
+  centerLeft: 1,
+  center: 0,
+  centerRight: 2,
+  topLeft: 5,
+  top: 4,
+  topRight: 6,
+  bottomLeft: 9,
+  bottom: 8,
+  bottomRight: 10,
+};
 
 export namespace SceneItem {
   export interface Transform {
@@ -50,7 +64,10 @@ export namespace SceneItem {
     /** The scene name this item belongs to */
     readonly sceneName: string;
     /** The runtime input this item references */
-    readonly input: Input.Input<TSource["type"]>;
+    readonly input: Input.Input<
+      Input.Declaration.Type<TSource>,
+      Input.Declaration.Filters<TSource>
+    >;
     /** Whether this item was part of a scene declaration (cannot be removed) */
     readonly declared: boolean;
 
@@ -75,11 +92,12 @@ export namespace SceneItem {
    * The OBSSocket is captured at creation and used for all subsequent calls.
    */
   export const make = Effect.fnUntraced(function* <
-    TInput extends Input.Declaration<any, any>
+    TType extends InputType<string, any>,
+    TFilters extends Record<string, FilterType>
   >(
     id: number,
     sceneName: string,
-    input: Input.Input<TInput["type"]>,
+    input: Input.Input<TType, TFilters>,
     declared: boolean
   ) {
     const obs = yield* OBSSocket;
@@ -148,6 +166,6 @@ export namespace SceneItem {
             sceneItemId: id,
           });
         }),
-    } as SceneItem.SceneItem<TInput>;
+    } as SceneItem.SceneItem<Input.Declaration<TType, TFilters>>;
   });
 }

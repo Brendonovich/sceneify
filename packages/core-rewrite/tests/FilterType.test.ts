@@ -1,4 +1,5 @@
-import { describe, it, expect, expectTypeOf } from "vitest";
+import { describe, expect, expectTypeOf } from "vitest";
+import { it } from "@effect/vitest";
 import { FilterType, type FilterTypeSettings } from "../src/FilterType.js";
 
 describe("FilterType", () => {
@@ -6,11 +7,11 @@ describe("FilterType", () => {
     gamma: number;
     contrast: number;
     brightness: number;
-  }> {}
+  }>() {}
 
   class GainFilter extends FilterType("gain_filter")<{
     db: number;
-  }> {}
+  }>() {}
 
   it("should create a FilterType class", () => {
     expect(ColorCorrection).toBeDefined();

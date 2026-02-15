@@ -1,4 +1,5 @@
-import { describe, it, expect, expectTypeOf } from "vitest";
+import { describe, expect, expectTypeOf } from "vitest";
+import { it } from "@effect/vitest";
 import { InputType, type InputTypeSettings } from "../src/InputType.js";
 import { FilterType, type FilterTypeSettings } from "../src/FilterType.js";
 import { Input } from "../src/Input.js";

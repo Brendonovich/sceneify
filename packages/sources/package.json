@@ -1,5 +1,5 @@
 {
-  "name": "@sceneify/core-rewrite",
+  "name": "@sceneify/sources",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "effect": "^3.12.0",
-    "obs-websocket-js": "^5.0.6"
+    "obs-websocket-js": "^5.0.6",
+    "@sceneify/core-rewrite": "workspace:*"
   },
   "devDependencies": {
     "@effect/language-service": "^0.62.5",

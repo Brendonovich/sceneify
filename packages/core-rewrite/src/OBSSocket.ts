@@ -1,8 +1,5 @@
 import { Context, Effect, Layer } from "effect";
-import OBSWebSocket, {
-  type OBSRequestTypes,
-  type OBSResponseTypes,
-} from "obs-websocket-js";
+import OBSWebSocket, * as OBS from "obs-websocket-js";
 import { ConnectionError, OBSError } from "./errors.ts";
 
 /**
@@ -14,16 +11,49 @@ export interface OBSSocketConfig {
 }
 
 /**
+ * Metadata stored by Sceneify in OBS private settings to track ownership.
+ */
+export type SceneifyPrivateSettings = {
+  init: "created" | "linked";
+};
+
+/**
+ * Shape of the SCENEIFY key stored in source private settings.
+ */
+export type SceneifySourceData = SceneifyPrivateSettings & {
+  filters?: Array<{ name: string }>;
+};
+
+interface RequestTypes extends OBS.OBSRequestTypes {
+  GetSourcePrivateSettings: {
+    sourceName?: string;
+    sourceUuid?: string;
+  };
+  SetSourcePrivateSettings: {
+    sourceName?: string;
+    sourceUuid?: string;
+    sourceSettings: any;
+  };
+}
+
+interface ResponseTypes extends OBS.OBSResponseTypes {
+  GetSourcePrivateSettings: {
+    sourceSettings: any;
+  };
+  SetSourcePrivateSettings: void;
+}
+
+/**
  * OBS WebSocket service interface
  */
 export interface OBSSocket {
   /**
    * Call an OBS WebSocket request
    */
-  readonly call: <Type extends keyof OBSRequestTypes>(
+  readonly call: <Type extends keyof RequestTypes>(
     requestType: Type,
-    requestData?: OBSRequestTypes[Type]
-  ) => Effect.Effect<OBSResponseTypes[Type], OBSError>;
+    requestData?: RequestTypes[Type]
+  ) => Effect.Effect<ResponseTypes[Type], OBSError>;
 
   /**
    * Get the underlying OBS WebSocket instance (for advanced usage)
@@ -67,7 +97,9 @@ export const layer = (
           Effect.tryPromise({
             try: () => {
               console.log(`OBS.call: ${requestType}`);
-              return ws.call(requestType, requestData);
+              // Cast needed because our RequestTypes/ResponseTypes extend the
+              // base OBS types with undocumented private settings endpoints.
+              return ws.call(requestType as any, requestData as any) as any;
             },
             catch: (error) =>
               new OBSError({

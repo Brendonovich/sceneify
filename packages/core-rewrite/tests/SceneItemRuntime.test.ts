@@ -1,7 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { InputType } from "../src/InputType.js";
-import { createSceneItem } from "../src/SceneItemRuntime.js";
+import { Input } from "../src/Input.js";
+import { SceneItem } from "../src/SceneItem.js";
 import { createMockOBSSocket, type CallHandler } from "./helpers.js";
 
 class BrowserSource extends InputType("browser_source")<{
@@ -10,184 +12,187 @@ class BrowserSource extends InputType("browser_source")<{
   height: number;
 }>() {}
 
-function createTestSceneItem(options?: {
+const createTestSceneItem = Effect.fnUntraced(function* (options?: {
   declared?: boolean;
   handlers?: Record<string, CallHandler>;
 }) {
   const mock = createMockOBSSocket({ handlers: options?.handlers });
-  const inputInstance = Input.make<typeof BrowserSource>(
-    mock.service,
+  const input = yield* Input.make<typeof BrowserSource>(
     "Chat",
     "browser_source"
-  );
-  const item = createSceneItem(
-    mock.service,
+  ).pipe(Effect.provide(mock.layer));
+  const item = yield* SceneItem.make(
     42,
     "Main Scene",
-    inputInstance,
+    input,
     options?.declared ?? true
-  );
+  ).pipe(Effect.provide(mock.layer));
   return { item, calls: mock.calls };
-}
+});
 
 describe("SceneItem", () => {
   describe("properties", () => {
-    it("should expose id, sceneName, input, and declared", () => {
-      const { item } = createTestSceneItem();
+    it("should expose id, sceneName, input, and declared", () =>
+      Effect.gen(function* () {
+        const { item } = yield* createTestSceneItem();
 
-      expect(item.id).toBe(42);
-      expect(item.sceneName).toBe("Main Scene");
-      expect(item.input.name).toBe("Chat");
-      expect(item.declared).toBe(true);
-    });
+        expect(item.id).toBe(42);
+        expect(item.sceneName).toBe("Main Scene");
+        expect(item.input.name).toBe("Chat");
+        expect(item.declared).toBe(true);
+      }));
   });
 
   describe("getTransform", () => {
-    it("should get transform from OBS", async () => {
-      const mockTransform = {
-        positionX: 100,
-        positionY: 200,
-        scaleX: 1.0,
-        scaleY: 1.0,
-        rotation: 0,
-      };
+    it("should get transform from OBS", () =>
+      Effect.gen(function* () {
+        const mockTransform = {
+          positionX: 100,
+          positionY: 200,
+          scaleX: 1.0,
+          scaleY: 1.0,
+          rotation: 0,
+        };
 
-      const { item, calls } = createTestSceneItem({
-        handlers: {
-          GetSceneItemTransform: () => ({
-            sceneItemTransform: mockTransform,
-          }),
-        },
-      });
+        const { item, calls } = yield* createTestSceneItem({
+          handlers: {
+            GetSceneItemTransform: () => ({
+              sceneItemTransform: mockTransform,
+            }),
+          },
+        });
 
-      expect(await Effect.runPromise(item.getTransform())).toEqual(
-        mockTransform
-      );
-      expect(calls[0]?.requestData).toEqual({
-        sceneName: "Main Scene",
-        sceneItemId: 42,
-      });
-    });
+        expect(yield* item.getTransform()).toEqual(mockTransform);
+        expect(calls[0]?.requestData).toEqual({
+          sceneName: "Main Scene",
+          sceneItemId: 42,
+        });
+      }));
   });
 
   describe("setTransform", () => {
-    it("should set transform on OBS", async () => {
-      const { item, calls } = createTestSceneItem({
-        handlers: { SetSceneItemTransform: () => ({}) },
-      });
+    it("should set transform on OBS", () =>
+      Effect.gen(function* () {
+        const { item, calls } = yield* createTestSceneItem({
+          handlers: { SetSceneItemTransform: () => ({}) },
+        });
 
-      await Effect.runPromise(
-        item.setTransform({ positionX: 300, positionY: 400 })
-      );
+        yield* item.setTransform({ positionX: 300, positionY: 400 });
 
-      expect(calls).toContainEqual({
-        requestType: "SetSceneItemTransform",
-        requestData: {
-          sceneName: "Main Scene",
-          sceneItemId: 42,
-          sceneItemTransform: { positionX: 300, positionY: 400 },
-        },
-      });
-    });
+        expect(calls).toContainEqual({
+          requestType: "SetSceneItemTransform",
+          requestData: {
+            sceneName: "Main Scene",
+            sceneItemId: 42,
+            sceneItemTransform: { positionX: 300, positionY: 400 },
+          },
+        });
+      }));
   });
 
   describe("setEnabled", () => {
-    it("should set enabled state on OBS", async () => {
-      const { item, calls } = createTestSceneItem({
-        handlers: { SetSceneItemEnabled: () => ({}) },
-      });
+    it("should set enabled state on OBS", () =>
+      Effect.gen(function* () {
+        const { item, calls } = yield* createTestSceneItem({
+          handlers: { SetSceneItemEnabled: () => ({}) },
+        });
 
-      await Effect.runPromise(item.setEnabled(false));
+        yield* item.setEnabled(false);
 
-      expect(calls).toContainEqual({
-        requestType: "SetSceneItemEnabled",
-        requestData: {
-          sceneName: "Main Scene",
-          sceneItemId: 42,
-          sceneItemEnabled: false,
-        },
-      });
-    });
+        expect(calls).toContainEqual({
+          requestType: "SetSceneItemEnabled",
+          requestData: {
+            sceneName: "Main Scene",
+            sceneItemId: 42,
+            sceneItemEnabled: false,
+          },
+        });
+      }));
   });
 
   describe("setLocked", () => {
-    it("should set locked state on OBS", async () => {
-      const { item, calls } = createTestSceneItem({
-        handlers: { SetSceneItemLocked: () => ({}) },
-      });
+    it("should set locked state on OBS", () =>
+      Effect.gen(function* () {
+        const { item, calls } = yield* createTestSceneItem({
+          handlers: { SetSceneItemLocked: () => ({}) },
+        });
 
-      await Effect.runPromise(item.setLocked(true));
+        yield* item.setLocked(true);
 
-      expect(calls).toContainEqual({
-        requestType: "SetSceneItemLocked",
-        requestData: {
-          sceneName: "Main Scene",
-          sceneItemId: 42,
-          sceneItemLocked: true,
-        },
-      });
-    });
+        expect(calls).toContainEqual({
+          requestType: "SetSceneItemLocked",
+          requestData: {
+            sceneName: "Main Scene",
+            sceneItemId: 42,
+            sceneItemLocked: true,
+          },
+        });
+      }));
   });
 
   describe("setIndex", () => {
-    it("should set index on OBS", async () => {
-      const { item, calls } = createTestSceneItem({
-        handlers: { SetSceneItemIndex: () => ({}) },
-      });
+    it("should set index on OBS", () =>
+      Effect.gen(function* () {
+        const { item, calls } = yield* createTestSceneItem({
+          handlers: { SetSceneItemIndex: () => ({}) },
+        });
 
-      await Effect.runPromise(item.setIndex(3));
+        yield* item.setIndex(3);
 
-      expect(calls).toContainEqual({
-        requestType: "SetSceneItemIndex",
-        requestData: {
-          sceneName: "Main Scene",
-          sceneItemId: 42,
-          sceneItemIndex: 3,
-        },
-      });
-    });
+        expect(calls).toContainEqual({
+          requestType: "SetSceneItemIndex",
+          requestData: {
+            sceneName: "Main Scene",
+            sceneItemId: 42,
+            sceneItemIndex: 3,
+          },
+        });
+      }));
   });
 
   describe("remove", () => {
-    it("should fail when trying to remove a declared item", async () => {
-      const { item } = createTestSceneItem({
-        declared: true,
-        handlers: { RemoveSceneItem: () => ({}) },
-      });
+    it("should fail when trying to remove a declared item", () =>
+      Effect.gen(function* () {
+        const { item } = yield* createTestSceneItem({
+          declared: true,
+          handlers: { RemoveSceneItem: () => ({}) },
+        });
 
-      const either = await Effect.runPromise(Effect.either(item.remove()));
-      expect(either._tag).toBe("Left");
-    });
+        const either = yield* Effect.either(item.remove());
+        expect(either._tag).toBe("Left");
+      }));
 
-    it("should succeed for dynamically created items", async () => {
-      const { item, calls } = createTestSceneItem({
-        declared: false,
-        handlers: { RemoveSceneItem: () => ({}) },
-      });
+    it("should succeed for dynamically created items", () =>
+      Effect.gen(function* () {
+        const { item, calls } = yield* createTestSceneItem({
+          declared: false,
+          handlers: { RemoveSceneItem: () => ({}) },
+        });
 
-      await Effect.runPromise(item.remove());
+        yield* item.remove();
 
-      expect(calls).toContainEqual({
-        requestType: "RemoveSceneItem",
-        requestData: {
-          sceneName: "Main Scene",
-          sceneItemId: 42,
-        },
-      });
-    });
+        expect(calls).toContainEqual({
+          requestType: "RemoveSceneItem",
+          requestData: {
+            sceneName: "Main Scene",
+            sceneItemId: 42,
+          },
+        });
+      }));
 
-    it("should not send any OBS calls when removing a declared item", async () => {
-      const { item, calls } = createTestSceneItem({
-        declared: true,
-        handlers: { RemoveSceneItem: () => ({}) },
-      });
+    it("should not send any OBS calls when removing a declared item", () =>
+      Effect.gen(function* () {
+        const { item, calls } = yield* createTestSceneItem({
+          declared: true,
+          handlers: { RemoveSceneItem: () => ({}) },
+        });
 
-      await Effect.runPromise(Effect.either(item.remove()));
+        yield* Effect.either(item.remove());
 
-      const removeCalls = calls.filter(
-        (c) => c.requestType === "RemoveSceneItem"
-      );
-      expect(removeCalls).toHaveLength(0);
-    });
+        const removeCalls = calls.filter(
+          (c) => c.requestType === "RemoveSceneItem"
+        );
+        expect(removeCalls).toHaveLength(0);
+      }));
   });
 });

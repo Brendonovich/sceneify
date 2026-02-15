@@ -21,13 +21,26 @@ export namespace Input {
     readonly filters: FiltersDeclaration<TFilters>;
   }
 
+  export namespace Declaration {
+    export type Type<T extends Declaration<any, any>> = T extends Declaration<
+      infer Type,
+      any
+    >
+      ? Type
+      : never;
+
+    export type Filters<T extends Declaration<any, any>> =
+      T extends Declaration<any, infer Filters> ? Filters : never;
+  }
+
   /**
    * Runtime representation of an input in OBS.
    * OBSSocket is captured at creation time - methods return Effects
    * that do not require OBSSocket in context.
    */
   export interface Input<
-    TType extends InputType<string, any> = InputType<string, any>
+    TType extends InputType<string, any>,
+    TFilters extends Record<string, FilterType>
   > {
     /** The input name in OBS */
     readonly name: string;
@@ -91,7 +104,16 @@ export namespace Input {
     >;
 
     /** Access a declared filter by key */
-    readonly filter: <K extends string>(key: K) => Filter.Filter<any>;
+    readonly filter: <K extends keyof TFilters>(
+      key: K
+    ) => Filter.Filter<TFilters[K]>;
+
+    readonly getPropertyListItems: (
+      property: keyof InputTypeSettings<TType> & string
+    ) => Effect.Effect<
+      { name: string; enabled: boolean; value?: string | number }[],
+      OBSError
+    >;
   }
 
   type FiltersDeclaration<TFilters extends Record<string, FilterType>> = {
@@ -143,11 +165,12 @@ export namespace Input {
    * The OBSSocket is captured at creation and used for all subsequent calls.
    */
   export const make = Effect.fnUntraced(function* <
-    TType extends InputType<string, any>
+    TType extends InputType<string, any>,
+    TFilters extends Record<string, FilterType>
   >(
     name: string,
     kind: string,
-    filters: Record<string, Filter.Filter<any>> = {}
+    filters: { [K in keyof TFilters]: Filter.Filter<TFilters[K]> } = {} as any
   ) {
     const obs = yield* OBSSocket;
 
@@ -259,13 +282,30 @@ export namespace Input {
         const f = filters[key];
         if (!f) {
           throw new Error(
-            `Filter "${key}" not found on input "${name}". Available filters: ${Object.keys(
+            `Filter "${String(
+              key
+            )}" not found on input "${name}". Available filters: ${Object.keys(
               filters
             ).join(", ")}`
           );
         }
         return f;
       },
-    } as Input<TType>;
+      getPropertyListItems: (property) =>
+        obs
+          .call("GetInputPropertiesListPropertyItems", {
+            inputName: name,
+            propertyName: property,
+          })
+          .pipe(
+            Effect.map((v) =>
+              v.propertyItems.map((v) => ({
+                name: v.itemName,
+                enabled: v.itemEnabled,
+                value: v.itemValue,
+              }))
+            )
+          ),
+    } as Input<TType, TFilters>;
   });
 }

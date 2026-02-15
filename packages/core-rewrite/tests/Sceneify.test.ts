@@ -1,106 +1,75 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect } from "vitest";
+import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import * as SceneifyModule from "../src/Sceneify.js";
 
-/**
- * Run an effect with a fresh Sceneify layer.
- */
-function runSceneifyEffect<A>(
-  effect: Effect.Effect<A, never, SceneifyModule.Sceneify>
-) {
-  return Effect.runPromise(
-    effect.pipe(Effect.scoped, Effect.provide(SceneifyModule.layer))
-  );
-}
+const SceneifyLive = SceneifyModule.layer;
 
 describe("Sceneify service", () => {
-  it("should start with no registered inputs", async () => {
-    const result = await runSceneifyEffect(
-      Effect.gen(function* () {
-        const sceneify = yield* SceneifyModule.Sceneify;
-        return yield* sceneify.hasInput("test");
-      })
-    );
+  it.scoped("should start with no registered inputs", () =>
+    Effect.gen(function* () {
+      const sceneify = yield* SceneifyModule.Sceneify;
+      expect(yield* sceneify.hasInput("test")).toBe(false);
+    }).pipe(Effect.provide(SceneifyLive))
+  );
 
-    expect(result).toBe(false);
-  });
+  it.scoped("should register and retrieve an input", () =>
+    Effect.gen(function* () {
+      const sceneify = yield* SceneifyModule.Sceneify;
 
-  it("should register and retrieve an input", async () => {
-    const result = await runSceneifyEffect(
-      Effect.gen(function* () {
-        const sceneify = yield* SceneifyModule.Sceneify;
+      yield* sceneify.registerInput({ name: "Chat Browser" });
 
-        yield* sceneify.registerInput({ name: "Chat Browser" });
+      const input = yield* sceneify.getInput("Chat Browser");
+      expect(input).toEqual({ name: "Chat Browser" });
+    }).pipe(Effect.provide(SceneifyLive))
+  );
 
-        const input = yield* sceneify.getInput("Chat Browser");
-        return input;
-      })
-    );
+  it.scoped("should return undefined for unregistered inputs", () =>
+    Effect.gen(function* () {
+      const sceneify = yield* SceneifyModule.Sceneify;
+      const result = yield* sceneify.getInput("nonexistent");
+      expect(result).toBeUndefined();
+    }).pipe(Effect.provide(SceneifyLive))
+  );
 
-    expect(result).toEqual({ name: "Chat Browser" });
-  });
+  it.scoped("should report hasInput correctly", () =>
+    Effect.gen(function* () {
+      const sceneify = yield* SceneifyModule.Sceneify;
 
-  it("should return undefined for unregistered inputs", async () => {
-    const result = await runSceneifyEffect(
-      Effect.gen(function* () {
-        const sceneify = yield* SceneifyModule.Sceneify;
-        return yield* sceneify.getInput("nonexistent");
-      })
-    );
+      const before = yield* sceneify.hasInput("Chat Browser");
+      yield* sceneify.registerInput({ name: "Chat Browser" });
+      const after = yield* sceneify.hasInput("Chat Browser");
 
-    expect(result).toBeUndefined();
-  });
+      expect(before).toBe(false);
+      expect(after).toBe(true);
+    }).pipe(Effect.provide(SceneifyLive))
+  );
 
-  it("should report hasInput correctly", async () => {
-    const result = await runSceneifyEffect(
-      Effect.gen(function* () {
-        const sceneify = yield* SceneifyModule.Sceneify;
+  it.scoped("should clear all registered inputs", () =>
+    Effect.gen(function* () {
+      const sceneify = yield* SceneifyModule.Sceneify;
 
-        const before = yield* sceneify.hasInput("Chat Browser");
-        yield* sceneify.registerInput({ name: "Chat Browser" });
-        const after = yield* sceneify.hasInput("Chat Browser");
+      yield* sceneify.registerInput({ name: "Input 1" });
+      yield* sceneify.registerInput({ name: "Input 2" });
+      yield* sceneify.clear();
 
-        return { before, after };
-      })
-    );
+      const has1 = yield* sceneify.hasInput("Input 1");
+      const has2 = yield* sceneify.hasInput("Input 2");
 
-    expect(result.before).toBe(false);
-    expect(result.after).toBe(true);
-  });
+      expect(has1).toBe(false);
+      expect(has2).toBe(false);
+    }).pipe(Effect.provide(SceneifyLive))
+  );
 
-  it("should clear all registered inputs", async () => {
-    const result = await runSceneifyEffect(
-      Effect.gen(function* () {
-        const sceneify = yield* SceneifyModule.Sceneify;
+  it.scoped("should overwrite an input with the same name", () =>
+    Effect.gen(function* () {
+      const sceneify = yield* SceneifyModule.Sceneify;
 
-        yield* sceneify.registerInput({ name: "Input 1" });
-        yield* sceneify.registerInput({ name: "Input 2" });
-        yield* sceneify.clear();
+      yield* sceneify.registerInput({ name: "Chat Browser" });
+      yield* sceneify.registerInput({ name: "Chat Browser" });
 
-        const has1 = yield* sceneify.hasInput("Input 1");
-        const has2 = yield* sceneify.hasInput("Input 2");
-
-        return { has1, has2 };
-      })
-    );
-
-    expect(result.has1).toBe(false);
-    expect(result.has2).toBe(false);
-  });
-
-  it("should overwrite an input with the same name", async () => {
-    const result = await runSceneifyEffect(
-      Effect.gen(function* () {
-        const sceneify = yield* SceneifyModule.Sceneify;
-
-        yield* sceneify.registerInput({ name: "Chat Browser" });
-        yield* sceneify.registerInput({ name: "Chat Browser" });
-
-        const input = yield* sceneify.getInput("Chat Browser");
-        return input;
-      })
-    );
-
-    expect(result).toEqual({ name: "Chat Browser" });
-  });
+      const input = yield* sceneify.getInput("Chat Browser");
+      expect(input).toEqual({ name: "Chat Browser" });
+    }).pipe(Effect.provide(SceneifyLive))
+  );
 });
