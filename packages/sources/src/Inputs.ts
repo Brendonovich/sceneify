@@ -13,15 +13,14 @@ export class BrowserSource extends InputType("browser_source")<{
   url: string;
   width: number;
   height: number;
+  fps: number;
+  fps_custom: boolean;
   reroute_audio: boolean;
   css: string;
+  restart_when_active: boolean;
+  shutdown: boolean;
+  webpage_control_level: number;
 }>() {}
-
-function b<T extends InputType>(b: T) {
-  return b;
-}
-
-b(BrowserSource);
 
 export class ColorSource extends InputType("color_source_v3")<{
   color: number;
@@ -101,6 +100,7 @@ export class MediaSource extends InputType("ffmpeg_source")<{
   color_range: OBSVideoRange;
   linear_alpha: boolean;
   seekable: boolean;
+  log_changes: boolean;
 }>() {}
 
 export class DisplayCaptureSource extends InputType("monitor_capture")<{
@@ -110,8 +110,13 @@ export class DisplayCaptureSource extends InputType("monitor_capture")<{
 }>() {}
 
 export class VideoCaptureSource extends InputType("av_capture_input_v2")<{
-  device: string;
-  device_name: string;
+  color_space: number;
+  enable_audio: boolean;
+  input_format: number;
+  preset: string;
+  uid: string;
+  use_preset: boolean;
+  video_range: number;
 }>() {}
 
 export class DecklinkInput extends InputType("decklink-input")<{
@@ -147,3 +152,54 @@ export class MacOSScreenCapture extends InputType("screen_capture")<{
   type: number;
   window: number;
 }>() {}
+
+export class SlideshowV2 extends InputType("slideshow_v2")<{
+  playback_behavior: string;
+  playback_mode: string;
+  slide_mode: string;
+  slide_time: number;
+  transition: string;
+  transition_speed: number;
+  use_custom_size: string;
+}>() {}
+
+export class MacOSAVCapture extends InputType("macos-avcapture")<{
+  device: string;
+  enable_audio: boolean;
+  preset: string;
+  use_preset: boolean;
+}>() {}
+
+export class MacOSAVCaptureFast extends InputType("macos-avcapture-fast")<{
+  device: string;
+  enable_audio: boolean;
+  use_preset: boolean;
+}>() {}
+
+export class SCKAudioCapture extends InputType("sck_audio_capture")<{
+  application: string;
+  type: number;
+}>() {}
+
+export class DisplayCapture extends InputType("display_capture")<{
+  crop_mode: number;
+  display_uuid: string;
+  show_cursor: boolean;
+  show_empty_names: boolean;
+  window: number;
+}>() {}
+
+export class WindowCapture extends InputType("window_capture")<{
+  show_empty_names: boolean;
+  show_shadow: boolean;
+  window: number;
+}>() {}
+
+export class CoreAudioOutputCapture extends InputType(
+  "coreaudio_output_capture"
+)<{
+  device_id: string;
+  enable_downmix: boolean;
+}>() {}
+
+export class SyphonInput extends InputType("syphon-input")<{}>() {}

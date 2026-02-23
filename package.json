@@ -16,7 +16,7 @@
     "@beemo/cli": "^2.0.5",
     "@beemo/core": "^2.1.3",
     "@beemo/dev": "^1.7.7",
-    "typescript": "^5.7.2"
+    "tsgo": "npm:@typescript/native-preview"
   },
   "dependencies": {
     "@babel/core": "^7.17.5",

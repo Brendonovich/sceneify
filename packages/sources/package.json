@@ -4,8 +4,8 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
+    "build": "tsgo",
+    "typecheck": "tsgo --noEmit",
     "test": "vitest",
     "postinstall": "effect-language-service tsc-plugin patch"
   },
@@ -24,7 +24,6 @@
     "@effect/language-service": "^0.62.5",
     "@effect/vitest": "^0.27.0",
     "@vitest/coverage-v8": "^4.0.16",
-    "typescript": "^5.9.3",
     "vitest": "^4.0.16",
     "vitest-tsconfig-paths": "^3.4.1"
   },

@@ -44,7 +44,6 @@
     "postcss": "^8.4.5",
     "postcss-import": "^14.0.2",
     "postcss-preset-env": "^6.7.0",
-    "tailwindcss": "^2.2.19",
-    "typescript": "^5.7.2"
+    "tailwindcss": "^2.2.19"
   }
 }
