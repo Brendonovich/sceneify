@@ -5,7 +5,6 @@
     "start": "deno run --unstable-sloppy-imports --allow-env --allow-net index.ts"
   },
   "dependencies": {
-    "@sceneify/core": "workspace:*",
-    "@sceneify/finitesingularity": "workspace:*"
+    "@sceneify/core": "workspace:*"
   }
 }

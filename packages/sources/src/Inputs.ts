@@ -17,6 +17,12 @@ export class BrowserSource extends InputType("browser_source")<{
   css: string;
 }>() {}
 
+function b<T extends InputType>(b: T) {
+  return b;
+}
+
+b(BrowserSource);
+
 export class ColorSource extends InputType("color_source_v3")<{
   color: number;
   width: number;
@@ -29,9 +35,7 @@ export class ImageSource extends InputType("image_source")<{
   linear_alpha: boolean;
 }>() {}
 
-export class FreetypeTextSource extends InputType(
-  "text_ft2_source_v2"
-)<{
+export class FreetypeTextSource extends InputType("text_ft2_source_v2")<{
   font: OBSFont;
   text: string;
   from_file: boolean;
@@ -99,17 +103,13 @@ export class MediaSource extends InputType("ffmpeg_source")<{
   seekable: boolean;
 }>() {}
 
-export class DisplayCaptureSource extends InputType(
-  "monitor_capture"
-)<{
+export class DisplayCaptureSource extends InputType("monitor_capture")<{
   monitor: number;
   compatibility: boolean;
   capture_cursor: boolean;
 }>() {}
 
-export class VideoCaptureSource extends InputType(
-  "av_capture_input_v2"
-)<{
+export class VideoCaptureSource extends InputType("av_capture_input_v2")<{
   device: string;
   device_name: string;
 }>() {}

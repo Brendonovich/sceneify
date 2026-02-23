@@ -1,8 +1,11 @@
 {
-  "name": "@sceneify/sources",
+  "name": "@sceneify/obs-to-code",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
+  "bin": {
+    "obs-to-code": "./src/cli.ts"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -15,10 +18,13 @@
     "types": "./dist/index.d.ts"
   },
   "dependencies": {
-    "@sceneify/core-rewrite": "workspace:*",
     "effect": "^3.12.0",
-    "tsgo": "npm:@typescript/native-preview",
-    "obs-websocket-js": "^5.0.6"
+    "@effect/cli": "latest",
+    "@effect/platform": "latest",
+    "@effect/platform-node": "latest",
+    "obs-websocket-js": "^5.0.6",
+    "@sceneify/core-rewrite": "workspace:*",
+    "@sceneify/sources": "workspace:*"
   },
   "devDependencies": {
     "@effect/language-service": "^0.62.5",
