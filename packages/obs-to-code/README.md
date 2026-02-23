@@ -96,35 +96,61 @@ export { chatOverlay, background, mainScene };
 
 ## Programmatic API
 
+The `generateCode` function is an Effect that fetches data from OBS and generates TypeScript code. It depends on the `OBSSocket` service, which you must provide via a Layer.
+
 ### Basic Usage
-
-```typescript
-import { generateFromOBS } from "@sceneify/obs-to-code";
-
-const code = await generateFromOBS({
-  url: "ws://localhost:4455",
-  password: "optional-password"
-});
-
-console.log(code);
-```
-
-### Effect-Based API
-
-For Effect users, use the `generateCode` function. It depends on the OBSSocket service, which you provide via layer:
 
 ```typescript
 import { Effect } from "effect";
 import { OBSSocket } from "@sceneify/core-rewrite";
 import { generateCode } from "@sceneify/obs-to-code";
 
-// generateCode only takes code generation options
-// The OBS connection is provided via the OBSSocket layer
-const program = generateCode({ allowInlineDefinitions: true }).pipe(
+const program = generateCode().pipe(
   Effect.provide(OBSSocket.layer({ 
     url: "ws://localhost:4455",
     password: "optional-password"
   }))
+);
+
+const code = await Effect.runPromise(program);
+console.log(code);
+```
+
+### With Options
+
+```typescript
+import { Effect } from "effect";
+import { OBSSocket } from "@sceneify/core-rewrite";
+import { generateCode } from "@sceneify/obs-to-code";
+
+const program = generateCode({ 
+  allowInlineDefinitions: false // Throw error for unknown types
+}).pipe(
+  Effect.provide(OBSSocket.layer({ url: "ws://localhost:4455" }))
+);
+
+const code = await Effect.runPromise(program);
+```
+
+### Composing with Other Effects
+
+Since `generateCode` returns an Effect, you can compose it with other Effect operations:
+
+```typescript
+import { Effect, Console } from "effect";
+import { OBSSocket } from "@sceneify/core-rewrite";
+import { generateCode } from "@sceneify/obs-to-code";
+
+const program = Effect.gen(function* () {
+  yield* Console.log("Fetching OBS data...");
+  
+  const code = yield* generateCode();
+  
+  yield* Console.log("Code generated successfully!");
+  
+  return code;
+}).pipe(
+  Effect.provide(OBSSocket.layer({ url: "ws://localhost:4455" }))
 );
 
 const code = await Effect.runPromise(program);
@@ -142,13 +168,26 @@ const code = await Effect.runPromise(program);
 
 The package uses Effect for all operations, providing:
 - Structured error handling
-- Proper resource management (WebSocket connections auto-cleanup)
+- Proper resource management (WebSocket connections auto-cleanup via Scope)
 - Type-safe error channels
 
 Errors that may occur:
-- Connection errors (can't connect to OBS)
-- Unknown input/filter kinds (when `allowInlineDefinitions: false`)
-- File system errors (when writing output files)
+- `ConnectionError` - Can't connect to OBS
+- `UnknownKindError` - Unknown input/filter kind (when `allowInlineDefinitions: false`)
+- `PlatformError` - File system errors (when writing output files)
+
+Handle errors using Effect's error handling:
+
+```typescript
+import { Effect } from "effect";
+
+const program = generateCode().pipe(
+  Effect.provide(OBSSocket.layer({ url: "ws://localhost:4455" })),
+  Effect.catchAll((error) => 
+    Effect.sync(() => console.error("Failed:", error))
+  )
+);
+```
 
 ## Features
 
@@ -159,7 +198,8 @@ Errors that may occur:
 - ✅ Maintains scene item ordering (index)
 - ✅ Handles unknown input/filter types with inline definitions
 - ✅ Generates unique, valid TypeScript variable names
-- ✅ Effect-based for composability and error handling
+- ✅ Pure Effect-based API for composability
+- ✅ Automatic resource cleanup via Effect Scope
 
 ## Requirements
 
