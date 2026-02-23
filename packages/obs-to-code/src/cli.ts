@@ -17,7 +17,7 @@ import { Console, Effect } from "effect";
 import { FileSystem } from "@effect/platform";
 import { NodeFileSystem } from "@effect/platform-node";
 import { OBSSocket } from "@sceneify/core-rewrite";
-import { generateCode, type GenerateFromOBSConfig } from "./index.ts";
+import { generateCode } from "./index.ts";
 
 interface CLIOptions {
   url: string;
@@ -117,13 +117,13 @@ const runCli = (argv: string[]) =>
 
     yield* Console.error(`Connecting to OBS at ${options.url}...`);
 
-    const config: GenerateFromOBSConfig = {
+    const config = {
       url: options.url,
       ...(options.password && { password: options.password }),
     };
 
     // Run the Effect-based generation
-    const code = yield* generateCode(config).pipe(
+    const code = yield* generateCode().pipe(
       Effect.provide(OBSSocket.layer(config))
     );
 

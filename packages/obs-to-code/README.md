@@ -111,18 +111,20 @@ console.log(code);
 
 ### Effect-Based API
 
-For Effect users, use the `generateCode` function:
+For Effect users, use the `generateCode` function. It depends on the OBSSocket service, which you provide via layer:
 
 ```typescript
 import { Effect } from "effect";
 import { OBSSocket } from "@sceneify/core-rewrite";
 import { generateCode } from "@sceneify/obs-to-code";
 
-const program = generateCode({
-  url: "ws://localhost:4455",
-  password: "optional-password"
-}).pipe(
-  Effect.provide(OBSSocket.layer({ url: "ws://localhost:4455" }))
+// generateCode only takes code generation options
+// The OBS connection is provided via the OBSSocket layer
+const program = generateCode({ allowInlineDefinitions: true }).pipe(
+  Effect.provide(OBSSocket.layer({ 
+    url: "ws://localhost:4455",
+    password: "optional-password"
+  }))
 );
 
 const code = await Effect.runPromise(program);
