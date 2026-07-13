@@ -1,7 +1,19 @@
 import { Effect } from "effect";
-import type { OBSData, OBSInput, OBSFilter, OBSScene, OBSSceneItem, OBSSceneItemTransform } from "./OBSFetcher.ts";
+import type {
+  OBSData,
+  OBSInput,
+  OBSFilter,
+  OBSScene,
+  OBSSceneItem,
+  OBSSceneItemTransform,
+} from "./OBSFetcher.ts";
 import { TypeRegistry, UnknownKindError } from "./TypeRegistry.ts";
-import { toCamelCase, generateUniqueName, formatValue, inferType } from "./utils.ts";
+import {
+  toCamelCase,
+  generateUniqueName,
+  formatValue,
+  inferSchema,
+} from "./utils.ts";
 
 /**
  * Options for code generation.
@@ -71,7 +83,9 @@ export class CodeGenerator {
 
     // Add inline type definitions for unknown types
     if (this.unknownInputs.size > 0 || this.unknownFilters.size > 0) {
-      lines.push("// ─── Inline Type Definitions ────────────────────────────────────────────────");
+      lines.push(
+        "// ─── Inline Type Definitions ────────────────────────────────────────────────"
+      );
       lines.push("");
       lines.push(...this.generateInlineTypeDefinitions());
       lines.push("");
@@ -79,7 +93,9 @@ export class CodeGenerator {
 
     // Add input declarations
     if (data.inputs.length > 0) {
-      lines.push("// ─── Input Declarations ─────────────────────────────────────────────────────");
+      lines.push(
+        "// ─── Input Declarations ─────────────────────────────────────────────────────"
+      );
       lines.push("");
       lines.push(...this.generateInputDeclarations(data.inputs));
       lines.push("");
@@ -87,14 +103,18 @@ export class CodeGenerator {
 
     // Add scene declarations
     if (data.scenes.length > 0) {
-      lines.push("// ─── Scene Declarations ─────────────────────────────────────────────────────");
+      lines.push(
+        "// ─── Scene Declarations ─────────────────────────────────────────────────────"
+      );
       lines.push("");
       lines.push(...this.generateSceneDeclarations(data.scenes));
       lines.push("");
     }
 
     // Add exports
-    lines.push("// ─── Exports ────────────────────────────────────────────────────────────────");
+    lines.push(
+      "// ─── Exports ────────────────────────────────────────────────────────────────"
+    );
     lines.push("");
     lines.push(...this.generateExports(data));
     lines.push("");
@@ -159,14 +179,18 @@ export class CodeGenerator {
     const lines: string[] = [];
 
     // Core imports
-    lines.push('import { Effect } from "effect";');
-    lines.push('import {');
-    lines.push('  InputType,');
-    lines.push('  FilterType,');
-    lines.push('  Input,');
-    lines.push('  Scene,');
-    lines.push('  OBSSocket,');
-    lines.push('  Sceneify,');
+    lines.push(
+      this.unknownInputs.size > 0 || this.unknownFilters.size > 0
+        ? 'import { Effect, Schema } from "effect";'
+        : 'import { Effect } from "effect";'
+    );
+    lines.push("import {");
+    lines.push("  InputType,");
+    lines.push("  FilterType,");
+    lines.push("  Input,");
+    lines.push("  Scene,");
+    lines.push("  OBSSocket,");
+    lines.push("  Sceneify,");
     lines.push('} from "@sceneify/core-rewrite";');
 
     // Sources imports
@@ -174,18 +198,18 @@ export class CodeGenerator {
     const usedFilterTypes = this.registry.getUsedFilterTypes();
 
     if (usedInputTypes.length > 0 || usedFilterTypes.length > 0) {
-      lines.push('import {');
-      
+      lines.push("import {");
+
       // Input types
       for (const typeName of usedInputTypes) {
         lines.push(`  ${typeName},`);
       }
-      
+
       // Filter types
       for (const typeName of usedFilterTypes) {
         lines.push(`  ${typeName},`);
       }
-      
+
       lines.push('} from "@sceneify/sources";');
     }
 
@@ -201,8 +225,10 @@ export class CodeGenerator {
     // Generate unknown input type definitions
     for (const [kind, input] of this.unknownInputs) {
       const className = this.generateInlineInputClassName(kind);
-      const settingsType = this.generateSettingsType(input.settings);
-      lines.push(`class ${className} extends InputType("${kind}")<${settingsType}>() {}`);
+      const settingsFields = this.generateSettingsFields(input.settings);
+      lines.push(
+        `class ${className} extends InputType("${kind}")(${settingsFields}) {}`
+      );
     }
 
     if (this.unknownInputs.size > 0) {
@@ -212,8 +238,10 @@ export class CodeGenerator {
     // Generate unknown filter type definitions
     for (const [kind, filter] of this.unknownFilters) {
       const className = this.generateInlineFilterClassName(kind);
-      const settingsType = this.generateSettingsType(filter.settings);
-      lines.push(`class ${className} extends FilterType("${kind}")<${settingsType}>() {}`);
+      const settingsFields = this.generateSettingsFields(filter.settings);
+      lines.push(
+        `class ${className} extends FilterType("${kind}")(${settingsFields}) {}`
+      );
     }
 
     return lines;
@@ -223,39 +251,46 @@ export class CodeGenerator {
    * Generates a class name for an unknown input kind.
    */
   private generateInlineInputClassName(kind: string): string {
-    return kind
-      .split("_")
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-      .join("") + "Input";
+    return (
+      kind
+        .split("_")
+        .map(
+          (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        )
+        .join("") + "Input"
+    );
   }
 
   /**
    * Generates a class name for an unknown filter kind.
    */
   private generateInlineFilterClassName(kind: string): string {
-    return kind
-      .split("_")
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-      .join("") + "Filter";
+    return (
+      kind
+        .split("_")
+        .map(
+          (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        )
+        .join("") + "Filter"
+    );
   }
 
   /**
-   * Generates a TypeScript type definition from settings.
+   * Generates Effect Schema struct fields from settings.
    */
-  private generateSettingsType(settings: Record<string, unknown>): string {
-    if (Object.keys(settings).length === 0) {
-      return "{}";
-    }
-
+  private generateSettingsFields(settings: Record<string, unknown>): string {
     const entries = Object.entries(settings);
-    const props = entries
-      .map(([key, val]) => {
-        const optional = val === undefined ? "?" : "";
-        return `  "${key}"${optional}: ${inferType(val)};`;
-      })
-      .join("\n");
+    if (entries.length === 0) return "{}";
 
-    return `{\n${props}\n}`;
+    const fields = entries
+      .map(([key, value]) => {
+        const schema = inferSchema(value);
+        return `${JSON.stringify(key)}: ${
+          value === undefined ? `Schema.optional(${schema})` : schema
+        }`;
+      })
+      .join(", ");
+    return `{ ${fields} }`;
   }
 
   /**
@@ -267,7 +302,7 @@ export class CodeGenerator {
     for (const input of inputs) {
       const varName = this.inputVarNames.get(input.name)!;
       const typeName = this.getInputTypeName(input.kind);
-      
+
       lines.push(...this.generateInputDeclaration(varName, typeName, input));
     }
 
@@ -295,26 +330,26 @@ export class CodeGenerator {
     // Filters
     if (input.filters.length > 0) {
       lines.push(`  filters: {`);
-      
+
       for (const filter of input.filters) {
         const filterKey = toCamelCase(filter.name);
         const filterTypeName = this.getFilterTypeName(filter.kind);
-        
+
         lines.push(`    ${filterKey}: {`);
         lines.push(`      type: ${filterTypeName},`);
         lines.push(`      name: ${formatValue(filter.name)},`);
-        
+
         if (Object.keys(filter.settings).length > 0) {
           lines.push(`      settings: ${formatValue(filter.settings, 3)},`);
         }
-        
+
         if (!filter.enabled) {
           lines.push(`      enabled: false,`);
         }
-        
+
         lines.push(`    },`);
       }
-      
+
       lines.push(`  },`);
     }
 
@@ -373,7 +408,7 @@ export class CodeGenerator {
     for (const item of scene.items) {
       const itemKey = toCamelCase(item.sourceName);
       const inputVarName = this.inputVarNames.get(item.sourceName);
-      
+
       if (!inputVarName) {
         // This is a scene reference or other non-input source
         continue;
@@ -407,7 +442,9 @@ export class CodeGenerator {
     // Transform
     const transform = this.cleanTransform(item.transform);
     if (Object.keys(transform).length > 0) {
-      lines.push(`${indentStr}  transform: ${formatValue(transform, indent + 1)},`);
+      lines.push(
+        `${indentStr}  transform: ${formatValue(transform, indent + 1)},`
+      );
     }
 
     // Enabled state
@@ -431,9 +468,11 @@ export class CodeGenerator {
   /**
    * Removes undefined/null values from transform.
    */
-  private cleanTransform(transform: OBSSceneItemTransform): OBSSceneItemTransform {
+  private cleanTransform(
+    transform: OBSSceneItemTransform
+  ): OBSSceneItemTransform {
     const result: OBSSceneItemTransform = {};
-    
+
     for (const [key, value] of Object.entries(transform)) {
       if (value !== undefined && value !== null) {
         (result as any)[key] = value;

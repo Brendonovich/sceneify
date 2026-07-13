@@ -1,19 +1,20 @@
 import { describe, expect, expectTypeOf } from "vitest";
 import { it } from "@effect/vitest";
 import { InputType, type InputTypeSettings } from "../src/InputType.js";
+import { Schema } from "effect";
 
 describe("InputType", () => {
-  class BrowserSource extends InputType("browser_source")<{
-    url: string;
-    width: number;
-    height: number;
-  }>() {}
+  class BrowserSource extends InputType("browser_source")({
+    url: Schema.String,
+    width: Schema.Number,
+    height: Schema.Number,
+  }) {}
 
-  class ColorSource extends InputType("color_source_v3")<{
-    color: number;
-    width: number;
-    height: number;
-  }>() {}
+  class ColorSource extends InputType("color_source_v3")({
+    color: Schema.Number,
+    width: Schema.Number,
+    height: Schema.Number,
+  }) {}
 
   it("should create an InputType class", () => {
     expect(BrowserSource).toBeDefined();
@@ -22,6 +23,20 @@ describe("InputType", () => {
   it("should have a static kind property matching the OBS kind", () => {
     expect(BrowserSource.kind).toBe("browser_source");
     expect(ColorSource.kind).toBe("color_source_v3");
+  });
+
+  it("should expose its settings schema", () => {
+    expect(
+      Schema.decodeUnknownSync(BrowserSource.schema)({
+        url: "https://example.com",
+        width: 1920,
+        height: 1080,
+      })
+    ).toEqual({
+      url: "https://example.com",
+      width: 1920,
+      height: 1080,
+    });
   });
 
   it("should expose settings type through InputTypeSettings helper", () => {

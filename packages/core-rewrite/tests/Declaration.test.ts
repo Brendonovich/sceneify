@@ -4,19 +4,20 @@ import { InputType, type InputTypeSettings } from "../src/InputType.js";
 import { FilterType, type FilterTypeSettings } from "../src/FilterType.js";
 import { Input } from "../src/Input.js";
 import { Scene } from "../src/Scene.js";
+import { Schema } from "effect";
 
 describe("Declaration APIs", () => {
-  class BrowserSource extends InputType("browser_source")<{
-    url: string;
-    width: number;
-    height: number;
-  }>() {}
+  class BrowserSource extends InputType("browser_source")({
+    url: Schema.String,
+    width: Schema.Number,
+    height: Schema.Number,
+  }) {}
 
-  class ColorCorrection extends FilterType("color_filter_v2")<{
-    gamma: number;
-    contrast: number;
-    brightness: number;
-  }>() {}
+  class ColorCorrection extends FilterType("color_filter_v2")({
+    gamma: Schema.Number,
+    contrast: Schema.Number,
+    brightness: Schema.Number,
+  }) {}
 
   describe("Input.declare", () => {
     it("should create an input declaration", () => {

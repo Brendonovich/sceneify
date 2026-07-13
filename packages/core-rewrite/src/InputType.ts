@@ -1,3 +1,10 @@
+import * as Schema from "effect/Schema";
+import {
+  makeSettingsSchema,
+  type SettingsFields,
+  type SettingsFieldsType,
+} from "./SettingsSchema.ts";
+
 const InputTypeSettingsBrand = Symbol.for(
   "@sceneify/core-rewrite/InputTypeSettings"
 );
@@ -10,13 +17,13 @@ export interface InputTypeBrand<Settings> {
 }
 
 /**
- * A generic class constructor that carries a Kind and Settings brand.
- * This is what InputType(kind) returns - a generic class that can be
- * extended with type arguments: `class X extends InputType("kind")<Settings>() {}`
+ * A class constructor that carries an OBS kind and settings schema.
+ * This is what `InputType(kind)(fields)` returns.
  */
 export interface InputType<Kind extends string = string, Settings = any>
   extends InputTypeBrand<Settings> {
   readonly kind: Kind;
+  readonly schema: Schema.Schema<Settings, unknown, any>;
   new (_: never): {};
 }
 
@@ -25,10 +32,10 @@ export interface InputType<Kind extends string = string, Settings = any>
  *
  * Usage:
  * ```ts
- * class BrowserSource extends InputType("browser_source")<{
- *   url: string;
- *   width: number;
- * }> {}
+ * class BrowserSource extends InputType("browser_source")({
+ *   url: Schema.String,
+ *   width: Schema.Number,
+ * }) {}
  *
  * BrowserSource.kind // "browser_source"
  * type Settings = InputTypeSettings<typeof BrowserSource>; // { url: string; width: number; }
@@ -36,9 +43,13 @@ export interface InputType<Kind extends string = string, Settings = any>
  */
 export const InputType: <const Kind extends string>(
   kind: Kind
-) => <Settings>() => InputType<Kind, Settings> = (kind) => () => {
+) => <Fields extends SettingsFields>(
+  fields: Fields
+) => InputType<Kind, SettingsFieldsType<Fields>> = (kind) => (fields) => {
+  const schema = makeSettingsSchema(fields);
   const cls = class {
     static readonly kind = kind;
+    static readonly schema = schema;
   };
 
   return cls as any;

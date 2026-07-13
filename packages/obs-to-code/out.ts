@@ -4,6 +4,7 @@
  */
 
 import { FilterType, Input, Scene } from "@sceneify/core-rewrite";
+import { Schema } from "effect";
 import {
   BrowserSource,
   ColorSource,
@@ -18,20 +19,20 @@ import {
 
 // ─── Inline Type Definitions ────────────────────────────────────────────────
 
-class ShaderFilterFilter extends FilterType("shader_filter")<{
-  corner_radius: number;
-  from_file: boolean;
-  override_entire_effect: boolean;
-  shader_file_name: string;
-}>() {}
-class ObsCompositeBlurFilter extends FilterType("obs_composite_blur")<{
-  blur_algorithm: number;
-  blur_type: number;
-  kawase_passes: number;
-  pixelate_origin_x: number;
-  pixelate_origin_y: number;
-  radius: number;
-}>() {}
+class ShaderFilterFilter extends FilterType("shader_filter")({
+  corner_radius: Schema.Number,
+  from_file: Schema.Boolean,
+  override_entire_effect: Schema.Boolean,
+  shader_file_name: Schema.String,
+}) {}
+class ObsCompositeBlurFilter extends FilterType("obs_composite_blur")({
+  blur_algorithm: Schema.Number,
+  blur_type: Schema.Number,
+  kawase_passes: Schema.Number,
+  pixelate_origin_x: Schema.Number,
+  pixelate_origin_y: Schema.Number,
+  radius: Schema.Number,
+}) {}
 
 // ─── Input Declarations ─────────────────────────────────────────────────────
 

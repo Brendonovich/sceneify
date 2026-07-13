@@ -1,3 +1,10 @@
+import * as Schema from "effect/Schema";
+import {
+  makeSettingsSchema,
+  type SettingsFields,
+  type SettingsFieldsType,
+} from "./SettingsSchema.ts";
+
 const FilterTypeSettingsBrand = Symbol.for(
   "@sceneify/core-rewrite/FilterTypeSettings"
 );
@@ -10,13 +17,13 @@ export interface FilterTypeBrand<Settings> {
 }
 
 /**
- * A generic class constructor that carries a Kind and Settings brand.
- * This is what FilterType(kind) returns - a generic class that can be
- * extended with type arguments: `class X extends FilterType("kind")<Settings>() {}`
+ * A class constructor that carries an OBS kind and settings schema.
+ * This is what `FilterType(kind)(fields)` returns.
  */
 export interface FilterType<Kind extends string = string, Settings = any>
   extends FilterTypeBrand<Settings> {
   readonly kind: Kind;
+  readonly schema: Schema.Schema<Settings, unknown, any>;
   new (_: never): {};
 }
 
@@ -25,10 +32,10 @@ export interface FilterType<Kind extends string = string, Settings = any>
  *
  * Usage:
  * ```ts
- * class ColorCorrection extends FilterType("color_filter_v2")<{
- *   gamma: number;
- *   contrast: number;
- * }> {}
+ * class ColorCorrection extends FilterType("color_filter_v2")({
+ *   gamma: Schema.Number,
+ *   contrast: Schema.Number,
+ * }) {}
  *
  * ColorCorrection.kind // "color_filter_v2"
  * type Settings = FilterTypeSettings<typeof ColorCorrection>; // { gamma: number; contrast: number; }
@@ -36,9 +43,13 @@ export interface FilterType<Kind extends string = string, Settings = any>
  */
 export const FilterType: <const Kind extends string>(
   kind: Kind
-) => <Settings>() => FilterType<Kind, Settings> = (kind) => () => {
+) => <Fields extends SettingsFields>(
+  fields: Fields
+) => FilterType<Kind, SettingsFieldsType<Fields>> = (kind) => (fields) => {
+  const schema = makeSettingsSchema(fields);
   const cls = class {
     static readonly kind = kind;
+    static readonly schema = schema;
   };
 
   return cls as any;
@@ -53,10 +64,6 @@ export const FilterType: <const Kind extends string>(
  * // => { gamma: number; contrast: number; }
  * ```
  */
-export type FilterTypeSettings<T> = T extends {
-  new (): FilterTypeBrand<infer Settings>;
-}
-  ? Settings
-  : T extends FilterTypeBrand<infer Settings>
+export type FilterTypeSettings<T> = T extends FilterType<any, infer Settings>
   ? Settings
   : never;

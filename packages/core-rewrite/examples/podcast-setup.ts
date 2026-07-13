@@ -7,7 +7,7 @@
  * - Runtime audio adjustments
  */
 
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import {
   InputType,
   FilterType,
@@ -19,42 +19,38 @@ import {
 
 // ─── Input Types ─────────────────────────────────────────────────────────────
 
-class VideoCaptureSource extends InputType("av_capture_input_v2")<{
-  device: string;
-  device_name: string;
-}>() {}
+class VideoCaptureSource extends InputType("av_capture_input_v2")({
+  device: Schema.String,
+  device_name: Schema.String,
+}) {}
 
-class AudioInputCapture extends InputType("coreaudio_input_capture")<{
-  device_id: string;
-}>() {}
+class AudioInputCapture extends InputType("coreaudio_input_capture")({
+  device_id: Schema.String,
+}) {}
 
-class ColorSource extends InputType("color_source_v3")<{
-  color: number;
-  width: number;
-  height: number;
-}>() {}
+class ColorSource extends InputType("color_source_v3")({
+  color: Schema.Number,
+  width: Schema.Number,
+  height: Schema.Number,
+}) {}
 
-class ImageSource extends InputType("image_source")<{
-  file: string;
-}>() {}
+class ImageSource extends InputType("image_source")({ file: Schema.String }) {}
 
 // ─── Filter Types ────────────────────────────────────────────────────────────
 
-class NoiseSuppressFilter extends FilterType("noise_suppress_filter_v2")<{
-  method: "speex" | "rnnoise" | "nvafx";
-}>() {}
+class NoiseSuppressFilter extends FilterType("noise_suppress_filter_v2")({
+  method: Schema.Literal("speex", "rnnoise", "nvafx"),
+}) {}
 
-class NoiseGateFilter extends FilterType("noise_gate_filter")<{
-  open_threshold: number;
-  close_threshold: number;
-  attack_time: number;
-  hold_time: number;
-  release_time: number;
-}>() {}
+class NoiseGateFilter extends FilterType("noise_gate_filter")({
+  open_threshold: Schema.Number,
+  close_threshold: Schema.Number,
+  attack_time: Schema.Number,
+  hold_time: Schema.Number,
+  release_time: Schema.Number,
+}) {}
 
-class GainFilter extends FilterType("gain_filter")<{
-  db: number;
-}>() {}
+class GainFilter extends FilterType("gain_filter")({ db: Schema.Number }) {}
 
 // ─── Inputs (with inline filters) ───────────────────────────────────────────
 

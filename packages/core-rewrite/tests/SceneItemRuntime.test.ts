@@ -1,16 +1,16 @@
 import { describe, expect } from "vitest";
 import { it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { InputType } from "../src/InputType.js";
 import { Input } from "../src/Input.js";
 import { SceneItem } from "../src/SceneItem.js";
 import { createMockOBSSocket, type CallHandler } from "./helpers.js";
 
-class BrowserSource extends InputType("browser_source")<{
-  url: string;
-  width: number;
-  height: number;
-}>() {}
+class BrowserSource extends InputType("browser_source")({
+  url: Schema.String,
+  width: Schema.Number,
+  height: Schema.Number,
+}) {}
 
 const createTestSceneItem = Effect.fnUntraced(function* (options?: {
   declared?: boolean;

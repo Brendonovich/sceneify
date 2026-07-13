@@ -1,15 +1,15 @@
 import { describe, expect } from "vitest";
 import { it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { FilterType } from "../src/FilterType.js";
 import { createMockOBSSocket, type CallHandler } from "./helpers.js";
 import { Filter } from "../src/Filter.js";
 
-class ColorCorrection extends FilterType("color_filter_v2")<{
-  gamma: number;
-  contrast: number;
-  brightness: number;
-}>() {}
+class ColorCorrection extends FilterType("color_filter_v2")({
+  gamma: Schema.Number,
+  contrast: Schema.Number,
+  brightness: Schema.Number,
+}) {}
 
 const createTestFilter = Effect.fn(function* (
   handlers: Record<string, CallHandler> = {}

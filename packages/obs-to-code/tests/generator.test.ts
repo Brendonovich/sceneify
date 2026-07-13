@@ -174,7 +174,9 @@ describe("CodeGenerator", () => {
       };
 
       const registry = new TypeRegistry();
-      const generator = new CodeGenerator(registry, { allowInlineDefinitions: false });
+      const generator = new CodeGenerator(registry, {
+        allowInlineDefinitions: false,
+      });
 
       const result = yield* Effect.either(generator.generate(dataWithUnknown));
 
@@ -182,34 +184,43 @@ describe("CodeGenerator", () => {
     })
   );
 
-  it.effect("should generate inline definitions for unknown types when allowed", () =>
-    Effect.gen(function* () {
-      const dataWithUnknown: OBSData = {
-        inputs: [
-          {
-            name: "Unknown Input",
-            kind: "custom_unknown_kind",
-            settings: { custom_prop: "value" },
-            filters: [],
-          },
-        ],
-        scenes: [],
-      };
+  it.effect(
+    "should generate inline definitions for unknown types when allowed",
+    () =>
+      Effect.gen(function* () {
+        const dataWithUnknown: OBSData = {
+          inputs: [
+            {
+              name: "Unknown Input",
+              kind: "custom_unknown_kind",
+              settings: { custom_prop: "value" },
+              filters: [],
+            },
+          ],
+          scenes: [],
+        };
 
-      const registry = new TypeRegistry();
-      const generator = new CodeGenerator(registry, { allowInlineDefinitions: true });
-      const code = yield* generator.generate(dataWithUnknown);
+        const registry = new TypeRegistry();
+        const generator = new CodeGenerator(registry, {
+          allowInlineDefinitions: true,
+        });
+        const code = yield* generator.generate(dataWithUnknown);
 
-      expect(code).toContain("class CustomUnknownKindInput extends InputType");
-      expect(code).toContain('"custom_unknown_kind"');
-    })
+        expect(code).toContain(
+          "class CustomUnknownKindInput extends InputType"
+        );
+        expect(code).toContain('"custom_unknown_kind"');
+        expect(code).toContain(
+          'InputType("custom_unknown_kind")({ "custom_prop": Schema.String })'
+        );
+      })
   );
 });
 
 describe("TypeRegistry", () => {
   it("should map known input kinds correctly", () => {
     const registry = new TypeRegistry();
-    
+
     expect(registry.getInputTypeName("browser_source")).toBe("BrowserSource");
     expect(registry.getInputTypeName("color_source_v3")).toBe("ColorSource");
     expect(registry.getInputTypeName("image_source")).toBe("ImageSource");
@@ -217,25 +228,29 @@ describe("TypeRegistry", () => {
 
   it("should map known filter kinds correctly", () => {
     const registry = new TypeRegistry();
-    
-    expect(registry.getFilterTypeName("chroma_key_filter_v2")).toBe("ChromaKeyFilter");
-    expect(registry.getFilterTypeName("color_filter_v2")).toBe("ColorCorrectionFilter");
+
+    expect(registry.getFilterTypeName("chroma_key_filter_v2")).toBe(
+      "ChromaKeyFilter"
+    );
+    expect(registry.getFilterTypeName("color_filter_v2")).toBe(
+      "ColorCorrectionFilter"
+    );
     expect(registry.getFilterTypeName("gain_filter")).toBe("GainFilter");
   });
 
   it("should return undefined for unknown kinds", () => {
     const registry = new TypeRegistry();
-    
+
     expect(registry.getInputTypeName("unknown_kind")).toBeUndefined();
     expect(registry.getFilterTypeName("unknown_filter")).toBeUndefined();
   });
 
   it("should track used types", () => {
     const registry = new TypeRegistry();
-    
+
     registry.markInputTypeUsed("browser_source");
     registry.markFilterTypeUsed("chroma_key_filter_v2");
-    
+
     expect(registry.getUsedInputTypes()).toContain("BrowserSource");
     expect(registry.getUsedFilterTypes()).toContain("ChromaKeyFilter");
   });

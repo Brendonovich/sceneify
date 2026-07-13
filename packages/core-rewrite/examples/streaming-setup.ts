@@ -9,7 +9,7 @@
  * 5. Manipulate runtime objects
  */
 
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import {
   InputType,
   FilterType,
@@ -21,45 +21,43 @@ import {
 
 // ─── 1. Define Input Types ──────────────────────────────────────────────────
 
-class BrowserSource extends InputType("browser_source")<{
-  url: string;
-  width: number;
-  height: number;
-  css: string;
-}>() {}
+class BrowserSource extends InputType("browser_source")({
+  url: Schema.String,
+  width: Schema.Number,
+  height: Schema.Number,
+  css: Schema.String,
+}) {}
 
-class ColorSource extends InputType("color_source_v3")<{
-  color: number;
-  width: number;
-  height: number;
-}>() {}
+class ColorSource extends InputType("color_source_v3")({
+  color: Schema.Number,
+  width: Schema.Number,
+  height: Schema.Number,
+}) {}
 
-class ImageSource extends InputType("image_source")<{
-  file: string;
-}>() {}
+class ImageSource extends InputType("image_source")({ file: Schema.String }) {}
 
-class MediaSource extends InputType("ffmpeg_source")<{
-  local_file: string;
-  looping: boolean;
-  hw_decode: boolean;
-}>() {}
+class MediaSource extends InputType("ffmpeg_source")({
+  local_file: Schema.String,
+  looping: Schema.Boolean,
+  hw_decode: Schema.Boolean,
+}) {}
 
 // ─── 2. Define Filter Types ─────────────────────────────────────────────────
 
-class ColorCorrectionFilter extends FilterType("color_filter_v2")<{
-  gamma: number;
-  contrast: number;
-  brightness: number;
-  saturation: number;
-  hue_shift: number;
-  opacity: number;
-}>() {}
+class ColorCorrectionFilter extends FilterType("color_filter_v2")({
+  gamma: Schema.Number,
+  contrast: Schema.Number,
+  brightness: Schema.Number,
+  saturation: Schema.Number,
+  hue_shift: Schema.Number,
+  opacity: Schema.Number,
+}) {}
 
-class ChromaKeyFilter extends FilterType("chroma_key_filter_v2")<{
-  similarity: number;
-  smoothness: number;
-  key_color_type: string;
-}>() {}
+class ChromaKeyFilter extends FilterType("chroma_key_filter_v2")({
+  similarity: Schema.Number,
+  smoothness: Schema.Number,
+  key_color_type: Schema.String,
+}) {}
 
 // ─── 3. Declare Inputs (with inline filters) ────────────────────────────────
 
