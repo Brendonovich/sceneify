@@ -3,6 +3,7 @@ export * from "./errors.ts";
 
 // Services
 export * as OBSSocket from "./OBSSocket.ts";
+export * as MockOBSSocket from "./MockOBSSocket.ts";
 export * as Sceneify from "./Sceneify.ts";
 
 // Types

@@ -4,7 +4,8 @@ import { Effect, Schema } from "effect";
 import { InputType } from "../src/InputType.js";
 import { Input } from "../src/Input.js";
 import { SceneItem } from "../src/SceneItem.js";
-import { createMockOBSSocket, type CallHandler } from "./helpers.js";
+import { MockOBSSocket } from "../src/index.js";
+import { createMockOBSSocket } from "./helpers.js";
 
 class BrowserSource extends InputType("browser_source")({
   url: Schema.String,
@@ -14,9 +15,40 @@ class BrowserSource extends InputType("browser_source")({
 
 const createTestSceneItem = Effect.fnUntraced(function* (options?: {
   declared?: boolean;
-  handlers?: Record<string, CallHandler>;
+  mock?: MockOBSSocket.Options;
 }) {
-  const mock = createMockOBSSocket({ handlers: options?.handlers });
+  const mock = createMockOBSSocket({
+    inputs: [
+      {
+        name: "Chat",
+        kind: "browser_source",
+        settings: { width: 1920, height: 1080 },
+      },
+      { name: "Camera", kind: "av_capture_input_v2" },
+      { name: "Logo", kind: "image_source" },
+    ],
+    scenes: [
+      {
+        name: "Main Scene",
+        items: [
+          {
+            id: 42,
+            sourceName: "Chat",
+            transform: {
+              positionX: 100,
+              positionY: 200,
+              scaleX: 1,
+              scaleY: 1,
+              rotation: 0,
+            },
+          },
+          { id: 43, sourceName: "Camera" },
+          { id: 44, sourceName: "Logo" },
+        ],
+      },
+    ],
+    ...options?.mock,
+  });
   const input = yield* Input.make<typeof BrowserSource>(
     "Chat",
     "browser_source"
@@ -27,7 +59,7 @@ const createTestSceneItem = Effect.fnUntraced(function* (options?: {
     input,
     options?.declared ?? true
   ).pipe(Effect.provide(mock.layer));
-  return { item, calls: mock.calls };
+  return { item, calls: mock.calls, snapshot: mock.snapshot };
 });
 
 describe("SceneItem", () => {
@@ -54,15 +86,9 @@ describe("SceneItem", () => {
           rotation: 0,
         };
 
-        const { item, calls } = yield* createTestSceneItem({
-          handlers: {
-            GetSceneItemTransform: () => ({
-              sceneItemTransform: mockTransform,
-            }),
-          },
-        });
+        const { item, calls } = yield* createTestSceneItem();
 
-        expect(yield* item.getTransform()).toEqual(mockTransform);
+        expect(yield* item.getTransform()).toMatchObject(mockTransform);
         expect(calls[0]?.requestData).toEqual({
           sceneName: "Main Scene",
           sceneItemId: 42,
@@ -73,9 +99,7 @@ describe("SceneItem", () => {
   describe("setTransform", () => {
     it("should set transform on OBS", () =>
       Effect.gen(function* () {
-        const { item, calls } = yield* createTestSceneItem({
-          handlers: { SetSceneItemTransform: () => ({}) },
-        });
+        const { item, calls, snapshot } = yield* createTestSceneItem();
 
         yield* item.setTransform({ positionX: 300, positionY: 400 });
 
@@ -87,15 +111,19 @@ describe("SceneItem", () => {
             sceneItemTransform: { positionX: 300, positionY: 400 },
           },
         });
+        expect(snapshot().scenes[0]?.items[0]?.transform).toMatchObject({
+          positionX: 300,
+          positionY: 400,
+          scaleX: 1,
+          scaleY: 1,
+        });
       }));
   });
 
   describe("setEnabled", () => {
     it("should set enabled state on OBS", () =>
       Effect.gen(function* () {
-        const { item, calls } = yield* createTestSceneItem({
-          handlers: { SetSceneItemEnabled: () => ({}) },
-        });
+        const { item, calls, snapshot } = yield* createTestSceneItem();
 
         yield* item.setEnabled(false);
 
@@ -107,15 +135,14 @@ describe("SceneItem", () => {
             sceneItemEnabled: false,
           },
         });
+        expect(snapshot().scenes[0]?.items[0]?.enabled).toBe(false);
       }));
   });
 
   describe("setLocked", () => {
     it("should set locked state on OBS", () =>
       Effect.gen(function* () {
-        const { item, calls } = yield* createTestSceneItem({
-          handlers: { SetSceneItemLocked: () => ({}) },
-        });
+        const { item, calls, snapshot } = yield* createTestSceneItem();
 
         yield* item.setLocked(true);
 
@@ -127,15 +154,14 @@ describe("SceneItem", () => {
             sceneItemLocked: true,
           },
         });
+        expect(snapshot().scenes[0]?.items[0]?.locked).toBe(true);
       }));
   });
 
   describe("setIndex", () => {
     it("should set index on OBS", () =>
       Effect.gen(function* () {
-        const { item, calls } = yield* createTestSceneItem({
-          handlers: { SetSceneItemIndex: () => ({}) },
-        });
+        const { item, calls, snapshot } = yield* createTestSceneItem();
 
         yield* item.setIndex(3);
 
@@ -147,6 +173,9 @@ describe("SceneItem", () => {
             sceneItemIndex: 3,
           },
         });
+        expect(snapshot().scenes[0]?.items.map(({ id }) => id)).toEqual([
+          43, 44, 42,
+        ]);
       }));
   });
 
@@ -155,7 +184,6 @@ describe("SceneItem", () => {
       Effect.gen(function* () {
         const { item } = yield* createTestSceneItem({
           declared: true,
-          handlers: { RemoveSceneItem: () => ({}) },
         });
 
         const either = yield* Effect.either(item.remove());
@@ -164,9 +192,8 @@ describe("SceneItem", () => {
 
     it("should succeed for dynamically created items", () =>
       Effect.gen(function* () {
-        const { item, calls } = yield* createTestSceneItem({
+        const { item, calls, snapshot } = yield* createTestSceneItem({
           declared: false,
-          handlers: { RemoveSceneItem: () => ({}) },
         });
 
         yield* item.remove();
@@ -178,13 +205,15 @@ describe("SceneItem", () => {
             sceneItemId: 42,
           },
         });
+        expect(snapshot().scenes[0]?.items.map(({ id }) => id)).toEqual([
+          43, 44,
+        ]);
       }));
 
     it("should not send any OBS calls when removing a declared item", () =>
       Effect.gen(function* () {
         const { item, calls } = yield* createTestSceneItem({
           declared: true,
-          handlers: { RemoveSceneItem: () => ({}) },
         });
 
         yield* Effect.either(item.remove());

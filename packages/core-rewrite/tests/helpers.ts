@@ -1,85 +1,46 @@
 import { Effect, Layer } from "effect";
-import { OBSSocket, type OBSError } from "../src/index.js";
+import { MockOBSSocket, OBSSocket } from "../src/index.js";
 import * as SceneifyModule from "../src/Sceneify.js";
 
-/**
- * A recorded OBS call for test assertions.
- */
-export interface RecordedCall {
-  requestType: string;
-  requestData?: Record<string, unknown>;
-}
+export type MockOBSSocketOptions = MockOBSSocket.Options;
 
 /**
- * A handler for a specific OBS request type.
- * Can return data or throw to simulate errors.
- */
-export type CallHandler = (requestData?: Record<string, unknown>) => unknown;
-
-/**
- * Options for creating a mock OBS socket.
- */
-export interface MockOBSSocketOptions {
-  /**
-   * Map of request type -> handler function.
-   * If a handler is not provided for a request type, it returns {}.
-   */
-  handlers?: Record<string, CallHandler>;
-}
-
-/**
- * Creates a mock OBSSocket for testing.
- *
- * Returns the service object, a Layer for Effect context, and recorded calls.
+ * Creates the stateful in-memory OBS implementation used by tests.
  */
 export function createMockOBSSocket(options: MockOBSSocketOptions = {}) {
-  const calls: RecordedCall[] = [];
-  const handlers = options.handlers ?? {};
+  const mock = MockOBSSocket.make(options);
 
-  const service: OBSSocket.OBSSocket = {
-    call: (requestType, requestData) => {
-      calls.push({ requestType, requestData });
+  // Existing tests retain this array reference. Forward reads to the mock's
+  // current immutable call list as each request replaces it.
+  const calls = new Proxy([] as MockOBSSocket.RecordedCall[], {
+    get: (_target, property) => Reflect.get(mock.calls, property, mock.calls),
+    has: (_target, property) => Reflect.has(mock.calls, property),
+  });
 
-      const handler = handlers[requestType];
-      if (handler) {
-        return Effect.try({
-          try: () => handler(requestData) as any,
-          catch: (error) => error as OBSError,
-        });
-      }
-
-      return Effect.succeed({} as any);
-    },
-    ws: null as any, // Not needed for unit tests
+  return {
+    service: mock.service,
+    layer: mock.layer,
+    calls,
+    snapshot: mock.snapshot,
   };
-
-  const layer = Layer.succeed(OBSSocket.OBSSocket, service);
-
-  return { service, layer, calls };
 }
 
 /**
- * Creates a combined test layer with mock OBSSocket and a fresh Sceneify service.
+ * Creates a combined test layer with in-memory OBS and fresh Sceneify state.
  */
 export function createTestLayer(options: MockOBSSocketOptions = {}) {
   const mock = createMockOBSSocket(options);
   const testLayer = Layer.merge(mock.layer, SceneifyModule.layer);
-  return { layer: testLayer, calls: mock.calls, service: mock.service };
+  return { ...mock, layer: testLayer };
 }
 
-/**
- * Runs an Effect with mock OBSSocket and Sceneify layers.
- * Returns a promise of the result.
- */
 export function runEffect<A, E>(
   effect: Effect.Effect<A, E, OBSSocket.OBSSocket | SceneifyModule.Sceneify>,
   options: MockOBSSocketOptions = {}
 ) {
   const { layer, calls } = createTestLayer(options);
-
   const run = Effect.runPromise(
     effect.pipe(Effect.scoped, Effect.provide(layer))
   );
-
   return { result: run as Promise<A>, calls };
 }

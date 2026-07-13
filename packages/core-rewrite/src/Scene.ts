@@ -1,16 +1,16 @@
 import { Effect } from "effect";
-import { Input } from "./Input.ts";
-import type { InputType, InputTypeSettings } from "./InputType.ts";
 import {
   InputAlreadyExistsError,
   NameConflictError,
   type OBSError,
 } from "./errors.ts";
-import { OBSSocket } from "./OBSSocket.ts";
-import { Sceneify } from "./Sceneify.ts";
-import { SceneItem } from "./SceneItem.ts";
 import { Filter } from "./Filter.ts";
 import type { FilterType } from "./FilterType.ts";
+import { Input } from "./Input.ts";
+import type { InputType, InputTypeSettings } from "./InputType.ts";
+import { OBSSocket } from "./OBSSocket.ts";
+import { SceneItem } from "./SceneItem.ts";
+import { Sceneify } from "./Sceneify.ts";
 
 const SOURCE_ALREADY_EXISTS_RE = /a source already exists by that input name/i;
 
@@ -92,11 +92,8 @@ export namespace Scene {
   }
 
   export const sync = <
-    const TItems extends Record<
-      string,
-      Input.Declaration<InputType<string, any>>
-    >,
-    const TFilters extends Record<string, FilterType>
+    TItems extends Record<string, Input.Declaration<InputType<string, any>>>,
+    TFilters extends Record<string, FilterType>
   >(
     declaration: SceneDeclaration<TItems, TFilters>
   ) => {
@@ -424,8 +421,8 @@ export namespace Scene {
   };
 
   export const declare = <
-    const TItems extends Record<string, Input.Declaration<any>>,
-    const TFilters extends Record<string, FilterType> = {}
+    TItems extends Record<string, Input.Declaration<any>>,
+    TFilters extends Record<string, FilterType> = {}
   >(options: {
     name: string;
     items: ItemsDeclaration<TItems>;

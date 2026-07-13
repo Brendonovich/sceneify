@@ -6,7 +6,7 @@ import { FilterType } from "../src/FilterType.js";
 import { Input } from "../src/Input.js";
 import { Scene } from "../src/Scene.js";
 import { Sceneify } from "../src/Sceneify.js";
-import { createTestLayer, type CallHandler } from "./helpers.js";
+import { createTestLayer } from "./helpers.js";
 
 // Test InputTypes
 class BrowserSource extends InputType("browser_source")({
@@ -28,30 +28,6 @@ class ColorCorrection extends FilterType("color_filter_v2")({
   brightness: Schema.Number,
 }) {}
 
-// Default handlers for fresh scene creation (no existing scenes/items)
-function freshSceneHandlers(
-  overrides: Record<string, CallHandler> = {}
-): Record<string, CallHandler> {
-  let sceneItemIdCounter = 1;
-  return {
-    GetSceneList: () => ({ scenes: [] }),
-    CreateScene: () => ({}),
-    GetSceneItemList: () => ({ sceneItems: [] }),
-    CreateInput: () => ({ sceneItemId: sceneItemIdCounter++ }),
-    CreateSceneItem: () => ({ sceneItemId: sceneItemIdCounter++ }),
-    SetInputSettings: () => ({}),
-    SetSceneItemTransform: () => ({}),
-    SetSceneItemEnabled: () => ({}),
-    SetSceneItemLocked: () => ({}),
-    // Private settings defaults — stamp/read ownership
-    SetSourcePrivateSettings: () => ({}),
-    GetSourcePrivateSettings: () => ({
-      sourceSettings: { SCENEIFY: { init: "created" } },
-    }),
-    ...overrides,
-  };
-}
-
 describe("Scene.sync", () => {
   it.scoped("should create a scene in OBS when it does not exist", () => {
     const chatInput = Input.declare(BrowserSource, {
@@ -66,9 +42,7 @@ describe("Scene.sync", () => {
       },
     });
 
-    const { layer, calls } = createTestLayer({
-      handlers: freshSceneHandlers(),
-    });
+    const { layer, calls } = createTestLayer();
 
     return Effect.gen(function* () {
       yield* Scene.sync(declaration);
@@ -96,11 +70,12 @@ describe("Scene.sync", () => {
     });
 
     const { layer, calls } = createTestLayer({
-      handlers: freshSceneHandlers({
-        GetSceneList: () => ({
-          scenes: [{ sceneName: "Main Scene", sceneIndex: 0 }],
-        }),
-      }),
+      scenes: [
+        {
+          name: "Main Scene",
+          privateSettings: { SCENEIFY: { init: "created" } },
+        },
+      ],
     });
 
     return Effect.gen(function* () {
@@ -126,9 +101,7 @@ describe("Scene.sync", () => {
       },
     });
 
-    const { layer, calls } = createTestLayer({
-      handlers: freshSceneHandlers(),
-    });
+    const { layer, calls } = createTestLayer();
 
     return Effect.gen(function* () {
       yield* Scene.sync(declaration);
@@ -157,9 +130,7 @@ describe("Scene.sync", () => {
       },
     });
 
-    const { layer } = createTestLayer({
-      handlers: freshSceneHandlers(),
-    });
+    const { layer } = createTestLayer();
 
     return Effect.gen(function* () {
       const scene = yield* Scene.sync(declaration);
@@ -180,9 +151,7 @@ describe("Scene.sync", () => {
       },
     });
 
-    const { layer } = createTestLayer({
-      handlers: freshSceneHandlers(),
-    });
+    const { layer } = createTestLayer();
 
     return Effect.gen(function* () {
       const scene = yield* Scene.sync(declaration);
@@ -204,16 +173,11 @@ describe("Scene.sync", () => {
       },
     });
 
-    let nextId = 42;
-    const { layer } = createTestLayer({
-      handlers: freshSceneHandlers({
-        CreateInput: () => ({ sceneItemId: nextId++ }),
-      }),
-    });
+    const { layer } = createTestLayer();
 
     return Effect.gen(function* () {
       const scene = yield* Scene.sync(declaration);
-      expect(scene.item("chat").id).toBe(42);
+      expect(scene.item("chat").id).toBe(1);
     }).pipe(Effect.provide(layer));
   });
 
@@ -236,9 +200,7 @@ describe("Scene.sync", () => {
       },
     });
 
-    const { layer, calls } = createTestLayer({
-      handlers: freshSceneHandlers(),
-    });
+    const { layer, calls } = createTestLayer();
 
     return Effect.gen(function* () {
       const scene = yield* Scene.sync(declaration);
@@ -268,9 +230,7 @@ describe("Scene.sync", () => {
       },
     });
 
-    const { layer, calls } = createTestLayer({
-      handlers: freshSceneHandlers(),
-    });
+    const { layer, calls } = createTestLayer();
 
     return Effect.gen(function* () {
       yield* Scene.sync(declaration);
@@ -300,11 +260,26 @@ describe("Scene.sync", () => {
       });
 
       const { layer, calls } = createTestLayer({
-        handlers: freshSceneHandlers({
-          GetSceneItemList: () => ({
-            sceneItems: [{ sceneItemId: 10, sourceName: "Chat" }],
-          }),
-        }),
+        inputs: [
+          {
+            name: "Chat",
+            kind: "browser_source",
+            privateSettings: { SCENEIFY: { init: "created" } },
+          },
+        ],
+        scenes: [
+          {
+            name: "Main Scene",
+            privateSettings: { SCENEIFY: { init: "created" } },
+            items: [
+              {
+                id: 10,
+                sourceName: "Chat",
+                privateSettings: { SCENEIFY: { init: "created" } },
+              },
+            ],
+          },
+        ],
       });
 
       return Effect.gen(function* () {
@@ -333,11 +308,26 @@ describe("Scene.sync", () => {
     });
 
     const { layer, calls } = createTestLayer({
-      handlers: freshSceneHandlers({
-        GetSceneItemList: () => ({
-          sceneItems: [{ sceneItemId: 99, sourceName: "Old Stale Input" }],
-        }),
-      }),
+      inputs: [
+        {
+          name: "Old Stale Input",
+          kind: "browser_source",
+          privateSettings: { SCENEIFY: { init: "created" } },
+        },
+      ],
+      scenes: [
+        {
+          name: "Main Scene",
+          privateSettings: { SCENEIFY: { init: "created" } },
+          items: [
+            {
+              id: 99,
+              sourceName: "Old Stale Input",
+              privateSettings: { SCENEIFY: { init: "created" } },
+            },
+          ],
+        },
+      ],
     });
 
     return Effect.gen(function* () {
@@ -373,13 +363,7 @@ describe("Scene.sync", () => {
         },
       });
 
-      const { layer, calls } = createTestLayer({
-        handlers: freshSceneHandlers({
-          CreateSourceFilter: () => ({}),
-          SetSourceFilterSettings: () => ({}),
-          SetSourceFilterEnabled: () => ({}),
-        }),
-      });
+      const { layer, calls } = createTestLayer();
 
       return Effect.gen(function* () {
         yield* Scene.sync(declaration);
@@ -417,13 +401,7 @@ describe("Scene.sync", () => {
         },
       });
 
-      const { layer, calls } = createTestLayer({
-        handlers: freshSceneHandlers({
-          CreateSourceFilter: () => ({}),
-          SetSourceFilterSettings: () => ({}),
-          SetSourceFilterEnabled: () => ({}),
-        }),
-      });
+      const { layer, calls } = createTestLayer();
 
       return Effect.gen(function* () {
         yield* Scene.sync(declaration);
@@ -461,13 +439,7 @@ describe("Scene.sync", () => {
           },
         });
 
-        const { layer } = createTestLayer({
-          handlers: freshSceneHandlers({
-            CreateSourceFilter: () => ({}),
-            SetSourceFilterSettings: () => ({}),
-            SetSourceFilterEnabled: () => ({}),
-          }),
-        });
+        const { layer } = createTestLayer();
 
         return Effect.gen(function* () {
           const scene = yield* Scene.sync(declaration);
@@ -495,12 +467,26 @@ describe("Scene.sync", () => {
       });
 
       const { layer, calls } = createTestLayer({
-        handlers: freshSceneHandlers({
-          GetSceneItemList: () => ({
-            sceneItems: [{ sceneItemId: 10, sourceName: "Chat" }],
-          }),
-          SetInputSettings: () => ({}),
-        }),
+        inputs: [
+          {
+            name: "Chat",
+            kind: "browser_source",
+            privateSettings: { SCENEIFY: { init: "created" } },
+          },
+        ],
+        scenes: [
+          {
+            name: "Main Scene",
+            privateSettings: { SCENEIFY: { init: "created" } },
+            items: [
+              {
+                id: 10,
+                sourceName: "Chat",
+                privateSettings: { SCENEIFY: { init: "created" } },
+              },
+            ],
+          },
+        ],
       });
 
       return Effect.gen(function* () {
@@ -540,11 +526,7 @@ describe("Scene.sync", () => {
           },
         });
 
-        const { layer, calls } = createTestLayer({
-          handlers: freshSceneHandlers({
-            CreateSceneItem: () => ({ sceneItemId: 99 }),
-          }),
-        });
+        const { layer, calls } = createTestLayer();
 
         return Effect.gen(function* () {
           yield* Scene.sync(scene1);
@@ -589,12 +571,26 @@ describe("Scene.sync", () => {
         });
 
         const { layer, calls } = createTestLayer({
-          handlers: freshSceneHandlers({
-            GetSceneItemList: () => ({
-              sceneItems: [{ sceneItemId: 10, sourceName: "Chat" }],
-            }),
-            SetInputSettings: () => ({}),
-          }),
+          inputs: [
+            {
+              name: "Chat",
+              kind: "browser_source",
+              privateSettings: { SCENEIFY: { init: "created" } },
+            },
+          ],
+          scenes: [
+            {
+              name: "Main Scene",
+              privateSettings: { SCENEIFY: { init: "created" } },
+              items: [
+                {
+                  id: 10,
+                  sourceName: "Chat",
+                  privateSettings: { SCENEIFY: { init: "created" } },
+                },
+              ],
+            },
+          ],
         });
 
         return Effect.gen(function* () {
@@ -645,11 +641,7 @@ describe("Scene.sync", () => {
           },
         });
 
-        const { layer } = createTestLayer({
-          handlers: freshSceneHandlers({
-            CreateSceneItem: () => ({ sceneItemId: 77 }),
-          }),
-        });
+        const { layer } = createTestLayer();
 
         return Effect.gen(function* () {
           const scene = yield* Scene.sync(declaration);
@@ -661,7 +653,7 @@ describe("Scene.sync", () => {
             settings: { url: "https://overlay.com" },
           });
 
-          expect(newItem.id).toBe(newItem.id);
+          expect(newItem.id).toBe(2);
           expect(newItem.input.name).toBe("Overlay");
           expect(newItem.declared).toBe(false);
         }).pipe(Effect.provide(layer));
@@ -680,12 +672,7 @@ describe("Scene.sync", () => {
         },
       });
 
-      const { layer, calls } = createTestLayer({
-        handlers: freshSceneHandlers({
-          CreateSceneItem: () => ({ sceneItemId: 77 }),
-          RemoveSceneItem: () => ({}),
-        }),
-      });
+      const { layer, calls } = createTestLayer();
 
       return Effect.gen(function* () {
         const scene = yield* Scene.sync(declaration);

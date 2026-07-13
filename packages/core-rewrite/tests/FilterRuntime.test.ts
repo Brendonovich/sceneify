@@ -2,7 +2,8 @@ import { describe, expect } from "vitest";
 import { it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { FilterType } from "../src/FilterType.js";
-import { createMockOBSSocket, type CallHandler } from "./helpers.js";
+import { MockOBSSocket } from "../src/index.js";
+import { createMockOBSSocket } from "./helpers.js";
 import { Filter } from "../src/Filter.js";
 
 class ColorCorrection extends FilterType("color_filter_v2")({
@@ -12,28 +13,38 @@ class ColorCorrection extends FilterType("color_filter_v2")({
 }) {}
 
 const createTestFilter = Effect.fn(function* (
-  handlers: Record<string, CallHandler> = {}
+  options: MockOBSSocket.Options = {}
 ) {
-  const mock = createMockOBSSocket({ handlers });
+  const mock = createMockOBSSocket({
+    inputs: [
+      {
+        name: "Chat Browser",
+        kind: "browser_source",
+        filters: [
+          {
+            name: "Color Fix",
+            kind: "color_filter_v2",
+            settings: { gamma: 1.5, contrast: 1.2, brightness: 0.8 },
+          },
+          { name: "Sharpen", kind: "sharpness_filter_v2" },
+          { name: "Mask", kind: "mask_filter_v2" },
+        ],
+      },
+    ],
+    ...options,
+  });
   const filter = yield* Filter.make<typeof ColorCorrection>(
     "Color Fix",
     "Chat Browser"
   ).pipe(Effect.provide(mock.layer));
-  return { filter, calls: mock.calls };
+  return { filter, calls: mock.calls, snapshot: mock.snapshot };
 });
 
 describe("Filter", () => {
   describe("getSettings", () => {
     it("should get filter settings from OBS", () =>
       Effect.gen(function* () {
-        const { filter } = yield* createTestFilter({
-          GetSourceFilter: () => ({
-            filterSettings: { gamma: 1.5, contrast: 1.2, brightness: 0.8 },
-            filterEnabled: true,
-            filterIndex: 0,
-            filterKind: "color_filter_v2",
-          }),
-        });
+        const { filter } = yield* createTestFilter();
 
         expect(yield* filter.getSettings()).toEqual({
           gamma: 1.5,
@@ -46,9 +57,7 @@ describe("Filter", () => {
   describe("setSettings", () => {
     it("should set filter settings on OBS", () =>
       Effect.gen(function* () {
-        const { filter, calls } = yield* createTestFilter({
-          SetSourceFilterSettings: () => ({}),
-        });
+        const { filter, calls, snapshot } = yield* createTestFilter();
 
         yield* filter.setSettings({ gamma: 2.0 });
 
@@ -60,17 +69,20 @@ describe("Filter", () => {
             filterSettings: { gamma: 2.0 },
           },
         });
+        expect(snapshot().inputs[0]?.filters[0]?.settings).toEqual({
+          gamma: 2,
+          contrast: 1.2,
+          brightness: 0.8,
+        });
       }));
   });
 
   describe("setEnabled", () => {
     it("should enable/disable a filter", () =>
       Effect.gen(function* () {
-        const { filter, calls } = yield* createTestFilter({
-          SetSourceFilterEnabled: () => ({}),
-        });
+        const { filter, calls, snapshot } = yield* createTestFilter();
 
-        filter.setEnabled(false);
+        yield* filter.setEnabled(false);
 
         expect(calls).toContainEqual({
           requestType: "SetSourceFilterEnabled",
@@ -80,15 +92,14 @@ describe("Filter", () => {
             filterEnabled: false,
           },
         });
+        expect(snapshot().inputs[0]?.filters[0]?.enabled).toBe(false);
       }));
   });
 
   describe("setIndex", () => {
     it("should set filter index/order", () =>
       Effect.gen(function* () {
-        const { filter, calls } = yield* createTestFilter({
-          SetSourceFilterIndex: () => ({}),
-        });
+        const { filter, calls, snapshot } = yield* createTestFilter();
 
         yield* filter.setIndex(2);
 
@@ -100,6 +111,11 @@ describe("Filter", () => {
             filterIndex: 2,
           },
         });
+        expect(snapshot().inputs[0]?.filters.map(({ name }) => name)).toEqual([
+          "Sharpen",
+          "Mask",
+          "Color Fix",
+        ]);
       }));
   });
 

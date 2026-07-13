@@ -3,7 +3,8 @@ import { it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { InputType } from "../src/InputType.js";
 import { Input } from "../src/Input.js";
-import { createMockOBSSocket, type CallHandler } from "./helpers.js";
+import { MockOBSSocket } from "../src/index.js";
+import { createMockOBSSocket } from "./helpers.js";
 
 class BrowserSource extends InputType("browser_source")({
   url: Schema.String,
@@ -12,23 +13,30 @@ class BrowserSource extends InputType("browser_source")({
 }) {}
 
 const createTestInput = Effect.fnUntraced(function* (
-  handlers: Record<string, CallHandler> = {}
+  options: MockOBSSocket.Options = {}
 ) {
-  const mock = createMockOBSSocket({ handlers });
+  const mock = createMockOBSSocket({
+    inputs: [
+      {
+        name: "Chat",
+        kind: "browser_source",
+        settings: { url: "https://example.com", width: 1920, height: 1080 },
+      },
+    ],
+    ...options,
+  });
   const input = yield* Input.make<typeof BrowserSource>(
     "Chat",
     "browser_source"
   ).pipe(Effect.provide(mock.layer));
-  return { input, calls: mock.calls };
+  return { input, calls: mock.calls, snapshot: mock.snapshot };
 });
 
 describe("Input", () => {
   describe("setSettings", () => {
     it("should call SetInputSettings with the input name and settings", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputSettings: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setSettings({ url: "https://example.com", width: 1920 });
 
@@ -39,13 +47,16 @@ describe("Input", () => {
             inputSettings: { url: "https://example.com", width: 1920 },
           },
         });
+        expect(snapshot().inputs[0]?.settings).toEqual({
+          url: "https://example.com",
+          width: 1920,
+          height: 1080,
+        });
       }));
 
     it("should support partial settings", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputSettings: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setSettings({ url: "https://new-url.com" });
 
@@ -53,22 +64,18 @@ describe("Input", () => {
           inputName: "Chat",
           inputSettings: { url: "https://new-url.com" },
         });
+        expect(snapshot().inputs[0]?.settings).toEqual({
+          url: "https://new-url.com",
+          width: 1920,
+          height: 1080,
+        });
       }));
   });
 
   describe("getSettings", () => {
     it("should call GetInputSettings and return the settings", () =>
       Effect.gen(function* () {
-        const { input } = yield* createTestInput({
-          GetInputSettings: () => ({
-            inputSettings: {
-              url: "https://example.com",
-              width: 1920,
-              height: 1080,
-            },
-            inputKind: "browser_source",
-          }),
-        });
+        const { input } = yield* createTestInput();
 
         const settings = yield* input.getSettings();
         expect(settings).toEqual({
@@ -83,7 +90,7 @@ describe("Input", () => {
     it("should get muted state", () =>
       Effect.gen(function* () {
         const { input } = yield* createTestInput({
-          GetInputMute: () => ({ inputMuted: true }),
+          inputs: [{ name: "Chat", kind: "browser_source", muted: true }],
         });
 
         expect(yield* input.getMuted()).toBe(true);
@@ -91,9 +98,7 @@ describe("Input", () => {
 
     it("should set muted state", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputMute: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setMuted(true);
 
@@ -101,16 +106,18 @@ describe("Input", () => {
           requestType: "SetInputMute",
           requestData: { inputName: "Chat", inputMuted: true },
         });
+        expect(snapshot().inputs[0]?.muted).toBe(true);
       }));
 
     it("should toggle muted state and return new state", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          ToggleInputMute: () => ({ inputMuted: false }),
+        const { input, calls, snapshot } = yield* createTestInput({
+          inputs: [{ name: "Chat", kind: "browser_source", muted: true }],
         });
 
         expect(yield* input.toggleMuted()).toBe(false);
         expect(calls[0]?.requestType).toBe("ToggleInputMute");
+        expect(snapshot().inputs[0]?.muted).toBe(false);
       }));
   });
 
@@ -118,23 +125,17 @@ describe("Input", () => {
     it("should get volume as { db, mul }", () =>
       Effect.gen(function* () {
         const { input } = yield* createTestInput({
-          GetInputVolume: () => ({
-            inputVolumeDb: -6.0,
-            inputVolumeMul: 0.5,
-          }),
+          inputs: [{ name: "Chat", kind: "browser_source", volumeMul: 0.5 }],
         });
 
-        expect(yield* input.getVolume()).toEqual({
-          db: -6.0,
-          mul: 0.5,
-        });
+        const volume = yield* input.getVolume();
+        expect(volume.db).toBeCloseTo(-6.02);
+        expect(volume.mul).toBe(0.5);
       }));
 
     it("should set volume by dB", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputVolume: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setVolume({ db: -12.0 });
 
@@ -142,13 +143,12 @@ describe("Input", () => {
           requestType: "SetInputVolume",
           requestData: { inputName: "Chat", inputVolumeDb: -12.0 },
         });
+        expect(snapshot().inputs[0]?.volumeMul).toBeCloseTo(0.2512);
       }));
 
     it("should set volume by multiplier", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputVolume: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setVolume({ mul: 0.75 });
 
@@ -156,6 +156,7 @@ describe("Input", () => {
           requestType: "SetInputVolume",
           requestData: { inputName: "Chat", inputVolumeMul: 0.75 },
         });
+        expect(snapshot().inputs[0]?.volumeMul).toBe(0.75);
       }));
   });
 
@@ -163,7 +164,9 @@ describe("Input", () => {
     it("should get audio sync offset", () =>
       Effect.gen(function* () {
         const { input } = yield* createTestInput({
-          GetInputAudioSyncOffset: () => ({ inputAudioSyncOffset: 150 }),
+          inputs: [
+            { name: "Chat", kind: "browser_source", audioSyncOffset: 150 },
+          ],
         });
 
         expect(yield* input.getAudioSyncOffset()).toBe(150);
@@ -171,9 +174,7 @@ describe("Input", () => {
 
     it("should set audio sync offset", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputAudioSyncOffset: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setAudioSyncOffset(200);
 
@@ -181,14 +182,21 @@ describe("Input", () => {
           requestType: "SetInputAudioSyncOffset",
           requestData: { inputName: "Chat", inputAudioSyncOffset: 200 },
         });
+        expect(snapshot().inputs[0]?.audioSyncOffset).toBe(200);
       }));
   });
 
   describe("setAudioMonitorType", () => {
     it("should set monitor type to none", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputAudioMonitorType: () => ({}),
+        const { input, calls, snapshot } = yield* createTestInput({
+          inputs: [
+            {
+              name: "Chat",
+              kind: "browser_source",
+              audioMonitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY",
+            },
+          ],
         });
 
         yield* input.setAudioMonitorType("none");
@@ -200,13 +208,14 @@ describe("Input", () => {
             monitorType: "OBS_MONITORING_TYPE_NONE",
           },
         });
+        expect(snapshot().inputs[0]?.audioMonitorType).toBe(
+          "OBS_MONITORING_TYPE_NONE"
+        );
       }));
 
     it("should set monitor type to monitorOnly", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputAudioMonitorType: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setAudioMonitorType("monitorOnly");
 
@@ -217,13 +226,14 @@ describe("Input", () => {
             monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY",
           },
         });
+        expect(snapshot().inputs[0]?.audioMonitorType).toBe(
+          "OBS_MONITORING_TYPE_MONITOR_ONLY"
+        );
       }));
 
     it("should set monitor type to monitorAndOutput", () =>
       Effect.gen(function* () {
-        const { input, calls } = yield* createTestInput({
-          SetInputAudioMonitorType: () => ({}),
-        });
+        const { input, calls, snapshot } = yield* createTestInput();
 
         yield* input.setAudioMonitorType("monitorAndOutput");
 
@@ -234,6 +244,9 @@ describe("Input", () => {
             monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
           },
         });
+        expect(snapshot().inputs[0]?.audioMonitorType).toBe(
+          "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+        );
       }));
   });
 
@@ -251,7 +264,20 @@ describe("Input", () => {
         ];
 
         const { input } = yield* createTestInput({
-          GetSourceFilterList: () => ({ filters: mockFilters }),
+          inputs: [
+            {
+              name: "Chat",
+              kind: "browser_source",
+              filters: [
+                {
+                  name: "Color Fix",
+                  kind: "color_filter_v2",
+                  settings: { gamma: 1.5 },
+                  enabled: true,
+                },
+              ],
+            },
+          ],
         });
 
         expect(yield* input.getFilters()).toEqual(mockFilters);

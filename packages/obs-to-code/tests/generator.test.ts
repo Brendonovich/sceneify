@@ -64,67 +64,13 @@ describe("CodeGenerator", () => {
     ],
   };
 
-  it.effect("should generate valid TypeScript code", () =>
+  it.effect("should generate known inputs and scenes", () =>
     Effect.gen(function* () {
       const registry = new TypeRegistry();
       const generator = new CodeGenerator(registry);
       const code = yield* generator.generate(mockData);
 
-      // Basic validation
-      expect(code).toContain("import");
-      expect(code).toContain("Input.declare");
-      expect(code).toContain("Scene.declare");
-      expect(code).toContain("export {");
-    })
-  );
-
-  it.effect("should generate unique variable names", () =>
-    Effect.gen(function* () {
-      const registry = new TypeRegistry();
-      const generator = new CodeGenerator(registry);
-      const code = yield* generator.generate(mockData);
-
-      // Should contain the input declarations with camelCase names
-      expect(code).toContain("const chatBrowser = Input.declare");
-      expect(code).toContain("const background = Input.declare");
-      expect(code).toContain("const mainScene = Scene.declare");
-    })
-  );
-
-  it.effect("should include correct imports from @sceneify/sources", () =>
-    Effect.gen(function* () {
-      const registry = new TypeRegistry();
-      const generator = new CodeGenerator(registry);
-      const code = yield* generator.generate(mockData);
-
-      expect(code).toContain("BrowserSource");
-      expect(code).toContain("ColorSource");
-      expect(code).toContain('from "@sceneify/sources"');
-    })
-  );
-
-  it.effect("should format settings correctly", () =>
-    Effect.gen(function* () {
-      const registry = new TypeRegistry();
-      const generator = new CodeGenerator(registry);
-      const code = yield* generator.generate(mockData);
-
-      // Check that settings are properly formatted
-      expect(code).toContain('url: "https://example.com/chat"');
-      expect(code).toContain("width: 400");
-      expect(code).toContain("height: 600");
-    })
-  );
-
-  it.effect("should handle transforms correctly", () =>
-    Effect.gen(function* () {
-      const registry = new TypeRegistry();
-      const generator = new CodeGenerator(registry);
-      const code = yield* generator.generate(mockData);
-
-      expect(code).toContain("transform:");
-      expect(code).toContain("positionX: 100");
-      expect(code).toContain("scaleX: 0.5");
+      expect(code).toMatchSnapshot();
     })
   );
 
@@ -153,9 +99,7 @@ describe("CodeGenerator", () => {
       const generator = new CodeGenerator(registry);
       const code = yield* generator.generate(dataWithFilters);
 
-      expect(code).toContain("ColorCorrectionFilter");
-      expect(code).toContain("filters:");
-      expect(code).toContain("colorCorrection:");
+      expect(code).toMatchSnapshot();
     });
   });
 
@@ -206,13 +150,7 @@ describe("CodeGenerator", () => {
         });
         const code = yield* generator.generate(dataWithUnknown);
 
-        expect(code).toContain(
-          "class CustomUnknownKindInput extends InputType"
-        );
-        expect(code).toContain('"custom_unknown_kind"');
-        expect(code).toContain(
-          'InputType("custom_unknown_kind")({ "custom_prop": Schema.String })'
-        );
+        expect(code).toMatchSnapshot();
       })
   );
 });

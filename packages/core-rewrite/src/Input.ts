@@ -1,9 +1,9 @@
-import type { InputTypeSettings, InputType } from "./InputType.ts";
-import type { Filter } from "./Filter.ts";
-import { OBSSocket } from "./OBSSocket.ts";
 import { Effect } from "effect";
 import type { OBSError } from "./errors.ts";
+import type { Filter } from "./Filter.ts";
 import type { FilterType } from "./FilterType.ts";
+import type { InputType, InputTypeSettings } from "./InputType.ts";
+import { OBSSocket } from "./OBSSocket.ts";
 
 export namespace Input {
   /**
@@ -142,8 +142,8 @@ export namespace Input {
    * ```
    */
   export const declare = <
-    const TType extends InputType<any, any>,
-    const TFilters extends Record<string, FilterType> = {}
+    TType extends InputType<any, any>,
+    TFilters extends Record<string, FilterType> = {}
   >(
     type: TType,
     options: {
